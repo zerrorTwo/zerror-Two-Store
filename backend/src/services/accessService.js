@@ -2,7 +2,7 @@ import ApiError from "../utils/ApiError.js";
 import User from "../models/userModel.js";
 import { StatusCodes } from "http-status-codes";
 import crypto from "crypto";
-import { keyTokenService } from "./keyTokenService.js";
+import { keyTokenService, removeKeyById } from "./keyTokenService.js";
 import { generateToken } from "../auth/authUtil.js";
 import bcrypt from "bcryptjs";
 
@@ -116,6 +116,11 @@ const signIn = async ({ email, password }) => {
   }
 };
 
+const logout = async ({ keyStore }) => {
+  const delKey = await removeKeyById(keyStore._id);
+  return delKey;
+};
+
 const findByEmail = async ({
   email,
   select = {
@@ -128,4 +133,4 @@ const findByEmail = async ({
   return await User.findOne({ email: email }).select(select).lean();
 };
 
-export { signUp, signIn, findByEmail };
+export { signUp, signIn, logout, findByEmail };

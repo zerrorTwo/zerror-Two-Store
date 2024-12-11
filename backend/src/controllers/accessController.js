@@ -1,4 +1,4 @@
-import { signUp, signIn } from "../services/accessService.js";
+import { signUp, signIn, logout } from "../services/accessService.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
 import { StatusCodes } from "http-status-codes";
 
@@ -24,4 +24,17 @@ const signInController = asyncHandler(async (req, res, next) => {
   }
 });
 
-export { signUpController, signInController };
+const logoutController = asyncHandler(async (req, res, next) => {
+  const { keyStore } = req;
+  console.log(keyStore);
+
+  const deletedKey = await logout({ keyStore });
+
+  if (deletedKey) {
+    res.status(StatusCodes.OK).json({ message: "Successfully logged out" });
+  } else {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Error logging out");
+  }
+});
+
+export { signUpController, signInController, logoutController };
