@@ -1,3 +1,4 @@
+import { Types } from "mongoose";
 import KeyModel from "../models/keyModel.js";
 
 const keyTokenService = async ({ userId, publicKey, refreshToken }) => {
@@ -23,4 +24,12 @@ const keyTokenService = async ({ userId, publicKey, refreshToken }) => {
   }
 };
 
-export { keyTokenService };
+const findByUserId = async (userId) => {
+  return await KeyModel.findOne({ user: new Types.ObjectId(userId) }).lean();
+};
+
+const removeKeyById = async (userId) => {
+  return await KeyModel.deleteOne(userId);
+};
+
+export { keyTokenService, findByUserId, removeKeyById };
