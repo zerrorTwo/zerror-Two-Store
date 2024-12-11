@@ -14,6 +14,11 @@ const keyTokenSchema = new mongoose.Schema(
     },
 
     refreshToken: {
+      type: String,
+      required: true,
+    },
+
+    refreshTokensUsed: {
       type: Array,
       default: [],
     },
@@ -21,6 +26,6 @@ const keyTokenSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const Key = mongoose.model("Key", keyTokenSchema);
+const KeyModel = mongoose.model("Key", keyTokenSchema);
 
-export default Key;
+export default KeyModel;
