@@ -4,6 +4,7 @@ import { HEADER, COOKIE } from "../constants/headerContans.js";
 import ApiError from "../utils/ApiError.js";
 import { StatusCodes } from "http-status-codes";
 import { findByUserId } from "../services/keyTokenService.js";
+import { findRoleByUserId } from "../services/accessService.js";
 const generateToken = async (payload, privateKey, publicKey) => {
   try {
     const accessToken = jwt.sign(payload, privateKey, {
@@ -60,6 +61,28 @@ const authentication = asyncHandeler(async (req, res, next) => {
     return next();
   } catch (error) {
     throw error;
+  }
+});
+
+const authorization = asyncHandeler(async (req, res, next) => {
+  try {
+    const keyStore = req.keyStore;
+    if (!keyStore) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid request");
+    }
+
+    const user = await findRoleByUserId(keyStore.user);
+    if (!user) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
+    }
+
+    if (user.isAdmin) {
+      return next();
+    } else {
+      throw new ApiError(StatusCodes.FORBIDDEN, "Access denied");
+    }
+  } catch (error) {
+    next(error);
   }
 });
 

@@ -239,4 +239,8 @@ const findByEmail = async ({
   return await User.findOne({ email: email }).select(select).lean();
 };
 
-export { signUp, signIn, logout, refreshToken, findByEmail };
+const findRoleByUserId = async (userId) => {
+  return await User.findOne({ _id: userId }).select("-password").lean();
+};
+
+export { signUp, signIn, logout, refreshToken, findByEmail, findRoleByUserId };
