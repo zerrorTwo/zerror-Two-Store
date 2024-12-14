@@ -1,6 +1,10 @@
 const HEADER = {
-  AUTHORIZATION: "jwt",
+  AUTHORIZATION: "authorization",
   CLIENT_ID: "x-client-id",
 };
 
-export { HEADER };
+const COOKIE = {
+  JWT: "jwt",
+};
+
+export { HEADER, COOKIE };
