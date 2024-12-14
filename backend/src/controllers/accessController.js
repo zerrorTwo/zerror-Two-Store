@@ -1,4 +1,9 @@
-import { signUp, signIn, logout } from "../services/accessService.js";
+import {
+  signUp,
+  signIn,
+  logout,
+  refreshToken,
+} from "../services/accessService.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
 import { StatusCodes } from "http-status-codes";
 
@@ -21,11 +26,7 @@ const signInController = asyncHandler(async (req, res, next) => {
 });
 
 const logoutController = asyncHandler(async (req, res, next) => {
-  const { keyStore, refreshToken } = req;
-
-  // console.log(keyStore);
-
-  const deletedKey = await logout({ keyStore, refreshToken });
+  const deletedKey = await logout(req, res);
 
   if (deletedKey) {
     res.status(StatusCodes.OK).json({ message: "Successfully logged out" });
@@ -34,4 +35,18 @@ const logoutController = asyncHandler(async (req, res, next) => {
   }
 });
 
-export { signUpController, signInController, logoutController };
+const refreshTokenController = asyncHandler(async (req, res, next) => {
+  try {
+    const accessToken = await refreshToken(req, res);
+    res.status(StatusCodes.OK).json(accessToken);
+  } catch (error) {
+    next(error);
+  }
+});
+
+export {
+  signUpController,
+  signInController,
+  logoutController,
+  refreshTokenController,
+};

@@ -1,12 +1,18 @@
 import { Types } from "mongoose";
 import KeyModel from "../models/keyModel.js";
 
-const keyTokenService = async ({ userId, publicKey, refreshToken }) => {
+const keyTokenService = async ({
+  userId,
+  privateKey,
+  publicKey,
+  refreshToken,
+}) => {
   try {
     const filter = { user: userId };
     const update = {
+      privateKey,
       publicKey,
-      $push: { refreshToken }, // Thêm refreshToken vào mảng
+      refreshToken, // Thêm refreshToken vào mảng
     };
     const options = { upsert: true, new: true }; // Nếu không tồn tại, tạo mới
 
@@ -34,22 +40,8 @@ const removeKeyById = async ({ id, refreshToken }) => {
       throw new Error("User not found.");
     }
 
-    if (user.refreshToken.includes(refreshToken)) {
-      user.refreshToken = user.refreshToken.filter(
-        (token) => token !== refreshToken
-      );
-
-      await user.save();
-
-      if (user.refreshToken.length === 0) {
-        await KeyModel.deleteOne({ _id: id });
-        return { message: "User refresh tokens removed and document deleted." };
-      }
-
-      return { message: "Refresh token removed from user." };
-    } else {
-      return { message: "Refresh token not found." };
-    }
+    await KeyModel.deleteOne({ _id: id });
+    return { message: "Delete successfully" };
   } catch (error) {
     throw new Error("Failed to remove refresh token");
   }
