@@ -11,7 +11,6 @@ import connectDB from "./src/config/db.js";
 import { errorHandlingMiddleware } from "./src/middlewares/errorMiddleware.js";
 
 dotenv.config();
-console.log(process.env.PORT);
 
 const port = process.env.PORT || 5000;
 
