@@ -18,12 +18,10 @@ const generateToken = async (payload, privateKey, publicKey) => {
     // Verify access token using the public key
     jwt.verify(accessToken, publicKey, (err, decode) => {
       if (err) throw err;
-      // console.log("decode success", decode);
     });
 
     return { accessToken, refreshToken };
   } catch (error) {
-    // console.error("Error in generateToken:", error);
     throw error;
   }
 };
@@ -40,6 +38,7 @@ const authentication = asyncHandeler(async (req, res, next) => {
   if (!keyStore) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Not found keyStore");
   }
+
   const bearerAccessToken = req.headers[HEADER.AUTHORIZATION];
 
   const accessToken = bearerAccessToken.split(" ")[1];
@@ -55,12 +54,6 @@ const authentication = asyncHandeler(async (req, res, next) => {
     }
 
     const refreshToken = req.cookies[COOKIE.JWT];
-
-    res.clearCookie(COOKIE.JWT, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-    });
 
     req.keyStore = keyStore;
     req.refreshToken = refreshToken;
