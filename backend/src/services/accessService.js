@@ -5,6 +5,8 @@ import crypto from "crypto";
 import { keyTokenService, removeKeyById } from "./keyTokenService.js";
 import { generateToken } from "../auth/authUtil.js";
 import bcrypt from "bcryptjs";
+import bcryptPassword from "../utils/bcryptPassword.js";
+import { COOKIE } from "../constants/headerContans.js";
 
 const signUp = async (req, res) => {
   const { userName, email, password } = req.body;
@@ -46,10 +48,20 @@ const signUp = async (req, res) => {
       refreshToken: tokens.refreshToken.toString(),
     });
 
-    console.log(tokens);
+    // console.log(tokens);
+    res.cookie(COOKIE.JWT, tokens.refreshToken.toString(), {
+      httpOnly: true,
+      sercure: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     const { password: _, ...userWithoutPassword } = newUser.toObject();
-    return userWithoutPassword;
+
+    return {
+      user: userWithoutPassword,
+      accessToken: tokens.accessToken.toString(),
+    };
   } catch (error) {
     if (error.code === 11000) {
       throw new ApiError(StatusCodes.CONFLICT, "Email already exists");
@@ -64,13 +76,14 @@ const signUp = async (req, res) => {
   }
 };
 
-const signIn = async ({ email, password }) => {
+const signIn = async (req, res) => {
   //  1.Check email
   //  2.Check password
   //  3. Generate PK and PK
   //  4. Generate tokens
   //  5. Get data
   try {
+    const { email, password } = req.body;
     const user = await findByEmail({ email });
     if (!user) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid email or password");
@@ -93,11 +106,22 @@ const signIn = async ({ email, password }) => {
       },
     });
 
+    // console.log(publicKey, privateKey);
+
     const tokens = await generateToken(
       { id: user._id, email: user.email },
       privateKey,
       publicKey
     );
+
+    res.cookie(COOKIE.JWT, tokens.refreshToken.toString(), {
+      httpOnly: true,
+      sercure: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // console.log(tokens);
 
     await keyTokenService({
       refreshToken: tokens.refreshToken,
@@ -109,15 +133,17 @@ const signIn = async ({ email, password }) => {
 
     return {
       user: userWithoutPassword,
-      tokens,
+      accessToken: tokens.accessToken.toString(),
     };
-  } catch (error) {
-    return error;
+  } catch (err) {
+    throw err;
   }
 };
 
-const logout = async ({ keyStore }) => {
-  const delKey = await removeKeyById(keyStore._id);
+const logout = async ({ keyStore, refreshToken }) => {
+  // console.log(refreshToken);
+
+  const delKey = await removeKeyById({ id: keyStore._id, refreshToken });
   return delKey;
 };
 

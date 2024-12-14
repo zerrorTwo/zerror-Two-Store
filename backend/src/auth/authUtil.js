@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import asyncHandeler from "../middlewares/asyncHandler.js";
-import { HEADER } from "../constants/headerContans.js";
+import { HEADER, COOKIE } from "../constants/headerContans.js";
 import ApiError from "../utils/ApiError.js";
 import { StatusCodes } from "http-status-codes";
 import { findByUserId } from "../services/keyTokenService.js";
@@ -12,18 +12,18 @@ const generateToken = async (payload, privateKey, publicKey) => {
     });
     const refreshToken = jwt.sign(payload, privateKey, {
       algorithm: "RS256",
-      expiresIn: "30 days",
+      expiresIn: "7 days",
     });
 
     // Verify access token using the public key
     jwt.verify(accessToken, publicKey, (err, decode) => {
       if (err) throw err;
-      console.log("decode success", decode);
+      // console.log("decode success", decode);
     });
 
     return { accessToken, refreshToken };
   } catch (error) {
-    console.error("Error in generateToken:", error);
+    // console.error("Error in generateToken:", error);
     throw error;
   }
 };
@@ -40,19 +40,30 @@ const authentication = asyncHandeler(async (req, res, next) => {
   if (!keyStore) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Not found keyStore");
   }
-  const accessToken = req.headers[HEADER.AUTHORIZATION];
+  const bearerAccessToken = req.headers[HEADER.AUTHORIZATION];
+
+  const accessToken = bearerAccessToken.split(" ")[1];
 
   if (!accessToken) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid access token");
   }
   try {
     const decodeUser = jwt.verify(accessToken, keyStore.publicKey);
-    console.log(decodeUser.id);
 
     if (userId !== decodeUser.id) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Token does not match");
     }
+
+    const refreshToken = req.cookies[COOKIE.JWT];
+
+    res.clearCookie(COOKIE.JWT, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    });
+
     req.keyStore = keyStore;
+    req.refreshToken = refreshToken;
     return next();
   } catch (error) {
     throw error;

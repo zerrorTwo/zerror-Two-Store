@@ -4,8 +4,8 @@ import { StatusCodes } from "http-status-codes";
 
 const signUpController = asyncHandler(async (req, res, next) => {
   try {
-    const newUser = await signUp(req, res);
-    res.status(StatusCodes.CREATED).json(newUser);
+    const { user, accessToken } = await signUp(req, res);
+    res.status(StatusCodes.CREATED).json({ user, accessToken });
   } catch (error) {
     next(error);
   }
@@ -13,22 +13,19 @@ const signUpController = asyncHandler(async (req, res, next) => {
 
 const signInController = asyncHandler(async (req, res, next) => {
   try {
-    const { email, password } = req.body;
-    const { user, tokens } = await signIn({ email, password });
-    res.status(StatusCodes.OK).json({
-      user,
-      tokens,
-    });
+    const { user, accessToken } = await signIn(req, res);
+    res.status(StatusCodes.OK).json({ user, accessToken });
   } catch (error) {
     next(error);
   }
 });
 
 const logoutController = asyncHandler(async (req, res, next) => {
-  const { keyStore } = req;
-  console.log(keyStore);
+  const { keyStore, refreshToken } = req;
 
-  const deletedKey = await logout({ keyStore });
+  // console.log(keyStore);
+
+  const deletedKey = await logout({ keyStore, refreshToken });
 
   if (deletedKey) {
     res.status(StatusCodes.OK).json({ message: "Successfully logged out" });
