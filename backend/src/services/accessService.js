@@ -1,5 +1,5 @@
 import ApiError from "../utils/ApiError.js";
-import User from "../models/userModel.js";
+import UserModel from "../models/userModel.js";
 import { StatusCodes } from "http-status-codes";
 import crypto from "crypto";
 import {
@@ -25,7 +25,7 @@ const signUp = async (req, res) => {
   const hasPassword = await bcryptPassword(password);
 
   // Create and save the new user
-  const newUser = new User({ userName, email, password: hasPassword });
+  const newUser = new UserModel({ userName, email, password: hasPassword });
   try {
     const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
       modulusLength: 4096,
@@ -152,10 +152,10 @@ const signIn = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    const { keyStore, refreshToken } = req;
+    const { id, refreshToken } = req;
 
     // Remove refresh token from the database
-    const delKey = await removeKeyById({ id: keyStore._id, refreshToken });
+    const delKey = await removeKeyById({ id: id, refreshToken });
 
     // Clear the refresh token cookie
     res.clearCookie(COOKIE.JWT, {
@@ -236,11 +236,11 @@ const findByEmail = async ({
     isAdmin: 1,
   },
 }) => {
-  return await User.findOne({ email: email }).select(select).lean();
+  return await UserModel.findOne({ email: email }).select(select).lean();
 };
 
 const findRoleByUserId = async (userId) => {
-  return await User.findOne({ _id: userId }).select("-password").lean();
+  return await UserModel.findOne({ _id: userId }).select("-password").lean();
 };
 
 export { signUp, signIn, logout, refreshToken, findByEmail, findRoleByUserId };

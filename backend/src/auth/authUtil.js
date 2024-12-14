@@ -31,7 +31,7 @@ const authentication = asyncHandeler(async (req, res, next) => {
   const userId = req.headers[HEADER.CLIENT_ID];
 
   if (!userId) {
-    throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid request");
+    throw new ApiError(StatusCodes.UNAUTHORIZED, "Not found userId");
   }
 
   const keyStore = await findByUserId(userId);
@@ -56,7 +56,8 @@ const authentication = asyncHandeler(async (req, res, next) => {
 
     const refreshToken = req.cookies[COOKIE.JWT];
 
-    req.keyStore = keyStore;
+    req.id = keyStore._id;
+    req.user = keyStore.user;
     req.refreshToken = refreshToken;
     return next();
   } catch (error) {
@@ -66,12 +67,12 @@ const authentication = asyncHandeler(async (req, res, next) => {
 
 const authorization = asyncHandeler(async (req, res, next) => {
   try {
-    const keyStore = req.keyStore;
-    if (!keyStore) {
+    const userId = req.user;
+    if (!userId) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid request");
     }
 
-    const user = await findRoleByUserId(keyStore.user);
+    const user = await findRoleByUserId(userId);
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
     }
@@ -86,4 +87,4 @@ const authorization = asyncHandeler(async (req, res, next) => {
   }
 });
 
-export { generateToken, authentication };
+export { generateToken, authentication, authorization };
