@@ -22,6 +22,13 @@ const signUp = async (req, res) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "All fields are required");
   }
 
+  if (password.length < 8) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      "Password must be at least 8 characters"
+    );
+  }
+
   const hasPassword = await bcryptPassword(password);
 
   // Create and save the new user
@@ -99,7 +106,7 @@ const signIn = async (req, res) => {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid email or password");
     }
 
-    const isValidPassword = bcrypt.compare(password, user.password);
+    const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid email or password");
     }

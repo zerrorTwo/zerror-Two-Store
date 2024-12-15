@@ -19,12 +19,12 @@ const port = process.env.PORT || 5000;
 connectDB();
 
 const app = express();
+app.use(compression());
 
 app.use(express.json());
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(compression());
 app.use(
   cors({
     origin: "http://localhost:5173", // Allow only this origin

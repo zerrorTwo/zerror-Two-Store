@@ -35,16 +35,10 @@ function Login() {
 
       dispatch(setCredentials(data));
       navigate("/"); // This will navigate to the homepage if login is successful
-    } catch (error) {
-      if (!error.response) {
-        toast.error("No Server Response");
-      } else if (error.response?.status === 400) {
-        toast.error("Missing Gmail or Password");
-      } else if (error.response?.status === 401) {
-        toast.error("Unauthorized");
-      } else {
-        toast.error("Something went wrong, login failed");
-      }
+    } catch (err) {
+      console.log(err);
+
+      toast.error(err.data.message);
     }
   };
 

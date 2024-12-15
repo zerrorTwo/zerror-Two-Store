@@ -4,7 +4,7 @@ import {
   Button,
   CircularProgress,
   Container,
-  Grid2,
+  Grid,
   Paper,
   TextField,
   Typography,
@@ -43,16 +43,8 @@ function Register() {
 
       dispatch(setCredentials(data));
       navigate("/"); // This will navigate to the homepage if login is successful
-    } catch (error) {
-      if (!error.response) {
-        toast.error("No Server Response");
-      } else if (error.response?.status === 400) {
-        toast.error("Missing Gmail or Password");
-      } else if (error.response?.status === 401) {
-        toast.error("Unauthorized");
-      } else {
-        toast.error("Something went wrong, login failed");
-      }
+    } catch (err) {
+      toast.error(err.data.message);
     }
   };
 
@@ -115,11 +107,11 @@ function Register() {
             )}
           </Button>
         </Box>
-        <Grid2 container justifyContent="space-between" sx={{ mt: 1 }}>
-          <Grid2 item>
+        <Grid container justifyContent="space-between" sx={{ mt: 1 }}>
+          <Grid item>
             <Link to="/login">Have account? SignIn</Link>
-          </Grid2>
-        </Grid2>
+          </Grid>
+        </Grid>
       </Paper>
     </Container>
   );
