@@ -17,13 +17,19 @@ const authSlice = createSlice({
       state.userInfo = user;
       state.userId = user._id;
       state.token = accessToken;
-      const expires = new Date().getTime() * 30 * 24 * 60 * 60 * 1000;
-      localStorage.setItem("userInfo", JSON.stringify(user), {
-        expires: expires,
-      });
+      const expires = new Date().getTime() + 30 * 24 * 60 * 60 * 1000; // 30 days from now
+
+      // Store user info with expiration timestamp
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify({
+          user,
+          expires,
+        })
+      );
     },
     // eslint-disable-next-line no-unused-vars
-    logout: (state, action) => {
+    logOut: (state, action) => {
       state.userInfo = null;
       state.userId = null;
       state.token = null;
@@ -32,9 +38,10 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logout } = authSlice.actions;
+export const { setCredentials, logOut } = authSlice.actions;
 
 export default authSlice.reducer;
 
-export const selectCurrentUser = (state) => state.auth.user;
+export const selectCurrentUserId = (state) => state.auth.userId;
+export const selectCurrentUser = (state) => state.auth.userInfo;
 export const selectCurrentToken = (state) => state.auth.token;

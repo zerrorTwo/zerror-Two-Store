@@ -5,60 +5,107 @@ import {
   Checkbox,
   Container,
   FormControlLabel,
-  Grid2,
+  Grid,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
 import theme from "../../theme";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router-dom"; // Corrected import
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../redux/features/auth/authSlice";
+import { useState } from "react";
+import { useLoginMutation } from "../../redux/api/authApiSlice";
+import { toast } from "react-toastify"; // Import only toast
+import 'react-toastify/dist/ReactToastify.css'; // Đảm bảo import CSS của Toastify
 
 function Login() {
+  const [gmail, setGmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  const [login, { isLoading }] = useLoginMutation();
+  const dispatch = useDispatch();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const data = await login({ email: gmail, password }).unwrap();
+
+      dispatch(setCredentials(data));
+      navigate("/"); // This will navigate to the homepage if login is successful
+    } catch (error) {
+      if (!error.response) {
+        toast.error("No Server Response");
+      } else if (error.response?.status === 400) {
+        toast.error("Missing Gmail or Password");
+      } else if (error.response?.status === 401) {
+        toast.error("Unauthorized");
+      } else {
+        toast.error("Something went wrong, login failed");
+      }
+    }
+  };
+
+  const handleGmailInput = (e) => setGmail(e.target.value);
+  const handlePwdInput = (e) => setPassword(e.target.value);
+
   return (
     <Container maxWidth="xs">
-      <Paper elevation={10} sx={{ marginTop: 8, padding: 2 }}>
-        <Avatar
-          sx={{
-            mx: "auto",
-            bgcolor: theme.palette.primary.main,
-            textAlign: "center",
-            mb: 1,
-          }}
-        ></Avatar>
-        <Typography component="h1" variant="h5" sx={{ textAlign: "center" }}>
-          Sign In
-        </Typography>
-        <Box component="form" noValidate sx={{ mt: 1 }}>
-          <TextField
-            placeholder="Enter your gmail"
-            fullWidth
-            required
-            autoFocus
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            placeholder="Enter password"
-            fullWidth
-            required
-            type="password"
-          />
-          <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
-            label="Remember me"
-          />
-          <Button type="submit" variant="contained" fullWidth sx={{ mt: 1 }}>
+      {isLoading ? (
+        <h1>Loading...</h1>
+      ) : (
+        <Paper elevation={10} sx={{ marginTop: 8, padding: 2 }}>
+          <Avatar
+            sx={{
+              mx: "auto",
+              bgcolor: theme.palette.primary.main,
+              textAlign: "center",
+              mb: 1,
+            }}
+          ></Avatar>
+          <Typography component="h1" variant="h5" sx={{ textAlign: "center" }}>
             Sign In
-          </Button>
-        </Box>
-        <Grid2 container justifyContent="space-between" sx={{ mt: 1 }}>
-          <Grid2 item>
-            <Link to="/forgot">Forgot password?</Link>
-          </Grid2>
-          <Grid2 item>
-            <Link to="/register">Sign Up</Link>
-          </Grid2>
-        </Grid2>
-      </Paper>
+          </Typography>
+          <Box
+            onSubmit={handleSubmit}
+            component="form"
+            noValidate
+            sx={{ mt: 1 }}
+          >
+            <TextField
+              placeholder="Enter your gmail"
+              onChange={handleGmailInput}
+              fullWidth
+              required
+              autoFocus
+              sx={{ mb: 2 }}
+            />
+            <TextField
+              placeholder="Enter password"
+              fullWidth
+              required
+              type="password"
+              onChange={handlePwdInput}
+            />
+            <FormControlLabel
+              control={<Checkbox value="remember" color="primary" />}
+              label="Remember me"
+            />
+            <Button type="submit" variant="contained" fullWidth sx={{ mt: 1 }}>
+              Sign In
+            </Button>
+          </Box>
+          <Grid container justifyContent="space-between" sx={{ mt: 1 }}>
+            <Grid item>
+              <Link to="/forgot">Forgot password?</Link>
+            </Grid>
+            <Grid item>
+              <Link to="/register">Sign Up</Link>
+            </Grid>
+          </Grid>
+        </Paper>
+      )}
     </Container>
   );
 }
