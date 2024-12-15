@@ -2,16 +2,65 @@ import {
   Avatar,
   Box,
   Button,
+  CircularProgress,
   Container,
   Grid2,
   Paper,
   TextField,
   Typography,
 } from "@mui/material";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import theme from "../../theme";
+import { toast } from "react-toastify"; // Import only toast
+import "react-toastify/dist/ReactToastify.css"; // Đảm bảo import CSS của Toastify
+import { useState } from "react";
+import { useRegisterMutation } from "../../redux/api/authApiSlice";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../redux/features/auth/authSlice";
 
 function Register() {
+  const [userName, setUsername] = useState("");
+  const [gmail, setGmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const navigate = useNavigate();
+
+  const [login, { isLoading }] = useRegisterMutation();
+  const dispatch = useDispatch();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      if (password !== confirmPassword) {
+        toast.error("Passwords do not match");
+        return;
+      }
+      const data = await login({
+        userName: userName,
+        email: gmail,
+        password,
+      }).unwrap();
+
+      dispatch(setCredentials(data));
+      navigate("/"); // This will navigate to the homepage if login is successful
+    } catch (error) {
+      if (!error.response) {
+        toast.error("No Server Response");
+      } else if (error.response?.status === 400) {
+        toast.error("Missing Gmail or Password");
+      } else if (error.response?.status === 401) {
+        toast.error("Unauthorized");
+      } else {
+        toast.error("Something went wrong, login failed");
+      }
+    }
+  };
+
+  const handleUserNameInput = (e) => setUsername(e.target.value);
+  const handleGmailInput = (e) => setGmail(e.target.value);
+  const handlePwdInput = (e) => setPassword(e.target.value);
+  const handleCofirmPwdInput = (e) => setConfirmPassword(e.target.value);
+
   return (
     <Container maxWidth="xs">
       <Paper elevation={10} sx={{ marginTop: 8, padding: 2 }}>
@@ -26,8 +75,9 @@ function Register() {
         <Typography component="h1" variant="h5" sx={{ textAlign: "center" }}>
           Sign Up
         </Typography>
-        <Box component="form" noValidate sx={{ mt: 1 }}>
+        <Box onSubmit={handleSubmit} component="form" noValidate sx={{ mt: 1 }}>
           <TextField
+            onChange={handleUserNameInput}
             placeholder="Enter your username"
             fullWidth
             required
@@ -35,12 +85,14 @@ function Register() {
             sx={{ mb: 2 }}
           />
           <TextField
+            onChange={handleGmailInput}
             placeholder="Enter your gmail"
             fullWidth
             required
             sx={{ mb: 2 }}
           />
           <TextField
+            onChange={handlePwdInput}
             sx={{ mb: 2 }}
             placeholder="Enter password"
             fullWidth
@@ -48,13 +100,19 @@ function Register() {
             type="password"
           />
           <TextField
+            onChange={handleCofirmPwdInput}
             placeholder="Enter comfirm password"
             fullWidth
             required
             type="password"
+            sx={{ mb: 2 }}
           />
           <Button type="submit" variant="contained" fullWidth sx={{ mt: 1 }}>
-            Sign Up
+            {isLoading ? (
+              <CircularProgress color="inherit" size={25} />
+            ) : (
+              "Sign Up"
+            )}
           </Button>
         </Box>
         <Grid2 container justifyContent="space-between" sx={{ mt: 1 }}>

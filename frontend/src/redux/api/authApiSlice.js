@@ -11,7 +11,16 @@ export const userApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
+
+    register: builder.mutation({
+      query: (data) => ({
+        //"http://localhost:5000/v1/api/auth/signIn"
+        url: `${BASE_URL}/auth/signUp`,
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
-export const { useLoginMutation } = userApiSlice;
+export const { useLoginMutation, useRegisterMutation } = userApiSlice;
