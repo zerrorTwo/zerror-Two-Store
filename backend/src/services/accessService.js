@@ -93,6 +93,7 @@ const signIn = async (req, res) => {
   //  5. Get data
   try {
     const { email, password } = req.body;
+
     const user = await findByEmail({ email });
     if (!user) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid email or password");
