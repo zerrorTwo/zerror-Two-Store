@@ -7,16 +7,24 @@ import {
   Tooltip,
   Select,
   MenuItem,
-  useColorScheme,
+  useTheme,
 } from "@mui/material";
 import { LightMode, DarkMode } from "@mui/icons-material";
+import { useState, useEffect } from "react";
 
-const ModeSwitcher = ({ open }) => {
-  const { mode, setMode } = useColorScheme();
+const ModeSwitcher = ({ open = false }) => {
+  const theme = useTheme();
+  const [mode, setMode] = useState(localStorage.getItem("theme") || "light");
 
-  if (!mode || !setMode) {
-    return null; // Nếu không hỗ trợ chế độ màu, không hiển thị
-  }
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", mode);
+    localStorage.setItem("theme", mode);
+  }, [mode]);
+
+  const handleChange = (event) => {
+    const newMode = event.target.value;
+    setMode(newMode);
+  };
 
   return (
     <ListItem disablePadding sx={{ display: "block" }}>
@@ -29,6 +37,7 @@ const ModeSwitcher = ({ open }) => {
         >
           <ListItemIcon
             sx={[
+              { color: theme.palette.primary.text },
               { minWidth: 0, justifyContent: "center" },
               open ? { mr: 3 } : { mr: "auto" },
             ]}
@@ -40,12 +49,26 @@ const ModeSwitcher = ({ open }) => {
               open ? (
                 <Select
                   value={mode}
-                  onChange={(e) => setMode(e.target.value)}
+                  onChange={handleChange}
                   variant="standard"
                   disableUnderline
                   sx={{
+                    color: theme.palette.primary.text,
                     minWidth: 80,
-                    color: "inherit",
+                    "& .MuiSvgIcon-root": {
+                      color: theme.palette.primary.text,
+                      fontSize: "1.5rem",
+                    },
+                  }}
+                  MenuProps={{
+                    PaperProps: {
+                      sx: {
+                        backgroundColor: theme.palette.primary.main,
+                        "& .MuiMenuItem-root": {
+                          color: theme.palette.primary.text,
+                        },
+                      },
+                    },
                   }}
                 >
                   <MenuItem value="light">Light</MenuItem>
@@ -62,11 +85,7 @@ const ModeSwitcher = ({ open }) => {
 };
 
 ModeSwitcher.propTypes = {
-  open: PropTypes.bool, // Trạng thái mở/đóng của menu
-};
-
-ModeSwitcher.defaultProps = {
-  open: false, // Giá trị mặc định của open
+  open: PropTypes.bool,
 };
 
 export default ModeSwitcher;

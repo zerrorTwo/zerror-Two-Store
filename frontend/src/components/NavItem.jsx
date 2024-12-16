@@ -8,7 +8,7 @@ import {
   Tooltip,
 } from "@mui/material";
 
-const NavItem = ({ to, icon, text, open, onClick }) => (
+const NavItem = ({ to, icon, text, open = false, onClick = undefined }) => (
   <ListItem disablePadding sx={{ display: "block" }}>
     <Link to={to} style={{ textDecoration: "none", color: "inherit" }}>
       <Tooltip title={text} placement="right">
@@ -38,16 +38,11 @@ const NavItem = ({ to, icon, text, open, onClick }) => (
 );
 
 NavItem.propTypes = {
-  to: PropTypes.string.isRequired, // `to` phải là string và bắt buộc
-  icon: PropTypes.element.isRequired, // `icon` phải là một React element và bắt buộc
-  text: PropTypes.string.isRequired, // `text` phải là string và bắt buộc
-  open: PropTypes.bool, // `open` là boolean
-  onClick: PropTypes.func, // `onClick` là một function (nếu được sử dụng)
-};
-
-NavItem.defaultProps = {
-  open: false, // Giá trị mặc định của `open`
-  onClick: undefined, // Giá trị mặc định của `onClick`
+  to: PropTypes.string.isRequired,
+  icon: PropTypes.element.isRequired,
+  text: PropTypes.string.isRequired,
+  open: PropTypes.bool,
+  onClick: PropTypes.func,
 };
 
 export default NavItem;
