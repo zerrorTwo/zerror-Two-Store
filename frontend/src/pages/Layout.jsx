@@ -11,17 +11,15 @@ import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
-import ListItem from "@mui/material/ListItem";
-import ListItemButton from "@mui/material/ListItemButton";
-import ListItemIcon from "@mui/material/ListItemIcon";
-import ListItemText from "@mui/material/ListItemText";
-import HomeIcon from "@mui/icons-material/Home";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import HomeIcon from "@mui/icons-material/Home";
 import FavoriteIcon from "@mui/icons-material/Favorite";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LoginIcon from "@mui/icons-material/Login";
-import { Link } from "react-router-dom";
-import { Outlet } from "react-router";
+import { Outlet, useNavigate } from "react-router";
+import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
+import NavItem from "../components/NavItem";
 
 const drawerWidth = 240;
 
@@ -106,6 +104,7 @@ const Drawer = styled(MuiDrawer, {
 export default function Layout() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
+  const isUser = true;
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -113,6 +112,23 @@ export default function Layout() {
 
   const handleDrawerClose = () => {
     setOpen(false);
+  };
+
+  const [openDialog, setOpenDialog] = React.useState(false);
+
+  const handleClickOpen = () => {
+    setOpenDialog(true);
+  };
+
+  const handleClose = () => {
+    setOpenDialog(false);
+  };
+
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    navigate("/login");
+    setOpenDialog(false);
   };
 
   return (
@@ -164,272 +180,77 @@ export default function Layout() {
         <Divider />
         <List sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
           {/* Home Item */}
-          <ListItem disablePadding sx={{ display: "block" }}>
-            <Link to={"/"} style={{ textDecoration: "none", color: "inherit" }}>
-              <ListItemButton
-                sx={[
-                  {
-                    minHeight: 48,
-                    px: 2.5,
-                  },
-                  open
-                    ? {
-                        justifyContent: "initial",
-                      }
-                    : {
-                        justifyContent: "center",
-                      },
-                ]}
-              >
-                <ListItemIcon
-                  sx={[
-                    {
-                      minWidth: 0,
-                      justifyContent: "center",
-                    },
-                    open
-                      ? {
-                          mr: 3,
-                        }
-                      : {
-                          mr: "auto",
-                        },
-                  ]}
-                >
-                  <HomeIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Home"
-                  sx={[
-                    open
-                      ? {
-                          opacity: 1,
-                        }
-                      : {
-                          opacity: 0,
-                        },
-                  ]}
-                />
-              </ListItemButton>
-            </Link>
-          </ListItem>
+          <NavItem to="/" icon={<HomeIcon />} text="Home" open={open} />
 
           {/* Menu Item */}
-          <ListItem disablePadding sx={{ display: "block" }}>
-            <Link
-              to={"/menu"}
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
-              <ListItemButton
-                sx={[
-                  {
-                    minHeight: 48,
-                    px: 2.5,
-                  },
-                  open
-                    ? {
-                        justifyContent: "initial",
-                      }
-                    : {
-                        justifyContent: "center",
-                      },
-                ]}
-              >
-                <ListItemIcon
-                  sx={[
-                    {
-                      minWidth: 0,
-                      justifyContent: "center",
-                    },
-                    open
-                      ? {
-                          mr: 3,
-                        }
-                      : {
-                          mr: "auto",
-                        },
-                  ]}
-                >
-                  <ShoppingBagIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Menu"
-                  sx={[
-                    open
-                      ? {
-                          opacity: 1,
-                        }
-                      : {
-                          opacity: 0,
-                        },
-                  ]}
-                />
-              </ListItemButton>
-            </Link>
-          </ListItem>
+          <NavItem
+            to="/menu"
+            icon={<ShoppingBagIcon />}
+            text="Menu"
+            open={open}
+          />
 
           {/* Cart Item */}
-          <ListItem disablePadding sx={{ display: "block" }}>
-            <Link
-              to={"/cart"}
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
-              <ListItemButton
-                sx={[
-                  {
-                    minHeight: 48,
-                    px: 2.5,
-                  },
-                  open
-                    ? {
-                        justifyContent: "initial",
-                      }
-                    : {
-                        justifyContent: "center",
-                      },
-                ]}
-              >
-                <ListItemIcon
-                  sx={[
-                    {
-                      minWidth: 0,
-                      justifyContent: "center",
-                    },
-                    open
-                      ? {
-                          mr: 3,
-                        }
-                      : {
-                          mr: "auto",
-                        },
-                  ]}
-                >
-                  <ShoppingCartIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Cart"
-                  sx={[
-                    open
-                      ? {
-                          opacity: 1,
-                        }
-                      : {
-                          opacity: 0,
-                        },
-                  ]}
-                />
-              </ListItemButton>
-            </Link>
-          </ListItem>
+          <NavItem
+            to="/cart"
+            icon={<ShoppingCartIcon />}
+            text="Cart"
+            open={open}
+          />
 
           {/* Favorite Item */}
-          <ListItem disablePadding sx={{ display: "block" }}>
-            <Link
-              to={"/favorite"}
-              style={{ textDecoration: "none", color: "inherit" }}
-            >
-              <ListItemButton
-                sx={[
-                  {
-                    minHeight: 48,
-                    px: 2.5,
-                  },
-                  open
-                    ? {
-                        justifyContent: "initial",
-                      }
-                    : {
-                        justifyContent: "center",
-                      },
-                ]}
-              >
-                <ListItemIcon
-                  sx={[
-                    {
-                      minWidth: 0,
-                      justifyContent: "center",
-                    },
-                    open
-                      ? {
-                          mr: 3,
-                        }
-                      : {
-                          mr: "auto",
-                        },
-                  ]}
-                >
-                  <FavoriteIcon />
-                </ListItemIcon>
-                <ListItemText
-                  primary="Favorite"
-                  sx={[
-                    open
-                      ? {
-                          opacity: 1,
-                        }
-                      : {
-                          opacity: 0,
-                        },
-                  ]}
-                />
-              </ListItemButton>
-            </Link>
-          </ListItem>
+          <NavItem
+            to="/favorite"
+            icon={<FavoriteIcon />}
+            text="Favorite"
+            open={open}
+          />
 
-          {/* Login Button at the bottom */}
+          {isUser && (
+            <>
+              {/* Account Item */}
+              <NavItem
+                to="/profile"
+                icon={<AccountCircleIcon />}
+                text="Account"
+                open={open}
+              />
+            </>
+          )}
+
+          {/* Login/Logout Button */}
           <Box sx={{ marginTop: "auto" }}>
-            <ListItem disablePadding sx={{ display: "block" }}>
-              <Link
-                to={"/login"}
-                style={{ textDecoration: "none", color: "inherit" }}
-              >
-                <ListItemButton
-                  sx={[
-                    {
-                      minHeight: 48,
-                      px: 2.5,
-                    },
-                    open
-                      ? {
-                          justifyContent: "initial",
-                        }
-                      : {
-                          justifyContent: "center",
-                        },
-                  ]}
+            {isUser ? (
+              <>
+                <NavItem
+                  to="#"
+                  icon={<LoginIcon />}
+                  text="Logout"
+                  open={open}
+                  onClick={handleClickOpen}
+                />
+                <Dialog
+                  open={openDialog}
+                  aria-labelledby="alert-dialog-title"
+                  aria-describedby="alert-dialog-description"
                 >
-                  <ListItemIcon
-                    sx={[
-                      {
-                        minWidth: 0,
-                        justifyContent: "center",
-                      },
-                      open
-                        ? {
-                            mr: 3,
-                          }
-                        : {
-                            mr: "auto",
-                          },
-                    ]}
-                  >
-                    <LoginIcon />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Login"
-                    sx={[
-                      open
-                        ? {
-                            opacity: 1,
-                          }
-                        : {
-                            opacity: 0,
-                          },
-                    ]}
-                  />
-                </ListItemButton>
-              </Link>
-            </ListItem>
+                  <DialogTitle id="alert-dialog-title">
+                    {"Do you really want to log out?"}
+                  </DialogTitle>
+                  <DialogActions>
+                    <Button onClick={handleClose}>No</Button>
+                    <Button onClick={handleLogout}>Yes</Button>
+                  </DialogActions>
+                </Dialog>
+              </>
+            ) : (
+              <NavItem
+                to="/login"
+                icon={<LoginIcon />}
+                text="Login"
+                open={open}
+              />
+            )}
           </Box>
         </List>
       </Drawer>
