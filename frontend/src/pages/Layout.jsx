@@ -18,8 +18,15 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LoginIcon from "@mui/icons-material/Login";
 import { Outlet, useNavigate } from "react-router";
-import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  Typography,
+} from "@mui/material";
 import NavItem from "../components/NavItem";
+import ModeSwitcher from "../components/ModeSwitcher";
 
 const drawerWidth = 240;
 
@@ -179,6 +186,9 @@ export default function Layout() {
         </DrawerHeader>
         <Divider />
         <List sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
+          <Typography sx={{ color: theme.palette.primary.main }}>
+            Hello
+          </Typography>
           {/* Home Item */}
           <NavItem to="/" icon={<HomeIcon />} text="Home" open={open} />
 
@@ -205,6 +215,8 @@ export default function Layout() {
             text="Favorite"
             open={open}
           />
+
+          <ModeSwitcher open={true} />
 
           {isUser && (
             <>

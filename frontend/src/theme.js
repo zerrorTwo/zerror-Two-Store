@@ -6,18 +6,14 @@ const theme = createTheme({
     light: {
       palette: {
         primary: {
-          light: "#3f51b5",
-          main: "#fff",
-          dark: "#283593",
+          main: "#FCFFC1",
         },
       },
     },
     dark: {
       palette: {
-        gradient:
-          "linear-gradient(to left, var(--mui-palette-primary-light), var(--mui-palette-primary-main))",
-        border: {
-          subtle: "var(--mui-palette-neutral-600)",
+        primary: {
+          main: "#FB9EC6",
         },
       },
     },

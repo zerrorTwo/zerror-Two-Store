@@ -1,0 +1,72 @@
+import PropTypes from "prop-types";
+import {
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  Tooltip,
+  Select,
+  MenuItem,
+  useColorScheme,
+} from "@mui/material";
+import { LightMode, DarkMode } from "@mui/icons-material";
+
+const ModeSwitcher = ({ open }) => {
+  const { mode, setMode } = useColorScheme();
+
+  if (!mode || !setMode) {
+    return null; // Nếu không hỗ trợ chế độ màu, không hiển thị
+  }
+
+  return (
+    <ListItem disablePadding sx={{ display: "block" }}>
+      <Tooltip title="Theme Mode" placement="right">
+        <ListItemButton
+          sx={[
+            { minHeight: 48, px: 2.5 },
+            open ? { justifyContent: "initial" } : { justifyContent: "center" },
+          ]}
+        >
+          <ListItemIcon
+            sx={[
+              { minWidth: 0, justifyContent: "center" },
+              open ? { mr: 3 } : { mr: "auto" },
+            ]}
+          >
+            {mode === "light" ? <LightMode /> : <DarkMode />}
+          </ListItemIcon>
+          <ListItemText
+            primary={
+              open ? (
+                <Select
+                  value={mode}
+                  onChange={(e) => setMode(e.target.value)}
+                  variant="standard"
+                  disableUnderline
+                  sx={{
+                    minWidth: 80,
+                    color: "inherit",
+                  }}
+                >
+                  <MenuItem value="light">Light</MenuItem>
+                  <MenuItem value="dark">Dark</MenuItem>
+                </Select>
+              ) : null
+            }
+            sx={[open ? { opacity: 1 } : { opacity: 0 }]}
+          />
+        </ListItemButton>
+      </Tooltip>
+    </ListItem>
+  );
+};
+
+ModeSwitcher.propTypes = {
+  open: PropTypes.bool, // Trạng thái mở/đóng của menu
+};
+
+ModeSwitcher.defaultProps = {
+  open: false, // Giá trị mặc định của open
+};
+
+export default ModeSwitcher;
