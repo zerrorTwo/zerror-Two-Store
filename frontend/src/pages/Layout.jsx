@@ -18,19 +18,13 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import LoginIcon from "@mui/icons-material/Login";
 import { Outlet, useNavigate } from "react-router";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  Typography,
-} from "@mui/material";
+import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
 import NavItem from "../components/NavItem";
-import ModeSwitcher from "../components/ModeSwitcher";
 
 const drawerWidth = 240;
 
 const openedMixin = (theme) => ({
+  backgroundColor: theme.palette.secondary.main,
   width: drawerWidth,
   transition: theme.transitions.create("width", {
     easing: theme.transitions.easing.sharp,
@@ -40,6 +34,7 @@ const openedMixin = (theme) => ({
 });
 
 const closedMixin = (theme) => ({
+  backgroundColor: theme.palette.secondary.main,
   transition: theme.transitions.create("width", {
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
@@ -155,12 +150,12 @@ export default function Layout() {
       >
         <Toolbar>
           <IconButton
-            color="inherit"
             aria-label="open drawer"
             onClick={handleDrawerOpen}
             edge="start"
             sx={[
               {
+                color: theme.palette.text.secondary,
                 marginRight: 5,
               },
               open && { display: "none" },
@@ -175,7 +170,10 @@ export default function Layout() {
         <DrawerHeader>
           <IconButton
             onClick={handleDrawerClose}
-            sx={{ display: open ? "block" : "none" }}
+            sx={{
+              display: open ? "block" : "none",
+              color: theme.palette.text.secondary,
+            }}
           >
             {theme.direction === "rtl" ? (
               <ChevronRightIcon />
@@ -186,9 +184,6 @@ export default function Layout() {
         </DrawerHeader>
         <Divider />
         <List sx={{ display: "flex", flexDirection: "column", height: "100%" }}>
-          <Typography sx={{ color: theme.palette.primary.main }}>
-            Hello
-          </Typography>
           {/* Home Item */}
           <NavItem to="/" icon={<HomeIcon />} text="Home" open={open} />
 
@@ -215,8 +210,6 @@ export default function Layout() {
             text="Favorite"
             open={open}
           />
-
-          <ModeSwitcher open={true} />
 
           {isUser && (
             <>

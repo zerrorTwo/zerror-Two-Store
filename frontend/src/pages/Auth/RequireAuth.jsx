@@ -12,7 +12,7 @@ const RequireAuth = () => {
   useEffect(() => {
     // Chỉ hiển thị toast nếu không có token và không ở trang đăng nhập
     if (!token && location.pathname !== "/login" && !hasShownToast.current) {
-      toast.info("Cần đăng nhập để xem");
+      toast.error("Please login required to view");
       hasShownToast.current = true;
     }
   }, [token, location.pathname]);

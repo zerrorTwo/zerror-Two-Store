@@ -22,8 +22,19 @@ const baseQuery = fetchBaseQuery({
 
 const baseQueryWithAuth = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
-  // console.log(result);
-  if (result.error && result.error.status === 401) {
+
+  // Skip the refresh logic for login, register, and logout requests
+  const isLoginOrRegister =
+    args.url.includes("/auth/signIn") || args.url.includes("/auth/signUp");
+  const isLogout = args.url.includes("/auth/logout");
+
+  if (
+    !isLoginOrRegister &&
+    !isLogout &&
+    result.error &&
+    result.error.status === 401
+  ) {
+    // Try refreshing the token
     const refreshResult = await baseQuery(
       {
         url: `${BASE_URL}/auth/refresh`,
@@ -32,13 +43,16 @@ const baseQueryWithAuth = async (args, api, extraOptions) => {
       api,
       extraOptions
     );
+
     if (refreshResult?.data) {
       const userInfo = api.getState().auth.userInfo;
       const token = refreshResult.data;
       api.dispatch(setCredentials({ user: userInfo, accessToken: token }));
+
+      // Retry the original request after refreshing the token
       result = await baseQuery(args, api, extraOptions);
-      // console.log(result);
     } else {
+      // If refresh fails, logout the user
       result = await baseQuery(
         {
           url: `${BASE_URL}/auth/logout`,
@@ -49,9 +63,9 @@ const baseQueryWithAuth = async (args, api, extraOptions) => {
       );
 
       api.dispatch(logOut());
-      window.location.href = "/login?logout=true";
     }
   }
+
   return result;
 };
 
