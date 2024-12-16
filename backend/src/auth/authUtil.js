@@ -10,11 +10,11 @@ const generateToken = async (payload, privateKey, publicKey) => {
   try {
     const accessToken = jwt.sign(payload, privateKey, {
       algorithm: "RS256",
-      expiresIn: "10s",
+      expiresIn: "1h",
     });
     const refreshToken = jwt.sign(payload, privateKey, {
       algorithm: "RS256",
-      expiresIn: "20s",
+      expiresIn: "7d",
     });
 
     // Verify access token using the public key

@@ -15,12 +15,20 @@ import theme from "../../theme";
 import { Link, useNavigate } from "react-router-dom"; // Corrected import
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLoginMutation } from "../../redux/api/authApiSlice";
 import { toast } from "react-toastify"; // Import only toast
 import "react-toastify/dist/ReactToastify.css"; // Đảm bảo import CSS của Toastify
 
 function Login() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const logout = urlParams.get("logout");
+
+  useEffect(() => {
+    if (logout) {
+      toast.error("Your session has expired, please login again!!!");
+    }
+  }, [logout]);
   const [gmail, setGmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();

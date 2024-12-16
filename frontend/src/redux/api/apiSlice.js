@@ -49,7 +49,7 @@ const baseQueryWithAuth = async (args, api, extraOptions) => {
       );
 
       api.dispatch(logOut());
-      window.location.href = "/login";
+      window.location.href = "/login?logout=true";
     }
   }
   return result;
