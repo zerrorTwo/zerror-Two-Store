@@ -21,17 +21,34 @@ const baseQuery = fetchBaseQuery({
 
 const baseQueryWithAuth = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
-  if (result?.error?.originalStatus == 403) {
-    console.log("sending refresh token");
-    const refreshResult = await baseQuery("/auth/refresh", api, extraOptions);
+  if (result.error && result.error.status === 401) {
+    const refreshResult = await baseQuery(
+      {
+        url: `${BASE_URL}/auth/refresh`,
+        method: "POST",
+      },
+      api,
+      extraOptions
+    );
     if (refreshResult?.data) {
       const userInfo = api.getState().auth.userInfo;
-      const userId = api.getState().auth.userId;
+      const token = refreshResult.data;
+      console.log(token);
+
       // store the new token
-      api.dispatch(setCredentials({ ...refreshResult.data, userInfo, userId }));
+      api.dispatch(setCredentials({ user: userInfo, accessToken: token }));
       // retry request
       result = await baseQuery(args, api, extraOptions);
     } else {
+      console.log("hihi");
+      await baseQuery(
+        {
+          url: `${BASE_URL}/auth/logout`,
+          method: "POST",
+        },
+        api,
+        extraOptions
+      );
       api.dispatch(logOut());
     }
   }

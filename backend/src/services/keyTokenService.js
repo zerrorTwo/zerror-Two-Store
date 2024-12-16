@@ -32,19 +32,19 @@ const findById = async (id) => {
   return await KeyModel.findOne({ _id: new Types.ObjectId(id) }).lean();
 };
 
-const removeKeyById = async ({ id, refreshToken }) => {
+const removeKeyByUserId = async (userId) => {
   try {
-    const user = await KeyModel.findOne({ _id: id });
+    const key = await KeyModel.findOne({ user: userId });
 
-    if (!user) {
+    if (!key) {
       throw new Error("User not found.");
     }
 
-    await KeyModel.deleteOne({ _id: id });
+    await KeyModel.deleteOne({ _id: key._id });
     return { message: "Delete successfully" };
   } catch (error) {
     throw new Error("Failed to remove refresh token");
   }
 };
 
-export { keyTokenService, findByUserId, removeKeyById, findById };
+export { keyTokenService, findByUserId, removeKeyByUserId, findById };

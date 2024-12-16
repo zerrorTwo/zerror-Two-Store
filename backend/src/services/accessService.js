@@ -3,10 +3,9 @@ import UserModel from "../models/userModel.js";
 import { StatusCodes } from "http-status-codes";
 import crypto from "crypto";
 import {
-  findById,
   findByUserId,
   keyTokenService,
-  removeKeyById,
+  removeKeyByUserId,
 } from "./keyTokenService.js";
 import { HEADER } from "../constants/headerContans.js";
 import { generateToken } from "../auth/authUtil.js";
@@ -14,6 +13,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import bcryptPassword from "../utils/bcryptPassword.js";
 import { COOKIE } from "../constants/headerContans.js";
+import KeyModel from "../models/keyModel.js";
 
 const signUp = async (req, res) => {
   const { userName, email, password } = req.body;
@@ -160,10 +160,10 @@ const signIn = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    const { id, refreshToken } = req;
+    const id = req.header[HEADER.CLIENT_ID];
 
     // Remove refresh token from the database
-    const delKey = await removeKeyById({ id: id, refreshToken });
+    const delKey = await removeKeyByUserId(id);
 
     // Clear the refresh token cookie
     res.clearCookie(COOKIE.JWT, {
@@ -182,54 +182,41 @@ const logout = async (req, res) => {
 
 const refreshToken = async (req, res) => {
   try {
-    const refreshToken = req.cookies[COOKIE.JWT];
-    if (!refreshToken) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "Not found refresh token");
-    }
-    const user_client = req.headers[HEADER.CLIENT_ID];
-    const keyStore = await findByUserId(user_client);
+    const { id } = req;
+    const keyStore = await KeyModel.findOne({ _id: id });
+
     if (!keyStore) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Not found user_client");
-    }
-    if (!keyStore.refreshToken === refreshToken) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid refresh token");
-    }
-
-    const decoded = jwt.verify(refreshToken, keyStore.publicKey);
-
-    if (decoded.id !== user_client) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "Token does not match");
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid key store");
     }
 
     const privateKey = keyStore.privateKey;
     const publicKey = keyStore.publicKey;
 
-    const publicKeyString = publicKey.toString();
-    const privateKeyString = privateKey.toString();
-
     const tokens = await generateToken(
-      { id: decoded.id, email: decoded.email },
+      { id: keyStore.id, email: keyStore.email },
       privateKey,
       publicKey
     );
 
     const saveKey = await keyTokenService({
       userId: keyStore.user,
-      privateKey: privateKeyString,
-      publicKey: publicKeyString,
+      privateKey: privateKey.toString(),
+      publicKey: publicKey.toString(),
       refreshToken: tokens.refreshToken.toString(),
     });
 
     if (saveKey) {
       res.cookie(COOKIE.JWT, tokens.refreshToken.toString(), {
         httpOnly: true,
-        sercure: true,
+        secure: true,
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-
-      return tokens.accessToken.toString();
+      return tokens.refreshToken.toString();
     }
+
+    // If saveKey fails, respond with an error
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Save key failed");
   } catch (err) {
     throw err;
   }

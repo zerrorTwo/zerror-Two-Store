@@ -12,9 +12,9 @@ const Router = express.Router();
 
 Router.route("/signUp").post(signUpController);
 Router.route("/signIn").post(signInController);
-Router.route("/refresh").post(refreshTokenController);
+Router.route("/logout").post(asyncHandeler(logoutController));
 
 Router.use(authentication);
-Router.route("/logout").post(asyncHandeler(logoutController));
+Router.route("/refresh").post(refreshTokenController);
 
 export const authRoute = Router;
