@@ -26,6 +26,8 @@ const signInController = asyncHandler(async (req, res, next) => {
 });
 
 const logoutController = asyncHandler(async (req, res, next) => {
+  console.log("hihi coro");
+
   const deletedKey = await logout(req, res);
 
   if (deletedKey) {
@@ -38,7 +40,7 @@ const logoutController = asyncHandler(async (req, res, next) => {
 const refreshTokenController = asyncHandler(async (req, res, next) => {
   try {
     const accessToken = await refreshToken(req, res);
-    res.status(StatusCodes.OK).json(accessToken);
+    res.status(StatusCodes.OK).json(accessToken.toString());
   } catch (error) {
     next(error);
   }

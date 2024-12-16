@@ -13,7 +13,7 @@ const generateToken = async (payload, privateKey, publicKey) => {
     });
     const refreshToken = jwt.sign(payload, privateKey, {
       algorithm: "RS256",
-      expiresIn: "7 days",
+      expiresIn: "3 days",
     });
 
     // Verify access token using the public key
@@ -41,27 +41,54 @@ const authentication = asyncHandeler(async (req, res, next) => {
   }
 
   const bearerAccessToken = req.headers[HEADER.AUTHORIZATION];
-
-  const accessToken = bearerAccessToken.split(" ")[1];
+  const accessToken = bearerAccessToken?.split(" ")[1];
 
   if (!accessToken) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid access token");
   }
-  try {
-    const decodeUser = jwt.verify(accessToken, keyStore.publicKey);
 
-    if (userId !== decodeUser.id) {
+  // Handling refresh token
+  if (req.headers[HEADER.REFRESHTOKEN]) {
+    try {
+      const refreshToken = req.headers[HEADER.REFRESHTOKEN];
+      const decodedUser = jwt.verify(refreshToken, keyStore.publicKey);
+
+      if (decodedUser.id !== userId) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid refresh token");
+      }
+
+      req.id = keyStore._id;
+      req.user = keyStore.user;
+      req.refreshToken = refreshToken;
+      return next();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  try {
+    // Synchronously verify access token
+    const decodedUser = await new Promise((resolve, reject) => {
+      jwt.verify(accessToken, keyStore.publicKey, (err, decoded) => {
+        if (err) {
+          reject(new ApiError(StatusCodes.UNAUTHORIZED, "Token expired"));
+        }
+        resolve(decoded);
+      });
+    });
+
+    if (userId !== decodedUser.id) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Token does not match");
     }
 
     const refreshToken = req.cookies[COOKIE.JWT];
-
     req.id = keyStore._id;
     req.user = keyStore.user;
     req.refreshToken = refreshToken;
-    return next();
+
+    return next(); // Proceed to the next middleware
   } catch (error) {
-    throw error;
+    throw error; // Let the error handler manage the error
   }
 });
 
