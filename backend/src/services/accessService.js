@@ -160,46 +160,56 @@ const signIn = async (req, res) => {
 
 const logout = async (req, res) => {
   try {
-    const id = req.header[HEADER.CLIENT_ID];
+    const id = req.headers[HEADER.CLIENT_ID];
 
-    // Remove refresh token from the database
+    // Xóa refresh token từ cơ sở dữ liệu
     const delKey = await removeKeyByUserId(id);
 
-    // Clear the refresh token cookie
+    if (!delKey) {
+      // Nếu không tìm thấy hoặc xóa key thất bại
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        "Failed to remove refresh token from database"
+      );
+    }
+
+    // Xóa cookie refresh token
     res.clearCookie(COOKIE.JWT, {
       httpOnly: true,
       secure: true,
       sameSite: "strict",
     });
 
+    // Trả về kết quả xóa key thành công
     return delKey;
   } catch (error) {
-    res
-      .status(StatusCodes.INTERNAL_SERVER_ERROR)
-      .json({ message: "Failed to log out" });
+    // Nếu có lỗi xảy ra trong quá trình logout
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to log out");
   }
 };
 
 const refreshToken = async (req, res) => {
   try {
-    const { id } = req;
+    const { id, userId } = req;
     const keyStore = await KeyModel.findOne({ _id: id });
 
     if (!keyStore) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid key store");
     }
 
+    const user = await UserModel.findOne({ _id: userId });
+
     const privateKey = keyStore.privateKey;
     const publicKey = keyStore.publicKey;
 
     const tokens = await generateToken(
-      { id: keyStore.id, email: keyStore.email },
+      { id: user._id, email: user.email },
       privateKey,
       publicKey
     );
 
     const saveKey = await keyTokenService({
-      userId: keyStore.user,
+      userId: user._id,
       privateKey: privateKey.toString(),
       publicKey: publicKey.toString(),
       refreshToken: tokens.refreshToken.toString(),
@@ -212,7 +222,7 @@ const refreshToken = async (req, res) => {
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
-      return tokens.refreshToken.toString();
+      return res.status(StatusCodes.OK).json(tokens.accessToken.toString());
     }
 
     // If saveKey fails, respond with an error

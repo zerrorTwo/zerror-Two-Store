@@ -9,6 +9,7 @@ const baseQuery = fetchBaseQuery({
   prepareHeaders: (headers, { getState }) => {
     const token = getState().auth.token;
     const userId = getState().auth.userId;
+
     if (token) {
       headers.set("Authorization", `Bearer ${token}`);
     }
@@ -21,6 +22,7 @@ const baseQuery = fetchBaseQuery({
 
 const baseQueryWithAuth = async (args, api, extraOptions) => {
   let result = await baseQuery(args, api, extraOptions);
+  // console.log(result);
   if (result.error && result.error.status === 401) {
     const refreshResult = await baseQuery(
       {
@@ -33,15 +35,11 @@ const baseQueryWithAuth = async (args, api, extraOptions) => {
     if (refreshResult?.data) {
       const userInfo = api.getState().auth.userInfo;
       const token = refreshResult.data;
-      console.log(token);
-
-      // store the new token
       api.dispatch(setCredentials({ user: userInfo, accessToken: token }));
-      // retry request
       result = await baseQuery(args, api, extraOptions);
+      // console.log(result);
     } else {
-      console.log("hihi");
-      await baseQuery(
+      result = await baseQuery(
         {
           url: `${BASE_URL}/auth/logout`,
           method: "POST",
@@ -49,7 +47,9 @@ const baseQueryWithAuth = async (args, api, extraOptions) => {
         api,
         extraOptions
       );
+
       api.dispatch(logOut());
+      window.location.href = "/login";
     }
   }
   return result;

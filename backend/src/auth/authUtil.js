@@ -5,15 +5,16 @@ import ApiError from "../utils/ApiError.js";
 import { StatusCodes } from "http-status-codes";
 import { findByUserId } from "../services/keyTokenService.js";
 import { findRoleByUserId } from "../services/accessService.js";
+
 const generateToken = async (payload, privateKey, publicKey) => {
   try {
     const accessToken = jwt.sign(payload, privateKey, {
       algorithm: "RS256",
-      expiresIn: "2 days",
+      expiresIn: "10s",
     });
     const refreshToken = jwt.sign(payload, privateKey, {
       algorithm: "RS256",
-      expiresIn: "3 days",
+      expiresIn: "20s",
     });
 
     // Verify access token using the public key
@@ -26,6 +27,35 @@ const generateToken = async (payload, privateKey, publicKey) => {
     throw error;
   }
 };
+
+const authenticationRefresh = asyncHandeler(async (req, res, next) => {
+  const userId = req.headers[HEADER.CLIENT_ID];
+
+  if (!userId) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Not found userId");
+  }
+
+  const keyStore = await findByUserId(userId);
+
+  if (!keyStore) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Not found keyStore");
+  }
+
+  try {
+    const refreshToken = req.cookies[COOKIE.JWT];
+    const decodedUser = jwt.verify(refreshToken, keyStore.publicKey);
+
+    if (decodedUser.id !== userId) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid refresh token");
+    }
+
+    req.id = keyStore._id;
+    req.userId = keyStore.user;
+    return next();
+  } catch (error) {
+    throw error;
+  }
+});
 
 const authentication = asyncHandeler(async (req, res, next) => {
   const userId = req.headers[HEADER.CLIENT_ID];
@@ -47,35 +77,9 @@ const authentication = asyncHandeler(async (req, res, next) => {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid access token");
   }
 
-  // Handling refresh token
-  if (req.headers[HEADER.REFRESHTOKEN]) {
-    try {
-      const refreshToken = req.headers[HEADER.REFRESHTOKEN];
-      const decodedUser = jwt.verify(refreshToken, keyStore.publicKey);
-
-      if (decodedUser.id !== userId) {
-        throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid refresh token");
-      }
-
-      req.id = keyStore._id;
-      req.user = keyStore.user;
-      req.refreshToken = refreshToken;
-      return next();
-    } catch (error) {
-      throw error;
-    }
-  }
-
   try {
     // Synchronously verify access token
-    const decodedUser = await new Promise((resolve, reject) => {
-      jwt.verify(accessToken, keyStore.publicKey, (err, decoded) => {
-        if (err) {
-          reject(new ApiError(StatusCodes.UNAUTHORIZED, "Token expired"));
-        }
-        resolve(decoded);
-      });
-    });
+    const decodedUser = jwt.verify(accessToken, keyStore.publicKey);
 
     if (userId !== decodedUser.id) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Token does not match");
@@ -88,7 +92,12 @@ const authentication = asyncHandeler(async (req, res, next) => {
 
     return next(); // Proceed to the next middleware
   } catch (error) {
-    throw error; // Let the error handler manage the error
+    if (error instanceof jwt.TokenExpiredError) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Token expired");
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid token");
+    }
+    throw error;
   }
 });
 
@@ -114,4 +123,4 @@ const authorization = asyncHandeler(async (req, res, next) => {
   }
 });
 
-export { generateToken, authentication, authorization };
+export { generateToken, authentication, authorization, authenticationRefresh };
