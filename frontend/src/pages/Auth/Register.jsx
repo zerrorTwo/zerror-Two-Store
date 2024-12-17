@@ -44,7 +44,9 @@ function Register() {
       dispatch(setCredentials(data));
       navigate("/"); // This will navigate to the homepage if login is successful
     } catch (err) {
-      toast.error(err.data.message);
+      toast.error(
+        err?.data?.message || err?.error || "An unexpected error occurred"
+      );
     }
   };
 
@@ -62,6 +64,9 @@ function Register() {
             bgcolor: theme.palette.primary.main,
             textAlign: "center",
             mb: 1,
+            "& .MuiSvgIcon-root": {
+              color: "white",
+            },
           }}
         ></Avatar>
         <Typography component="h1" variant="h5" sx={{ textAlign: "center" }}>

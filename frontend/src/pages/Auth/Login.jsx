@@ -42,11 +42,12 @@ function Login() {
       const data = await login({ email: gmail, password }).unwrap();
 
       dispatch(setCredentials(data));
-      navigate("/"); // This will navigate to the homepage if login is successful
+      navigate("/");
     } catch (err) {
-      console.log(err);
-
-      toast.error(err.data.message);
+      // console.log(err.error);
+      toast.error(
+        err?.data?.message || err?.error || "An unexpected error occurred"
+      );
     }
   };
 

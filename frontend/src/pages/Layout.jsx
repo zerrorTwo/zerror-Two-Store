@@ -16,13 +16,22 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import HomeIcon from "@mui/icons-material/Home";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
 import LoginIcon from "@mui/icons-material/Login";
 import { Outlet, useNavigate } from "react-router";
-import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
+import {
+  Button,
+  Dialog,
+  DialogActions,
+  DialogTitle,
+  LinearProgress,
+} from "@mui/material";
 import NavItem from "../components/NavItem";
 import { useDispatch } from "react-redux";
 import { useLogoutMutation } from "../redux/api/authApiSlice";
 import { logOut } from "../redux/features/auth/authSlice";
+import Switcher from "../components/Switcher";
+import { toast } from "react-toastify";
 
 const drawerWidth = 240;
 
@@ -111,7 +120,7 @@ export default function Layout() {
   const [open, setOpen] = React.useState(false);
   const isUser = true;
   const dispatch = useDispatch();
-  const [logout] = useLogoutMutation();
+  const [logout, { isLoading }] = useLogoutMutation();
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -134,10 +143,19 @@ export default function Layout() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await logout();
-    dispatch(logOut());
-    navigate("/login");
-    setOpenDialog(false);
+    try {
+      const result = await logout().unwrap();
+      console.log(result);
+      if (result) {
+        dispatch(logOut());
+        navigate("/login");
+      }
+      setOpenDialog(false);
+    } catch (err) {
+      toast.error(
+        err?.data?.message || err?.error || "An unexpected error occurred"
+      );
+    }
   };
 
   return (
@@ -230,6 +248,28 @@ export default function Layout() {
             </>
           )}
 
+          {isUser && (
+            <>
+              {/* Account Item */}
+              <Switcher
+                icon={
+                  <SpaceDashboardIcon
+                    sx={{ color: theme.palette.text.secondary }}
+                  />
+                }
+                text="Dashboard"
+                open={open}
+                dropdownItems={[
+                  { label: "Analytics", to: "/" },
+                  { label: "Order", to: "/" },
+                  { label: "Product", to: "/" },
+                  { label: "Category", to: "/" },
+                  { label: "User", to: "/" },
+                ]}
+              />
+            </>
+          )}
+
           {/* Login/Logout Button */}
           <Box sx={{ marginTop: "auto" }}>
             {isUser ? (
@@ -246,6 +286,11 @@ export default function Layout() {
                   aria-labelledby="alert-dialog-title"
                   aria-describedby="alert-dialog-description"
                 >
+                  {isLoading && (
+                    <Box sx={{ width: "100%" }}>
+                      <LinearProgress color="inherit" />
+                    </Box>
+                  )}
                   <DialogTitle id="alert-dialog-title">
                     {"Do you really want to log out?"}
                   </DialogTitle>
@@ -267,7 +312,7 @@ export default function Layout() {
         </List>
       </Drawer>
 
-      <Box component="main" sx={{ flexGrow: 1, px: 3 }}>
+      <Box component="main" sx={{ flexGrow: 1, px: 3, height: "100vh" }}>
         <Outlet />
       </Box>
     </Box>
