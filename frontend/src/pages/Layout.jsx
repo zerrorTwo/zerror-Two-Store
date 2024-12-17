@@ -20,6 +20,9 @@ import LoginIcon from "@mui/icons-material/Login";
 import { Outlet, useNavigate } from "react-router";
 import { Button, Dialog, DialogActions, DialogTitle } from "@mui/material";
 import NavItem from "../components/NavItem";
+import { useDispatch } from "react-redux";
+import { useLogoutMutation } from "../redux/api/authApiSlice";
+import { logOut } from "../redux/features/auth/authSlice";
 
 const drawerWidth = 240;
 
@@ -107,6 +110,8 @@ export default function Layout() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const isUser = true;
+  const dispatch = useDispatch();
+  const [logout] = useLogoutMutation();
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -128,7 +133,9 @@ export default function Layout() {
 
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await logout();
+    dispatch(logOut());
     navigate("/login");
     setOpenDialog(false);
   };
