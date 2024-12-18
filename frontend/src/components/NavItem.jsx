@@ -6,6 +6,7 @@ import {
   ListItemIcon,
   ListItemText,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles"; // Import useTheme
 
@@ -35,11 +36,18 @@ const NavItem = ({ to, icon, text, open = false, onClick = undefined }) => {
               {icon}
             </ListItemIcon>
             <ListItemText
-              primary={text}
-              sx={{
-                color: theme.palette.text.secondary, // Corrected color assignment
-                ...(open ? { opacity: 1 } : { opacity: 0 }), // Ternary to handle opacity based on 'open'
-              }}
+              primary={
+                <Typography
+                  variant="body1" // You can customize the variant if needed
+                  sx={{
+                    fontWeight: "bold", // Try bold font weight here
+                    color: theme.palette.text.secondary,
+                    opacity: open ? 1 : 0,
+                  }}
+                >
+                  {text}
+                </Typography>
+              }
             />
           </ListItemButton>
         </Tooltip>
