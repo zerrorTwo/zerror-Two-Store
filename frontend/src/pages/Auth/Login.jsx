@@ -5,6 +5,7 @@ import {
   Checkbox,
   CircularProgress,
   Container,
+  Divider,
   FormControlLabel,
   Grid,
   Paper,
@@ -19,6 +20,7 @@ import { useState } from "react";
 import { useLoginMutation } from "../../redux/api/authApiSlice";
 import { toast } from "react-toastify"; // Import only toast
 import "react-toastify/dist/ReactToastify.css"; // Đảm bảo import CSS của Toastify
+import ButtonWithIcon from "../../components/ButtonWIthIcon";
 
 function Login() {
   // const urlParams = new URLSearchParams(window.location.search);
@@ -88,7 +90,15 @@ function Login() {
             onChange={handlePwdInput}
           />
           <FormControlLabel
-            control={<Checkbox value="remember" color="primary" />}
+            control={
+              <Checkbox
+                sx={{
+                  "& .MuiSvgIcon-root": { color: theme.palette.primary.main },
+                }}
+                value="remember"
+                color="primary"
+              />
+            }
             label="Remember me"
           />
           <Button type="submit" variant="contained" fullWidth sx={{ mt: 1 }}>
@@ -99,13 +109,24 @@ function Login() {
             )}
           </Button>
         </Box>
-        <Grid container justifyContent="space-between" sx={{ mt: 1 }}>
+        <Grid container justifyContent="space-between" sx={{ mt: 2 }}>
           <Grid item>
             <Link to="/forgot">Forgot password?</Link>
           </Grid>
           <Grid item>
             <Link to="/register">Sign Up</Link>
           </Grid>
+        </Grid>
+
+        <Divider sx={{ my: 2 }}>Or</Divider>
+
+        <Grid container justifyContent="space-evenly" sx={{ mt: 2 }}>
+          <ButtonWithIcon text="Google" icon="/Assets/google.png" link="/" />
+          <ButtonWithIcon
+            text="Facebook"
+            icon="/Assets/facebook.png"
+            link="/"
+          />
         </Grid>
       </Paper>
     </Container>

@@ -8,6 +8,7 @@ import {
   Menu,
   MenuItem,
   Tooltip,
+  Typography,
   useTheme,
 } from "@mui/material";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
@@ -47,11 +48,18 @@ const Switcher = ({ icon, text, open = false, dropdownItems = [] }) => {
           </ListItemIcon>
 
           <ListItemText
-            primary={text}
-            sx={{
-              color: theme.palette.text.secondary,
-              ...(open ? { opacity: 1 } : { opacity: 0 }),
-            }}
+            primary={
+              <Typography
+                variant="body1" // You can customize the variant if needed
+                sx={{
+                  fontWeight: "bold", // Try bold font weight here
+                  color: theme.palette.text.secondary,
+                  opacity: open ? 1 : 0,
+                }}
+              >
+                {text}
+              </Typography>
+            }
           />
         </ListItemButton>
       </Tooltip>
