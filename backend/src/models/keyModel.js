@@ -8,11 +8,6 @@ const keyTokenSchema = new mongoose.Schema(
       ref: "User",
     },
 
-    privateKey: {
-      type: String,
-      required: true,
-    },
-
     publicKey: {
       type: String,
       required: true,

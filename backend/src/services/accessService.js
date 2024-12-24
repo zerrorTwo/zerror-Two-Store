@@ -2,15 +2,10 @@ import ApiError from "../utils/ApiError.js";
 import UserModel from "../models/userModel.js";
 import { StatusCodes } from "http-status-codes";
 import crypto from "crypto";
-import {
-  findByUserId,
-  keyTokenService,
-  removeKeyByUserId,
-} from "./keyTokenService.js";
+import { keyTokenService, removeKeyByUserId } from "./keyTokenService.js";
 import { HEADER } from "../constants/headerContans.js";
-import { generateToken } from "../auth/authUtil.js";
+import { generateRSAKeyPair, generateToken } from "../auth/authUtil.js";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import bcryptPassword from "../utils/bcryptPassword.js";
 import { COOKIE } from "../constants/headerContans.js";
 import KeyModel from "../models/keyModel.js";
@@ -34,32 +29,20 @@ const signUp = async (req, res) => {
   // Create and save the new user
   const newUser = new UserModel({ userName, email, password: hasPassword });
   try {
-    const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
-      modulusLength: 4096,
-      publicKeyEncoding: {
-        type: "pkcs1",
-        format: "pem",
-      },
-      privateKeyEncoding: {
-        type: "pkcs1",
-        format: "pem",
-      },
-    });
+    const { publicKey, privateKey } = generateRSAKeyPair();
 
     await newUser.save();
 
     const publicKeyString = publicKey.toString();
-    const privateKeyString = privateKey.toString();
 
     const tokens = await generateToken(
-      { id: newUser._id, email: newUser.email },
+      { id: newUser._id, email: newUser.email, isAdmin: newUser.isAdmin },
       privateKey,
       publicKey
     );
 
-    const saveKey = await keyTokenService({
+    await keyTokenService({
       userId: newUser._id,
-      privateKey: privateKeyString,
       publicKey: publicKeyString,
       refreshToken: tokens.refreshToken.toString(),
     });
@@ -111,22 +94,12 @@ const signIn = async (req, res) => {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid email or password");
     }
 
-    const { publicKey, privateKey } = crypto.generateKeyPairSync("rsa", {
-      modulusLength: 4096,
-      publicKeyEncoding: {
-        type: "pkcs1",
-        format: "pem",
-      },
-      privateKeyEncoding: {
-        type: "pkcs1",
-        format: "pem",
-      },
-    });
+    const { publicKey, privateKey } = generateRSAKeyPair();
 
     // console.log(publicKey, privateKey);
 
     const tokens = await generateToken(
-      { id: user._id, email: user.email },
+      { id: user._id, email: user.email, isAdmin: user.isAdmin },
       privateKey,
       publicKey
     );
@@ -142,7 +115,6 @@ const signIn = async (req, res) => {
 
     await keyTokenService({
       refreshToken: tokens.refreshToken,
-      privateKey,
       publicKey,
       userId: user._id,
     });
@@ -199,8 +171,7 @@ const refreshToken = async (req, res) => {
 
     const user = await UserModel.findOne({ _id: userId });
 
-    const privateKey = keyStore.privateKey;
-    const publicKey = keyStore.publicKey;
+    const { publicKey, privateKey } = generateRSAKeyPair();
 
     const tokens = await generateToken(
       { id: user._id, email: user.email },
@@ -210,7 +181,6 @@ const refreshToken = async (req, res) => {
 
     const saveKey = await keyTokenService({
       userId: user._id,
-      privateKey: privateKey.toString(),
       publicKey: publicKey.toString(),
       refreshToken: tokens.refreshToken.toString(),
     });

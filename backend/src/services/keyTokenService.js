@@ -1,16 +1,10 @@
 import { Types } from "mongoose";
 import KeyModel from "../models/keyModel.js";
 
-const keyTokenService = async ({
-  userId,
-  privateKey,
-  publicKey,
-  refreshToken,
-}) => {
+const keyTokenService = async ({ userId, publicKey, refreshToken }) => {
   try {
     const filter = { user: userId };
     const update = {
-      privateKey,
       publicKey,
       refreshToken, // Thêm refreshToken vào mảng
     };
