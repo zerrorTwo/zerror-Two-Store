@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import asyncHandeler from "../middlewares/asyncHandler.js";
 import { HEADER, COOKIE } from "../constants/headerContans.js";
@@ -5,6 +6,19 @@ import ApiError from "../utils/ApiError.js";
 import { StatusCodes } from "http-status-codes";
 import { findByUserId } from "../services/keyTokenService.js";
 import { findRoleByUserId } from "../services/accessService.js";
+
+const generateRSAKeyPair = () =>
+  crypto.generateKeyPairSync("rsa", {
+    modulusLength: 4096,
+    publicKeyEncoding: {
+      type: "pkcs1",
+      format: "pem",
+    },
+    privateKeyEncoding: {
+      type: "pkcs1",
+      format: "pem",
+    },
+  });
 
 const generateToken = async (payload, privateKey, publicKey) => {
   try {
@@ -89,6 +103,7 @@ const authentication = asyncHandeler(async (req, res, next) => {
     req.id = keyStore._id;
     req.user = keyStore.user;
     req.refreshToken = refreshToken;
+    req.publicKey = keyStore.publicKey;
 
     return next(); // Proceed to the next middleware
   } catch (error) {
@@ -103,17 +118,12 @@ const authentication = asyncHandeler(async (req, res, next) => {
 
 const authorization = asyncHandeler(async (req, res, next) => {
   try {
-    const userId = req.user;
-    if (!userId) {
-      throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid request");
-    }
+    const bearerAccessToken = req.headers[HEADER.AUTHORIZATION];
+    const accessToken = bearerAccessToken?.split(" ")[1];
 
-    const user = await findRoleByUserId(userId);
-    if (!user) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
-    }
+    const decodedUser = jwt.verify(accessToken, publicKey);
 
-    if (user.isAdmin) {
+    if (decodedUser.isAdmin) {
       return next();
     } else {
       throw new ApiError(StatusCodes.FORBIDDEN, "Access denied");
@@ -123,4 +133,10 @@ const authorization = asyncHandeler(async (req, res, next) => {
   }
 });
 
-export { generateToken, authentication, authorization, authenticationRefresh };
+export {
+  generateToken,
+  generateRSAKeyPair,
+  authentication,
+  authorization,
+  authenticationRefresh,
+};
