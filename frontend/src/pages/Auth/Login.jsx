@@ -121,7 +121,11 @@ function Login() {
         <Divider sx={{ my: 2 }}>Or</Divider>
 
         <Grid container justifyContent="space-evenly" sx={{ mt: 2 }}>
-          <ButtonWithIcon text="Google" icon="/Assets/google.png" link="/" />
+          <ButtonWithIcon
+            text="Google"
+            icon="/Assets/google.png"
+            link="http://localhost:5000/v1/api/auth/google/login"
+          />
           <ButtonWithIcon
             text="Facebook"
             icon="/Assets/facebook.png"

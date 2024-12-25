@@ -10,7 +10,7 @@ import cors from "cors";
 //utils
 import connectDB from "./src/config/db.js";
 import { errorHandlingMiddleware } from "./src/middlewares/errorMiddleware.js";
-import { corsOptions } from "./src/config/corsCofig.js";
+import passportMiddleware from "./src/auth/AuthStrategy/googleStategy.js";
 
 dotenv.config();
 
@@ -32,6 +32,9 @@ app.use(
     credentials: true, // Allow cookies and credentials if needed
   })
 );
+
+passportMiddleware(app);
+
 app.use("/v1/api", APIS_V1);
 app.use(errorHandlingMiddleware);
 

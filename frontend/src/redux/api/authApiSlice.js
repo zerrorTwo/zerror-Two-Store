@@ -12,6 +12,15 @@ export const authApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
+    loginGG: builder.mutation({
+      query: (data) => ({
+        //"http://localhost:5000/v1/api/auth/google/login"
+        url: `${BASE_URL}/auth/google/login`,
+        method: "POST",
+        body: data,
+      }),
+    }),
+
     register: builder.mutation({
       query: (data) => ({
         //"http://localhost:5000/v1/api/auth/signUp"
