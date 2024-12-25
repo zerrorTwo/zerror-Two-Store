@@ -21,6 +21,7 @@ import { useLoginMutation } from "../../redux/api/authApiSlice";
 import { toast } from "react-toastify"; // Import only toast
 import "react-toastify/dist/ReactToastify.css"; // Đảm bảo import CSS của Toastify
 import ButtonWithIcon from "../../components/ButtonWIthIcon";
+import { BASE_URL } from "../../redux/constants";
 
 function Login() {
   // const urlParams = new URLSearchParams(window.location.search);
@@ -124,7 +125,7 @@ function Login() {
           <ButtonWithIcon
             text="Google"
             icon="/Assets/google.png"
-            link="http://localhost:5000/v1/api/auth/google/login"
+            link={`${BASE_URL}/auth/google/login`}
           />
           <ButtonWithIcon
             text="Facebook"

@@ -15,10 +15,28 @@ const userSchema = new mongoose.Schema(
       match: [/^\S+@\S+\.\S+$/, "Please provide a valid email address"],
       trim: true,
     },
+    number: {
+      type: String,
+      unique: true,
+      validate: {
+        validator: function (value) {
+          return /^[0-9]{10}$/.test(value);
+        },
+        message: "Invalid phone number format, it should be 10 digits",
+      },
+      trim: true,
+    },
     password: {
       type: String,
-      required: [true, "Password is required"],
       minlength: [8, "Password must be at least 8 characters long"],
+      // Không yêu cầu password khi người dùng đăng nhập qua Google
+      required: function () {
+        return !this.googleId; // Chỉ yêu cầu password nếu không có googleId
+      },
+    },
+    googleId: {
+      type: String,
+      unique: true,
     },
     isAdmin: {
       type: Boolean,
