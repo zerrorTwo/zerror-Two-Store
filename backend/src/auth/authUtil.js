@@ -120,8 +120,10 @@ const authorization = asyncHandeler(async (req, res, next) => {
   try {
     const bearerAccessToken = req.headers[HEADER.AUTHORIZATION];
     const accessToken = bearerAccessToken?.split(" ")[1];
+    const publicKey = req.publicKey;
 
     const decodedUser = jwt.verify(accessToken, publicKey);
+    console.log(decodedUser);
 
     if (decodedUser.isAdmin) {
       return next();
