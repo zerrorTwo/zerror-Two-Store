@@ -4,7 +4,6 @@ import {
   Button,
   CircularProgress,
   Container,
-  Divider,
   Grid,
   Paper,
   TextField,
@@ -18,7 +17,6 @@ import { useState } from "react";
 import { useRegisterMutation } from "../../redux/api/authApiSlice";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
-import ButtonWithIcon from "../../components/ButtonWIthIcon";
 
 function Register() {
   const [userName, setUsername] = useState("");
@@ -120,7 +118,7 @@ function Register() {
           </Grid>
         </Grid>
 
-        <Divider sx={{ my: 2 }}>Or</Divider>
+        {/* <Divider sx={{ my: 2 }}>Or</Divider>
 
         <Grid container justifyContent="space-evenly" sx={{ mt: 2 }}>
           <ButtonWithIcon text="Google" icon="/Assets/google.png" link="/" />
@@ -129,7 +127,7 @@ function Register() {
             icon="/Assets/facebook.png"
             link="/"
           />
-        </Grid>
+        </Grid> */}
       </Paper>
     </Container>
   );
