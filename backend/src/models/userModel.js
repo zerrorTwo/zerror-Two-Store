@@ -33,6 +33,8 @@ const userSchema = new mongoose.Schema(
     googleId: {
       type: String,
       unique: true,
+      index: true,
+      sparse: true,
     },
     isAdmin: {
       type: Boolean,
