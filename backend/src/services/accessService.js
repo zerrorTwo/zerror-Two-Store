@@ -184,7 +184,9 @@ const logout = async (req, res) => {
       secure: true,
       sameSite: "strict",
     });
-    res.clearCookie("connect.sid");
+    if (req.cookies && req.cookies["connect.sid"]) {
+      res.clearCookie("connect.sid"); // Xóa cookie nếu tồn tại
+    }
 
     // Trả về kết quả xóa key thành công
     return delKey;

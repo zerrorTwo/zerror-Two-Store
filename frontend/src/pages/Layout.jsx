@@ -27,9 +27,9 @@ import {
   LinearProgress,
 } from "@mui/material";
 import NavItem from "../components/NavItem";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLogoutMutation } from "../redux/api/authApiSlice";
-import { logOut } from "../redux/features/auth/authSlice";
+import { logOut, selectCurrentUser } from "../redux/features/auth/authSlice";
 import Switcher from "../components/Switcher";
 import { toast } from "react-toastify";
 
@@ -118,7 +118,8 @@ const Drawer = styled(MuiDrawer, {
 export default function Layout() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
-  const isUser = true;
+  const isUser = useSelector(selectCurrentUser);
+  const admin = isUser?.isAdmin;
   const dispatch = useDispatch();
   const [logout, { isLoading }] = useLogoutMutation();
 
@@ -148,7 +149,7 @@ export default function Layout() {
       console.log(result);
       if (result) {
         dispatch(logOut());
-        navigate("/login");
+        navigate("/");
       }
       setOpenDialog(false);
     } catch (err) {
@@ -248,7 +249,7 @@ export default function Layout() {
             </>
           )}
 
-          {isUser && (
+          {admin && (
             <>
               {/* Account Item */}
               <Switcher
@@ -264,7 +265,7 @@ export default function Layout() {
                   { label: "Order", to: "/" },
                   { label: "Product", to: "/" },
                   { label: "Category", to: "/" },
-                  { label: "User", to: "/" },
+                  { label: "User", to: "/user" },
                 ]}
               />
             </>
