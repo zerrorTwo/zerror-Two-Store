@@ -130,7 +130,7 @@ function Login() {
           <ButtonWithIcon
             text="Facebook"
             icon="/Assets/facebook.png"
-            link="/"
+            link={`${BASE_URL}/auth/facebook/login`}
           />
         </Grid>
       </Paper>
