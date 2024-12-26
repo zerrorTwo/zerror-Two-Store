@@ -1,7 +1,6 @@
 import ApiError from "../utils/ApiError.js";
 import UserModel from "../models/userModel.js";
 import { StatusCodes } from "http-status-codes";
-import crypto from "crypto";
 import { keyTokenService, removeKeyByUserId } from "./keyTokenService.js";
 import { HEADER } from "../constants/headerContans.js";
 import { generateRSAKeyPair, generateToken } from "../auth/authUtil.js";
@@ -130,6 +129,40 @@ const signIn = async (req, res) => {
   }
 };
 
+const signInByGG = async (req, res) => {
+  try {
+    const user = req.user;
+    const { publicKey, privateKey } = generateRSAKeyPair();
+
+    const tokens = await generateToken(
+      { id: user._id, email: user.email, isAdmin: user.isAdmin },
+      privateKey,
+      publicKey
+    );
+
+    res.cookie(COOKIE.JWT, tokens.refreshToken.toString(), {
+      httpOnly: true,
+      sercure: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // console.log(tokens);
+
+    await keyTokenService({
+      refreshToken: tokens.refreshToken,
+      publicKey,
+      userId: user._id,
+    });
+    return {
+      user: user,
+      accessToken: tokens.accessToken.toString(),
+    };
+  } catch (error) {
+    throw error;
+  }
+};
+
 const logout = async (req, res) => {
   try {
     const id = req.headers[HEADER.CLIENT_ID];
@@ -151,6 +184,7 @@ const logout = async (req, res) => {
       secure: true,
       sameSite: "strict",
     });
+    res.clearCookie("connect.sid");
 
     // Trả về kết quả xóa key thành công
     return delKey;
@@ -218,4 +252,12 @@ const findRoleByUserId = async (userId) => {
   return await UserModel.findOne({ _id: userId }).select("-password").lean();
 };
 
-export { signUp, signIn, logout, refreshToken, findByEmail, findRoleByUserId };
+export {
+  signUp,
+  signIn,
+  signInByGG,
+  logout,
+  refreshToken,
+  findByEmail,
+  findRoleByUserId,
+};

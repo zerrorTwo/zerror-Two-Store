@@ -17,14 +17,10 @@ const userSchema = new mongoose.Schema(
     },
     number: {
       type: String,
+      match: [/^\d{10}$/, "Please provide a valid 10-digit phone number"],
+      index: true,
       unique: true,
-      validate: {
-        validator: function (value) {
-          return /^[0-9]{10}$/.test(value);
-        },
-        message: "Invalid phone number format, it should be 10 digits",
-      },
-      trim: true,
+      sparse: true,
     },
     password: {
       type: String,

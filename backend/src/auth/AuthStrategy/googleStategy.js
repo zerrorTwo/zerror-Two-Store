@@ -2,6 +2,7 @@
 import session from "express-session";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import UserModel from "../../models/userModel.js";
 
 const passportMiddleware = (app) => {
   // Session middleware
@@ -29,9 +30,18 @@ const passportMiddleware = (app) => {
         clientSecret: process.env.GOOGLE_CLIENT_SECRET,
         callbackURL: "http://localhost:5000/v1/api/auth/google/callback",
       },
-      (accessToken, refreshToken, profile, done) => {
+      async (accessToken, refreshToken, profile, done) => {
+        const email = profile.emails[0].value;
+        let user = await UserModel.findOne({ email: email });
+        if (!user) {
+          user = await UserModel.create({
+            email: email,
+            googleId: profile.id,
+            userName: profile.displayName,
+          });
+        }
         // Here, you would typically save or process user data from the profile
-        return done(null, profile);
+        return done(null, user);
       }
     )
   );

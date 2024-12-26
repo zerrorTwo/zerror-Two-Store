@@ -3,6 +3,7 @@ import {
   signIn,
   logout,
   refreshToken,
+  signInByGG,
 } from "../services/accessService.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
 import { StatusCodes } from "http-status-codes";
@@ -21,6 +22,16 @@ const signInController = asyncHandler(async (req, res, next) => {
   try {
     const { user, accessToken } = await signIn(req, res);
     res.status(StatusCodes.OK).json({ user, accessToken });
+  } catch (error) {
+    next(error);
+  }
+});
+
+const signInGGController = asyncHandler(async (req, res, next) => {
+  try {
+    const { user, accessToken } = await signInByGG(req, res);
+    const userConvert = user;
+    res.status(StatusCodes.OK).json({ userConvert, accessToken });
   } catch (error) {
     next(error);
   }
@@ -55,6 +66,7 @@ const refreshTokenController = asyncHandler(async (req, res, next) => {
 export {
   signUpController,
   signInController,
+  signInGGController,
   logoutController,
   refreshTokenController,
 };
