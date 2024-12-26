@@ -16,6 +16,10 @@ const theme = createTheme({
       primary: "#777", // Màu chữ chính
       secondary: "#FFF", // Màu chữ phụ
     },
+    button: {
+      backgroundColor: "#EE4899", // Màu nền của nút
+      hoverBackgroundColor: "#e681b2",
+    },
   },
   typography: {
     fontFamily: "'Roboto', 'Arial', sans-serif", // Font chữ tùy chỉnh
