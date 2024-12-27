@@ -1,18 +1,71 @@
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import Popover from "@mui/material/Popover";
 import Typography from "@mui/material/Typography";
 import { Box, TextField, Button, useTheme } from "@mui/material";
+import { useUpdateUserMutation } from "../redux/api/userSlice.js"; // Điều chỉnh đường dẫn import
+import { toast } from "react-toastify";
 
-// Sử dụng default parameters thay vì defaultProps
 function PopoverCom({ anchorEl = null, handleClose, row = null }) {
   const theme = useTheme();
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
 
-  const handleSubmit = (event) => {
+  // Khai báo mutation hook ở cấp cao nhất của component
+  const [updateUser, { isLoading }] = useUpdateUserMutation();
+
+  const [formData, setFormData] = useState({
+    userName: "",
+    email: "",
+    number: "",
+  });
+
+  useEffect(() => {
+    if (row) {
+      setFormData({
+        userName: row.userName || "",
+        email: row.email || "",
+        number: row.number || "N/A",
+      });
+    }
+  }, [row]);
+
+  const handleInputChange = (event) => {
+    const { name, value } = event.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
-    // Xử lý logic update user ở đây
-    handleClose();
+
+    try {
+      let { userName, email, number } = formData;
+      if (number === "N/A") {
+        number = "";
+      }
+
+      // Gọi mutation
+      const respone = await updateUser({
+        id: row._id,
+        userName,
+        email,
+        number,
+      }).unwrap();
+
+      if (respone) {
+        toast.success("User updated successfully");
+      }
+      // Đóng popover sau khi update thành công
+      // handleClose();
+
+      // Có thể thêm thông báo success ở đây
+    } catch (error) {
+      toast.error("Failed to update user", error);
+      // Xử lý error - có thể hiển thị thông báo lỗi
+    }
   };
 
   return (
@@ -47,20 +100,21 @@ function PopoverCom({ anchorEl = null, handleClose, row = null }) {
               },
               "& .MuiInputLabel-root": {
                 color: theme.palette.text.blackColor,
-                // Khi label được focus
                 "&.Mui-focused": {
-                  color: theme.palette.text.blackColor, // giữ màu đỏ khi focus
+                  color: theme.palette.text.blackColor,
                 },
-                // Khi label bị shrink (thu nhỏ)
                 "&.MuiInputLabel-shrink": {
-                  color: theme.palette.text.blackColor, // giữ màu đỏ khi shrink
+                  color: theme.palette.text.blackColor,
                 },
               },
             }}
             fullWidth
             margin="normal"
             label="Username"
-            defaultValue={row?.userName}
+            name="userName"
+            value={formData.userName}
+            onChange={handleInputChange}
+            disabled={isLoading}
           />
           <TextField
             sx={{
@@ -69,20 +123,21 @@ function PopoverCom({ anchorEl = null, handleClose, row = null }) {
               },
               "& .MuiInputLabel-root": {
                 color: theme.palette.text.blackColor,
-                // Khi label được focus
                 "&.Mui-focused": {
-                  color: theme.palette.text.blackColor, // giữ màu đỏ khi focus
+                  color: theme.palette.text.blackColor,
                 },
-                // Khi label bị shrink (thu nhỏ)
                 "&.MuiInputLabel-shrink": {
-                  color: theme.palette.text.blackColor, // giữ màu đỏ khi shrink
+                  color: theme.palette.text.blackColor,
                 },
               },
             }}
             fullWidth
             margin="normal"
             label="Email"
-            defaultValue={row?.email}
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+            disabled={isLoading}
           />
           <TextField
             sx={{
@@ -91,31 +146,35 @@ function PopoverCom({ anchorEl = null, handleClose, row = null }) {
               },
               "& .MuiInputLabel-root": {
                 color: theme.palette.text.blackColor,
-                // Khi label được focus
                 "&.Mui-focused": {
-                  color: theme.palette.text.blackColor, // giữ màu đỏ khi focus
+                  color: theme.palette.text.blackColor,
                 },
-                // Khi label bị shrink (thu nhỏ)
                 "&.MuiInputLabel-shrink": {
-                  color: theme.palette.text.blackColor, // giữ màu đỏ khi shrink
+                  color: theme.palette.text.blackColor,
                 },
               },
             }}
             fullWidth
             margin="normal"
             label="Phone Number"
-            defaultValue={row?.number || "N/A"}
+            name="number"
+            value={formData.number}
+            onChange={handleInputChange}
+            disabled={isLoading}
           />
           <Box
             sx={{ mt: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}
           >
-            <Button onClick={handleClose}>Cancel</Button>
+            <Button onClick={handleClose} disabled={isLoading}>
+              Cancel
+            </Button>
             <Button
               type="submit"
               variant="contained"
               sx={{ backgroundColor: theme.palette.button.backgroundColor }}
+              disabled={isLoading}
             >
-              Save
+              {isLoading ? "Saving..." : "Save"}
             </Button>
           </Box>
         </form>
@@ -124,7 +183,6 @@ function PopoverCom({ anchorEl = null, handleClose, row = null }) {
   );
 }
 
-// Chỉ giữ lại PropTypes validation
 PopoverCom.propTypes = {
   anchorEl: PropTypes.object,
   handleClose: PropTypes.func.isRequired,
