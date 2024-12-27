@@ -174,10 +174,7 @@ const GenericTable = ({ rows, headCells, handleUpdateClick }) => {
                             backgroundColor:
                               theme.palette.button.backgroundColor,
                           }}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            handleUpdateClick(row._id);
-                          }}
+                          onClick={(event) => handleUpdateClick(event, row)} // Truyền cả event và row
                         >
                           <EditIcon />
                         </IconButton>

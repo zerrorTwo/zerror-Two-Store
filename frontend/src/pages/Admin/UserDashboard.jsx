@@ -1,11 +1,22 @@
 import { useGetAllCurrentUserQuery } from "../../redux/api/userSlice.js"; // Adjust the import path as needed
 import GenericTable from "../../components/GenericTable.jsx"; // Adjust the import path as needed
+import { useState } from "react";
+import PopoverCom from "../../components/PopoverCom.jsx"; // Adjust the import path
 
 const UserDashboard = () => {
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedRow, setSelectedRow] = useState(null);
   const { data: rows = [], error, isLoading } = useGetAllCurrentUserQuery();
 
-  const handleUpdateClick = (id) => {
-    console.log(`Update user with id: ${id}`);
+  const handleUpdateClick = (event, row) => {
+    event.stopPropagation();
+    setAnchorEl(event.currentTarget);
+    setSelectedRow(row);
+  };
+
+  const handleClosePopover = () => {
+    setAnchorEl(null);
+    setSelectedRow(null);
   };
 
   const headCells = [
@@ -30,11 +41,18 @@ const UserDashboard = () => {
   if (error) return <div>Error loading data</div>;
 
   return (
-    <GenericTable
-      rows={rows}
-      headCells={headCells}
-      handleUpdateClick={handleUpdateClick}
-    />
+    <>
+      <GenericTable
+        rows={rows}
+        headCells={headCells}
+        handleUpdateClick={handleUpdateClick}
+      />
+      <PopoverCom
+        anchorEl={anchorEl}
+        handleClose={handleClosePopover}
+        row={selectedRow}
+      />
+    </>
   );
 };
 
