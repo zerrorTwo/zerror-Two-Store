@@ -1,11 +1,45 @@
 import PropTypes from "prop-types";
-import { Toolbar, Typography, IconButton, Tooltip } from "@mui/material";
+import {
+  Toolbar,
+  Typography,
+  IconButton,
+  Tooltip,
+  Box,
+  CircularProgress,
+} from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useTheme } from "@mui/material/styles";
+import ConfirmDialog from "./ConfirmDialog";
+import { useState } from "react";
+import { useDeleteAllMutation } from "../redux/api/userSlice.js";
+import { toast } from "react-toastify";
 
-const GenericTableToolbar = ({ numSelected }) => {
+const GenericTableToolbar = ({ numSelected, selected, setSelected }) => {
   const theme = useTheme();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [deleteUsers, { isLoading }] = useDeleteAllMutation();
+
+  // Handlers cho dialog
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
+  const handleConfirmDelete = async () => {
+    try {
+      await deleteUsers(selected).unwrap();
+      toast.success("Users deleted successfully");
+      setSelected([]);
+      setOpenDialog(false);
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error(error.data?.message || "Failed to delete users");
+    }
+  };
 
   return (
     <Toolbar
@@ -40,11 +74,25 @@ const GenericTableToolbar = ({ numSelected }) => {
         </Typography>
       )}
       {numSelected > 0 ? (
-        <Tooltip title="Delete">
-          <IconButton>
-            <DeleteIcon sx={{ color: theme.palette.text.secondary }} />
-          </IconButton>
-        </Tooltip>
+        <>
+          <Tooltip title="Delete">
+            {isLoading ? (
+              <Box sx={{ display: "flex" }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <IconButton onClick={handleOpenDialog}>
+                <DeleteIcon sx={{ color: theme.palette.text.secondary }} />
+              </IconButton>
+            )}
+          </Tooltip>
+          <ConfirmDialog
+            open={openDialog}
+            onClose={handleCloseDialog}
+            onConfirm={handleConfirmDelete}
+            itemCount={numSelected}
+          />
+        </>
       ) : (
         <IconButton sx={{ cursor: "default" }}>
           <FilterListIcon sx={{ color: theme.palette.text.secondary }} />
@@ -56,6 +104,8 @@ const GenericTableToolbar = ({ numSelected }) => {
 
 GenericTableToolbar.propTypes = {
   numSelected: PropTypes.number.isRequired,
+  selected: PropTypes.array.isRequired,
+  setSelected: PropTypes.func.isRequired,
 };
 
 export default GenericTableToolbar;

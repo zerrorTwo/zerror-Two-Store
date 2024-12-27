@@ -42,6 +42,7 @@ const GenericTable = ({ rows, headCells, handleUpdateClick }) => {
   const [orderBy, setOrderBy] = useState(headCells[0].id);
   const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
+  // console.log(selected);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -51,7 +52,7 @@ const GenericTable = ({ rows, headCells, handleUpdateClick }) => {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelected = rows.map((n) => n.id);
+      const newSelected = rows.map((n) => n._id);
       setSelected(newSelected);
       return;
     }
@@ -102,12 +103,16 @@ const GenericTable = ({ rows, headCells, handleUpdateClick }) => {
       }}
     >
       <Paper sx={{ width: "100%", backgroundColor: "transparent" }}>
-        <GenericTableToolbar numSelected={selected.length} />
+        <GenericTableToolbar
+          numSelected={selected.length}
+          selected={selected}
+          setSelected={setSelected}
+        />
         <TableContainer>
           <Table
             sx={{ minWidth: 750 }}
             aria-labelledby="tableTitle"
-            size={"medium"}
+            size={"small"}
           >
             <GenericTableHead
               headCells={headCells}
@@ -120,14 +125,14 @@ const GenericTable = ({ rows, headCells, handleUpdateClick }) => {
             />
             <TableBody>
               {visibleRows.map((row, index) => {
-                const isItemSelected = selected.includes(row.id);
+                const isItemSelected = selected.includes(row._id);
                 const labelId = `enhanced-table-checkbox-${index}`;
 
                 return (
                   <TableRow
                     key={index}
                     hover
-                    onClick={(event) => handleClick(event, row.id)}
+                    onClick={(event) => handleClick(event, row._id)}
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
