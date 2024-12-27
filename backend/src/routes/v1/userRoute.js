@@ -1,6 +1,7 @@
 import express from "express";
 import { authentication, authorization } from "../../auth/authUtil.js";
 import {
+  deleteManyUsers,
   deleteUserById,
   getAllUsers,
   getCurrentUserProfile,
@@ -22,6 +23,8 @@ Router.route("/profile")
 Router.use(authorization);
 
 Router.route("/").get(getAllUsers);
+Router.route("/delete-many").delete(deleteManyUsers);
+
 Router.route("/:id")
   .get(getUserById)
   .put(updateUserById)

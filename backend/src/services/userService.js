@@ -61,14 +61,16 @@ const updateUserById = async (req, res) => {
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
+  // console.log(req.body);
 
   user.userName = req.body.userName || user.userName;
   user.email = req.body.email || user.email;
+  user.number = req.body.number || user.number;
   if (req.body.isAdmin !== undefined) {
     user.isAdmin = req.body.isAdmin;
   }
 
-  if (req.body.password) {
+  if (req.body?.password) {
     const bcryptPassword = await bcyptPassword(password);
     user.password = bcryptPassword;
   }
@@ -92,6 +94,25 @@ const deleteUserById = async (req, res) => {
   return { message: `User ${userName} deleted successfully` };
 };
 
+const deleteManyUsers = async (req, res) => {
+  const users = req.body;
+  console.log(users);
+
+  if (!users) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Users not found");
+  }
+  const respone = await UserModel.deleteMany(users);
+  console.log(respone);
+
+  if (!respone) {
+    throw new ApiError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Failed to delete users"
+    );
+  }
+  return { message: `Users deleted successfully` };
+};
+
 export const userService = {
   getCurrentUserProfile,
   updateCurrentUserProfile,
@@ -99,4 +120,5 @@ export const userService = {
   getUserById,
   updateUserById,
   deleteUserById,
+  deleteManyUsers,
 };

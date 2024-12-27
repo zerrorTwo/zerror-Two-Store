@@ -1,6 +1,7 @@
 import { StatusCodes } from "http-status-codes";
 import asyncHandeler from "../middlewares/asyncHandler.js";
 import { userService } from "../services/userService.js";
+import { log } from "console";
 
 const getCurrentUserProfile = asyncHandeler(async (req, res) => {
   const user = await userService.getCurrentUserProfile(req, res);
@@ -32,6 +33,11 @@ const deleteUserById = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(user);
 });
 
+const deleteManyUsers = asyncHandeler(async (req, res) => {
+  const users = await userService.deleteManyUsers(req, res);
+  res.status(StatusCodes.OK).json(users);
+});
+
 export {
   getCurrentUserProfile,
   updateCurrentUserProfile,
@@ -39,4 +45,5 @@ export {
   getUserById,
   updateUserById,
   deleteUserById,
+  deleteManyUsers,
 };

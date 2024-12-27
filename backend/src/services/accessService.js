@@ -84,6 +84,7 @@ const signIn = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await findByEmail({ email });
+
     if (!user) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid email or password");
     }
@@ -98,7 +99,12 @@ const signIn = async (req, res) => {
     // console.log(publicKey, privateKey);
 
     const tokens = await generateToken(
-      { id: user._id, email: user.email, isAdmin: user.isAdmin },
+      {
+        id: user._id,
+        email: user?.email,
+        isAdmin: user?.isAdmin,
+        number: user?.number,
+      },
       privateKey,
       publicKey
     );
@@ -245,6 +251,8 @@ const findByEmail = async ({
     email: 1,
     password: 1,
     isAdmin: 1,
+    number: 1,
+    googleId: 1,
   },
 }) => {
   return await UserModel.findOne({ email: email }).select(select).lean();
