@@ -47,7 +47,6 @@ function Login() {
       dispatch(setCredentials(data));
       navigate("/");
     } catch (err) {
-      // console.log(err.error);
       toast.error(
         err?.data?.message || err?.error || "An unexpected error occurred"
       );

@@ -8,6 +8,7 @@ import Register from "./pages/Auth/Register";
 import RequireAuth from "./pages/Auth/RequireAuth";
 import UserDashboard from "./pages/Admin/UserDashboard";
 import AdminAuth from "./pages/Auth/AdminAuth";
+import Profile from "./pages/Profile";
 
 function App() {
   return (
@@ -17,14 +18,15 @@ function App() {
         <Route path="menu" element={<Menu />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
-        <Route path="user" element={<UserDashboard />} />
 
         {/* Need login to access */}
         <Route element={<RequireAuth />}>
           <Route path="cart" element={<Cart />} />
-          {/* <Route element={<AdminAuth />}>
+          <Route path="profile" element={<Profile />} />
+
+          <Route element={<AdminAuth />}>
             <Route path="user" element={<UserDashboard />} />
-          </Route> */}
+          </Route>
         </Route>
       </Route>
     </Routes>
