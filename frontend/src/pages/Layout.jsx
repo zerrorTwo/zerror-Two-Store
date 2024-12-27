@@ -122,6 +122,7 @@ export default function Layout() {
   const admin = isUser?.isAdmin;
   const dispatch = useDispatch();
   const [logout, { isLoading }] = useLogoutMutation();
+  // console.log(isUser);
 
   const handleDrawerOpen = () => {
     setOpen(true);
