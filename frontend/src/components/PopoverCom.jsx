@@ -2,7 +2,13 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import Popover from "@mui/material/Popover";
 import Typography from "@mui/material/Typography";
-import { Box, TextField, Button, useTheme } from "@mui/material";
+import {
+  Box,
+  TextField,
+  Button,
+  useTheme,
+  LinearProgress,
+} from "@mui/material";
 import { useUpdateUserMutation } from "../redux/api/userSlice.js"; // Điều chỉnh đường dẫn import
 import { toast } from "react-toastify";
 
@@ -89,6 +95,11 @@ function PopoverCom({ anchorEl = null, handleClose, row = null }) {
       }}
     >
       <Box sx={{ p: 2, width: 300 }}>
+        {isLoading && (
+          <Box sx={{ width: "100%" }}>
+            <LinearProgress color="inherit" />
+          </Box>
+        )}
         <Typography variant="h6" sx={{ color: theme.palette.text.blackColor }}>
           Edit User
         </Typography>
@@ -174,7 +185,7 @@ function PopoverCom({ anchorEl = null, handleClose, row = null }) {
               sx={{ backgroundColor: theme.palette.button.backgroundColor }}
               disabled={isLoading}
             >
-              {isLoading ? "Saving..." : "Save"}
+              Save
             </Button>
           </Box>
         </form>

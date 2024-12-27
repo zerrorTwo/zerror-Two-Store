@@ -3,6 +3,14 @@ import { USER_URL } from "../constants";
 
 export const userApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    deleteAll: builder.mutation({
+      query: (_id) => ({
+        url: `${USER_URL}/delete-many`,
+        method: "DELETE",
+        body: { _id },
+      }),
+      invalidatesTags: ["User"],
+    }),
     getCurrentUser: builder.query({
       query: () => ({
         url: `${USER_URL}/profile`,
@@ -34,4 +42,5 @@ export const {
   useGetCurrentUserQuery,
   useGetAllCurrentUserQuery,
   useUpdateUserMutation,
+  useDeleteAllMutation,
 } = userApiSlice;
