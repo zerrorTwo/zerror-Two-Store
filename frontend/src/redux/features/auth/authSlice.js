@@ -2,10 +2,14 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   userInfo: localStorage.getItem("userInfo")
-    ? JSON.parse(localStorage.getItem("userInfo"))
+    ? JSON.parse(localStorage.getItem("userInfo")).user
     : null,
-  userId: null,
-  token: null,
+  userId: localStorage.getItem("userInfo")
+    ? JSON.parse(localStorage.getItem("userInfo")).user._id
+    : null,
+  token: localStorage.getItem("token")
+    ? JSON.parse(localStorage.getItem("token")).token
+    : null,
 };
 
 const authSlice = createSlice({
@@ -14,21 +18,10 @@ const authSlice = createSlice({
   reducers: {
     setCredentials: (state, action) => {
       const { user, accessToken } = action.payload;
-      // console.log(user);
 
       state.userInfo = user;
       state.userId = user._id;
       state.token = accessToken;
-      const expires = new Date().getTime() + 30 * 24 * 60 * 60 * 1000; // 30 days from now
-
-      // Store user info with expiration timestamp
-      localStorage.setItem(
-        "userInfo",
-        JSON.stringify({
-          user,
-          expires,
-        })
-      );
     },
     // eslint-disable-next-line no-unused-vars
     logOut: (state, action) => {
@@ -36,6 +29,7 @@ const authSlice = createSlice({
       state.userId = null;
       state.token = null;
       localStorage.removeItem("userInfo");
+      localStorage.removeItem("token");
     },
   },
 });

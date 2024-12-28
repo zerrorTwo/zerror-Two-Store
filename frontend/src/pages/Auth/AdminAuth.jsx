@@ -8,16 +8,17 @@ const AdminAuth = () => {
   const user = useSelector(selectCurrentUser);
   const navigate = useNavigate();
   const hasShownToast = useRef(false);
+  const isUserAdmin = user?.user?.isAdmin || user?.isAdmin;
 
   useEffect(() => {
-    if (user.isAdmin !== true && !hasShownToast.current) {
+    if (isUserAdmin !== true && !hasShownToast.current) {
       toast.error("Access denied");
       hasShownToast.current = true;
       navigate("/");
     }
-  }, [user.isAdmin, navigate]);
+  }, [isUserAdmin, navigate]);
 
-  if (user.isAdmin === true) {
+  if (isUserAdmin === true) {
     return <Outlet />;
   }
 

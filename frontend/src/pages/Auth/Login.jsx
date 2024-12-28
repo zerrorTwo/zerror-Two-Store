@@ -45,6 +45,25 @@ function Login() {
       const data = await login({ email: gmail, password }).unwrap();
 
       dispatch(setCredentials(data));
+      const { user, accessToken } = data;
+      const expires = new Date().getTime() + 30 * 24 * 60 * 60 * 1000; // 30 days from now
+
+      // Store user info with expiration timestamp
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify({
+          user,
+          expires,
+        })
+      );
+      localStorage.setItem(
+        "token",
+        JSON.stringify({
+          token: accessToken,
+          expires,
+        })
+      );
+      // localStorage.setItem("token", data.accessToken);
       navigate("/");
     } catch (err) {
       toast.error(

@@ -119,7 +119,9 @@ export default function Layout() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const isUser = useSelector(selectCurrentUser);
-  const admin = isUser?.isAdmin;
+  // console.log(isUser);
+
+  const admin = isUser?.user?.isAdmin || isUser?.isAdmin;
   const dispatch = useDispatch();
   const [logout, { isLoading }] = useLogoutMutation();
   // console.log(isUser);
@@ -265,7 +267,7 @@ export default function Layout() {
                   { label: "Analytics", to: "/" },
                   { label: "Order", to: "/" },
                   { label: "Product", to: "/" },
-                  { label: "Category", to: "/" },
+                  { label: "Category", to: "/category" },
                   { label: "User", to: "/user" },
                 ]}
               />
@@ -305,7 +307,7 @@ export default function Layout() {
             ) : (
               <NavItem
                 to="/login"
-                icon={<LoginIcon />}
+                icon={<AccountCircleIcon />}
                 text="Login"
                 open={open}
               />
