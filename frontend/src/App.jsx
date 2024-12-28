@@ -31,7 +31,7 @@ function App() {
         localStorage.removeItem("token");
       }
     }
-  }, [dispatch]);
+  });
 
   return (
     <Routes>

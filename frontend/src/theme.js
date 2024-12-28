@@ -20,6 +20,7 @@ const theme = createTheme({
     button: {
       backgroundColor: "#EE4899", // Màu nền của nút
       hoverBackgroundColor: "#e681b2",
+      error: "#FE0032", // Màu thông báo lỗi
     },
   },
   typography: {

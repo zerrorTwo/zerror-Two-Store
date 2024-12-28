@@ -62,7 +62,7 @@ const deleteCategory = async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "Category not found");
   }
 
-  console.log(category);
+  // console.log(category);
 
   const name = category.name;
 

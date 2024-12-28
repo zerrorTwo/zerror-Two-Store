@@ -46,7 +46,6 @@ function PopoverCom({ anchorEl = null, handleClose, row = null }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
     try {
       let { userName, email, number } = formData;
       if (number === "N/A") {
@@ -65,7 +64,7 @@ function PopoverCom({ anchorEl = null, handleClose, row = null }) {
         toast.success("User updated successfully");
       }
       // Đóng popover sau khi update thành công
-      // handleClose();
+      handleClose();
 
       // Có thể thêm thông báo success ở đây
     } catch (error) {
@@ -103,7 +102,7 @@ function PopoverCom({ anchorEl = null, handleClose, row = null }) {
         <Typography variant="h6" sx={{ color: theme.palette.text.blackColor }}>
           Edit User
         </Typography>
-        <form onSubmit={handleSubmit}>
+        <Box>
           <TextField
             sx={{
               "& .MuiInputBase-input": {
@@ -180,7 +179,7 @@ function PopoverCom({ anchorEl = null, handleClose, row = null }) {
               Cancel
             </Button>
             <Button
-              type="submit"
+              onClick={handleSubmit}
               variant="contained"
               sx={{ backgroundColor: theme.palette.button.backgroundColor }}
               disabled={isLoading}
@@ -188,7 +187,7 @@ function PopoverCom({ anchorEl = null, handleClose, row = null }) {
               Save
             </Button>
           </Box>
-        </form>
+        </Box>
       </Box>
     </Popover>
   );
