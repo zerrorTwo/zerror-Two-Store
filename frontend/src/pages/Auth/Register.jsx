@@ -42,6 +42,24 @@ function Register() {
       }).unwrap();
 
       dispatch(setCredentials(data));
+      const { user, accessToken } = data;
+      const expires = new Date().getTime() + 30 * 24 * 60 * 60 * 1000; // 30 days from now
+
+      // Store user info with expiration timestamp
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify({
+          user,
+          expires,
+        })
+      );
+      localStorage.setItem(
+        "token",
+        JSON.stringify({
+          token: accessToken,
+          expires,
+        })
+      );
       navigate("/"); // This will navigate to the homepage if login is successful
     } catch (err) {
       toast.error(

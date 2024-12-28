@@ -8,8 +8,19 @@ const getAllCategory = async (req, res) => {
 
 const createCategory = async (req, res) => {
   const data = req.body;
+  data.name = data.name.trim().toUpperCase();
+  // console.log(data.name.trim().toUpperCase());
+
   if (!data) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Data not found");
+  }
+
+  const categoryExist = await categoryModel.findOne({
+    name: data.name,
+  });
+
+  if (categoryExist) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Category already exists");
   }
   const category = new categoryModel(data);
   await category.save();

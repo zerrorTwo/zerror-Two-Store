@@ -172,6 +172,7 @@ const signInByGG = async (req, res) => {
 const logout = async (req, res) => {
   try {
     const id = req.headers[HEADER.CLIENT_ID];
+    // console.log(req.headers[HEADER.CLIENT_ID]);
 
     // Xóa refresh token từ cơ sở dữ liệu
     const delKey = await removeKeyByUserId(id);
