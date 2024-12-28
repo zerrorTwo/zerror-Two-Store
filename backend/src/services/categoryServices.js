@@ -71,9 +71,27 @@ const deleteCategory = async (req, res) => {
   return { message: `Category ${name} deleted successfully` };
 };
 
+const searchCategory = async (req, res) => {
+  let { keyword } = req.query;
+  keyword = keyword.trim().toUpperCase();
+  if (keyword === undefined) {
+    return await categoryModel.find({});
+  }
+  try {
+    const categories = await categoryModel.find({
+      name: { $regex: keyword },
+    });
+
+    return categories;
+  } catch (error) {
+    throw new Error(`Error searching categories: ${error.message}`);
+  }
+};
+
 export const categoryService = {
   getAllCategory,
   createCategory,
   updateCategory,
   deleteCategory,
+  searchCategory,
 };

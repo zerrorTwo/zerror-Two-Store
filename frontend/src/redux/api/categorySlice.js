@@ -35,6 +35,14 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Category"],
     }),
+
+    searchCategory: builder.query({
+      query: (searchTerm) => ({
+        url: `${BASE_URL}/category/search`,
+        params: { keyword: searchTerm },
+      }),
+      keepUnusedDataFor: 60,
+    }),
   }),
 });
 
@@ -43,4 +51,5 @@ export const {
   useCreateNewMutation,
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,
+  useSearchCategoryQuery,
 } = categoryApiSlice;
