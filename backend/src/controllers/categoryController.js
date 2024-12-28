@@ -22,4 +22,15 @@ const deleteCategory = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(categories);
 });
 
-export { getAllCategory, createCategory, updateCategory, deleteCategory };
+const searchCategory = asyncHandeler(async (req, res) => {
+  const categories = await categoryService.searchCategory(req, res);
+  res.status(StatusCodes.OK).json(categories);
+});
+
+export {
+  getAllCategory,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  searchCategory,
+};

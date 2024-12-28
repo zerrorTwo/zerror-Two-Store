@@ -4,44 +4,83 @@ import ButtonPrimary from "../../components/ButtonPrimary.jsx";
 import {
   useCreateNewMutation,
   useGetAllCategoryQuery,
+  useSearchCategoryQuery,
 } from "../../redux/api/categorySlice.js";
 import CategoryList from "../../components/CategoryList.jsx";
 import { toast } from "react-toastify";
+import { debounce } from "lodash"; // Thêm import debounce
 
 function CategoryDashBoard() {
   const theme = useTheme();
-  const [searchValue, setSearchValue] = useState("");
+  const [addValue, setAddValue] = useState("");
+  const [search, setSearch] = useState("");
   const hasShown = useRef(false);
   const inputRef = useRef(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [renderData, setRenderData] = useState([]);
 
-  const { data: category, isLoading, error } = useGetAllCategoryQuery();
+  const {
+    data: category,
+    isLoading,
+    error,
+    refetch,
+  } = useGetAllCategoryQuery();
   const [createNew, { isLoading: isLoadingCreateNew }] = useCreateNewMutation();
+  const { data: searchResults, isLoading: isLoadingSearch } =
+    useSearchCategoryQuery(search, {
+      skip: !isSearching,
+    });
 
   useEffect(() => {
     if (error && !hasShown.current) {
       toast.error(error.error || error?.message || error?.stack);
       hasShown.current = true;
     }
-  }, [category, error]);
+  }, [error]);
+
+  useEffect(() => {
+    if (isSearching && searchResults) {
+      setRenderData(searchResults);
+    } else if (!isSearching && category) {
+      setRenderData(category);
+    }
+  }, [category, searchResults, isSearching]);
 
   const handleInputChange = (event) => {
-    setSearchValue(event.target.value);
+    setAddValue(event.target.value);
   };
 
-  const handleClick = async (e) => {
-    e.preventDefault();
-    try {
-      const newCategory = await createNew({ name: searchValue });
-      if (newCategory.error) {
-        toast.error(
-          newCategory.error.error ||
-            newCategory.error?.data?.message ||
-            newCategory.error?.message ||
-            newCategory.error?.stack
-        );
+  // Tạo debounced search function
+  const debouncedSearch = useRef(
+    debounce((searchTerm) => {
+      if (searchTerm.trim()) {
+        setIsSearching(true);
       } else {
-        setSearchValue("");
+        setIsSearching(false);
+      }
+    }, 500) // 500ms delay
+  ).current;
+
+  const handleInputSearchChange = (event) => {
+    const searchTerm = event.target.value;
+    setSearch(searchTerm);
+    debouncedSearch(searchTerm);
+  };
+
+  const handleClick = async () => {
+    if (!addValue.trim()) {
+      toast.warning("Please enter a category name");
+      return;
+    }
+
+    try {
+      const result = await createNew({ name: addValue }).unwrap();
+      if (result) {
+        setAddValue("");
         inputRef.current.focus();
+        setIsSearching(false);
+        refetch();
+        toast.success("Category created successfully!");
       }
     } catch (error) {
       toast.error(error.error || error?.message || error?.stack);
@@ -49,10 +88,18 @@ function CategoryDashBoard() {
   };
 
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
-      handleClick(event);
+    if (event.key === "Enter" && event.target.id === "add-field") {
+      handleClick();
+      event.preventDefault();
     }
   };
+
+  // Cleanup debounce on component unmount
+  useEffect(() => {
+    return () => {
+      debouncedSearch.cancel();
+    };
+  }, [debouncedSearch]);
 
   return (
     <Box sx={{ flexGrow: 1, m: 3 }}>
@@ -61,60 +108,114 @@ function CategoryDashBoard() {
           Category Dashboard
         </Typography>
       </Box>
-      <Box sx={{ width: "80%", p: 3 }}>
-        <Box component="form">
-          <TextField
-            sx={{
-              borderRadius: 1,
-              "& .MuiInputLabel-root": {
-                color: theme.palette.text.primary, // Default text color
-                "&.Mui-focused": {
-                  color: theme.palette.text.primary, // Text color when focused
+      <Box
+        sx={{ width: "80%", p: 3, display: "flex", flexDirection: "column" }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            width: "100%",
+          }}
+        >
+          <Box component="form">
+            <TextField
+              sx={{
+                borderRadius: 1,
+                "& .MuiInputLabel-root": {
+                  color: theme.palette.text.primary,
+                  "&.Mui-focused": {
+                    color: theme.palette.text.primary,
+                  },
                 },
-              },
-              "& .MuiInputBase-input": {
-                color: theme.palette.text.primary, // Text color
-              },
-              "& .MuiOutlinedInput-root": {
-                "& fieldset": {
-                  borderColor: theme.palette.text.primary, // Default border color
+                "& .MuiInputBase-input": {
+                  color: theme.palette.text.primary,
                 },
-                "&:hover fieldset": {
-                  borderColor: theme.palette.text.primary, // Border color on hover
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: theme.palette.text.primary,
+                  },
+                  "&:hover fieldset": {
+                    borderColor: theme.palette.text.primary,
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: theme.palette.text.primary,
+                  },
                 },
-                "&.Mui-focused fieldset": {
-                  borderColor: theme.palette.text.primary, // Border color when focused
+              }}
+              fullWidth
+              id="add-field"
+              inputRef={inputRef}
+              value={addValue}
+              onChange={handleInputChange}
+              onKeyDown={handleKeyDown}
+              helperText={
+                addValue.length > 32
+                  ? "Category must have less than 32 characters"
+                  : ""
+              }
+              FormHelperTextProps={{
+                sx: { color: "#FE0032", fontStyle: "italic" },
+              }}
+              label="Write category name"
+              type="search"
+            />
+            <Box sx={{ mt: 2, display: "flex", gap: 2 }}>
+              <ButtonPrimary
+                text="Add"
+                onClick={handleClick}
+                isLoading={!!isLoadingCreateNew}
+              />
+            </Box>
+          </Box>
+          <Box component="form">
+            <TextField
+              sx={{
+                borderRadius: 1,
+                "& .MuiInputLabel-root": {
+                  color: theme.palette.text.primary,
+                  "&.Mui-focused": {
+                    color: theme.palette.text.primary,
+                  },
                 },
-              },
-            }}
-            inputRef={inputRef}
-            autoFocus
-            fullWidth
-            value={searchValue}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyDown}
-            helperText={
-              searchValue.length > 32
-                ? "Category must have less than 32 characters"
-                : ""
-            }
-            FormHelperTextProps={{
-              sx: { color: "#FE0032", fontStyle: "italic" },
-            }}
-            id="outlined-search"
-            label="Write category name"
-            type="search"
-          />
-          <Box sx={{ mt: 2 }}>
-            <ButtonPrimary
-              text="Submit"
-              onClick={handleClick}
-              isLoading={!!isLoadingCreateNew}
+                "& .MuiInputBase-input": {
+                  color: theme.palette.text.primary,
+                },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: theme.palette.text.primary,
+                  },
+                  "&:hover fieldset": {
+                    borderColor: theme.palette.text.primary,
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: theme.palette.text.primary,
+                  },
+                },
+              }}
+              fullWidth
+              id="search-field"
+              value={search}
+              onChange={handleInputSearchChange}
+              helperText={
+                search.length > 32
+                  ? "Search term must have less than 32 characters"
+                  : ""
+              }
+              FormHelperTextProps={{
+                sx: { color: "#FE0032", fontStyle: "italic" },
+              }}
+              label="Search category"
+              type="search"
             />
           </Box>
         </Box>
+
         <Divider sx={{ backgroundColor: theme.palette.text.primary, my: 4 }} />
-        <CategoryList category={category || []} isLoading={isLoading} />
+        <CategoryList
+          category={renderData || []}
+          isLoading={isLoading || isLoadingSearch}
+        />
       </Box>
     </Box>
   );
