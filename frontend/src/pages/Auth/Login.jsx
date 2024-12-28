@@ -94,6 +94,7 @@ function Login() {
         </Typography>
         <Box onSubmit={handleSubmit} component="form" noValidate sx={{ mt: 1 }}>
           <TextField
+            autoComplete="email"
             placeholder="Enter your gmail"
             onChange={handleGmailInput}
             fullWidth

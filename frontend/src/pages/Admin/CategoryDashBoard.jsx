@@ -12,6 +12,7 @@ function CategoryDashBoard() {
   const theme = useTheme();
   const [searchValue, setSearchValue] = useState("");
   const hasShown = useRef(false);
+  const inputRef = useRef(null);
 
   const { data: category, isLoading, error } = useGetAllCategoryQuery();
   const [createNew, { isLoading: isLoadingCreateNew }] = useCreateNewMutation();
@@ -27,7 +28,8 @@ function CategoryDashBoard() {
     setSearchValue(event.target.value);
   };
 
-  const handleClick = async () => {
+  const handleClick = async (e) => {
+    e.preventDefault();
     try {
       const newCategory = await createNew({ name: searchValue });
       if (newCategory.error) {
@@ -37,9 +39,18 @@ function CategoryDashBoard() {
             newCategory.error?.message ||
             newCategory.error?.stack
         );
+      } else {
+        setSearchValue("");
+        inputRef.current.focus();
       }
     } catch (error) {
       toast.error(error.error || error?.message || error?.stack);
+    }
+  };
+
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      handleClick(event);
     }
   };
 
@@ -51,34 +62,37 @@ function CategoryDashBoard() {
         </Typography>
       </Box>
       <Box sx={{ width: "80%", p: 3 }}>
-        <Box>
+        <Box component="form">
           <TextField
             sx={{
               borderRadius: 1,
               "& .MuiInputLabel-root": {
-                color: theme.palette.text.primary, // Màu chữ mặc định
+                color: theme.palette.text.primary, // Default text color
                 "&.Mui-focused": {
-                  color: theme.palette.text.primary, // Màu chữ khi focus
+                  color: theme.palette.text.primary, // Text color when focused
                 },
               },
               "& .MuiInputBase-input": {
-                color: theme.palette.text.primary, // Màu chữ
+                color: theme.palette.text.primary, // Text color
               },
               "& .MuiOutlinedInput-root": {
                 "& fieldset": {
-                  borderColor: theme.palette.text.primary, // Viền mặc định
+                  borderColor: theme.palette.text.primary, // Default border color
                 },
                 "&:hover fieldset": {
-                  borderColor: theme.palette.text.primary, // Viền khi hover
+                  borderColor: theme.palette.text.primary, // Border color on hover
                 },
                 "&.Mui-focused fieldset": {
-                  borderColor: theme.palette.text.primary, // Viền khi focus
+                  borderColor: theme.palette.text.primary, // Border color when focused
                 },
               },
             }}
+            inputRef={inputRef}
+            autoFocus
             fullWidth
             value={searchValue}
             onChange={handleInputChange}
+            onKeyDown={handleKeyDown}
             helperText={
               searchValue.length > 32
                 ? "Category must have less than 32 characters"
