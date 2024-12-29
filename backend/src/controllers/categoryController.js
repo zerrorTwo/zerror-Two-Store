@@ -9,7 +9,7 @@ const getAllCategory = asyncHandeler(async (req, res) => {
 
 const createCategory = asyncHandeler(async (req, res) => {
   const categories = await categoryService.createCategory(req, res);
-  res.status(StatusCodes.OK).json(categories);
+  res.status(StatusCodes.CREATED).json(categories);
 });
 
 const updateCategory = asyncHandeler(async (req, res) => {
