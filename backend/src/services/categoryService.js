@@ -5,7 +5,39 @@ import mongoose from "mongoose";
 import ProductModel from "../models/productModel.js";
 
 const getAllCategory = async (req, res) => {
-  return await CategoryModel.find({});
+  try {
+    // Truy vấn danh mục gốc và các danh mục con của chúng
+    const categories = await CategoryModel.aggregate([
+      // Lọc danh mục gốc (không có parentId)
+      {
+        $match: {
+          parentId: null, // Lọc danh mục không có parentId (danh mục gốc)
+        },
+      },
+      // Tìm các danh mục con cho từng danh mục gốc
+      {
+        $lookup: {
+          from: "categories", // Tên collection của danh mục (mặc định là plural hóa tên model)
+          localField: "_id", // Trường _id của category
+          foreignField: "parentId", // Trường parentId của danh mục con
+          as: "children", // Tên của trường chứa danh mục con
+        },
+      },
+      // Lọc ra chỉ tên và danh sách con (nếu có)
+      {
+        $project: {
+          name: 1, // Trả về trường name
+          children: 1, // Trả về trường children nếu có
+        },
+      },
+    ]);
+
+    // Trả về danh sách các danh mục gốc và danh mục con
+    res.status(200).json(categories);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Error fetching categories" });
+  }
 };
 
 const createCategory = async (req, res) => {
