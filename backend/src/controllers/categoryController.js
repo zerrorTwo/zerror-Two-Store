@@ -1,32 +1,29 @@
 import { StatusCodes } from "http-status-codes";
 import asyncHandeler from "../middlewares/asyncHandler.js";
-import { categoryServiceV2 } from "../services/categoryService.js";
+import { categoryService } from "../services/categoryService.js";
 
 const getAllCategory = asyncHandeler(async (req, res) => {
-  const categories = await categoryServiceV2.getAllCategory(req, res);
+  const categories = await categoryService.getAllCategory(req, res);
   res.status(StatusCodes.OK).json(categories);
 });
 
 const createCategory = asyncHandeler(async (req, res) => {
-  const categories = await categoryServiceV2.createCategory(
-    req.body.name,
-    req.body.attributes
-  );
+  const categories = await categoryService.createCategory(req, res);
   res.status(StatusCodes.CREATED).json(categories);
 });
 
 const updateCategory = asyncHandeler(async (req, res) => {
-  const categories = await categoryServiceV2.updateCategory(req, res);
+  const categories = await categoryService.updateCategory(req, res);
   res.status(StatusCodes.OK).json(categories);
 });
 
 const deleteCategory = asyncHandeler(async (req, res) => {
-  const categories = await categoryServiceV2.deleteCategory(req, res);
+  const categories = await categoryService.deleteCategory(req, res);
   res.status(StatusCodes.OK).json(categories);
 });
 
 // const searchCategory = asyncHandeler(async (req, res) => {
-//   const categories = await categoryServiceV2.searchCategory(req, res);
+//   const categories = await categoryService.searchCategory(req, res);
 //   res.status(StatusCodes.OK).json(categories);
 // });
 

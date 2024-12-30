@@ -1,5 +1,5 @@
 import { StatusCodes } from "http-status-codes";
-import CategoryModel from "../models/categoryModelV2.js";
+import CategoryModel from "../models/categoryModel.js";
 import ApiError from "../utils/ApiError.js";
 import mongoose from "mongoose";
 import ProductModel from "../models/productModel.js";
@@ -8,12 +8,39 @@ const getAllCategory = async (req, res) => {
   return await CategoryModel.find({});
 };
 
-const createCategory = async (type, attributes) => {
-  const newCategory = new CategoryModel({ name: type, attributes });
+const createCategory = async (req, res) => {
+  // console.log(req.body);
+
+  const { name, attributes, parentName } = req.body;
+
+  let inheritedAttributes = [];
+  let parentId;
+
+  if (parentName) {
+    // Lấy attributes từ danh mục cha
+    const parentCategory = await CategoryModel.findOne({ name: parentName });
+
+    if (!parentCategory) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Parent category not found");
+    }
+    inheritedAttributes = parentCategory.attributes;
+    parentId = parentCategory._id;
+  }
+
+  // Hợp nhất attributes từ danh mục cha và mới
+  const allAttributes = [...inheritedAttributes, ...attributes];
+
+  // Tạo danh mục mới
+  const newCategory = new CategoryModel({
+    name: name,
+    attributes: allAttributes,
+    parentId: parentId,
+  });
   await newCategory.save();
 
+  // Tạo schema động
   const schemaFields = {};
-  attributes.forEach((attr) => {
+  allAttributes.forEach((attr) => {
     schemaFields[attr.name] = {
       type: mongoose.Schema.Types[attr.type],
       required: attr.required,
@@ -21,8 +48,8 @@ const createCategory = async (type, attributes) => {
   });
 
   const categorySchema = new mongoose.Schema(schemaFields);
+  const NewCategory = ProductModel.discriminator(name, categorySchema);
 
-  const NewCategory = ProductModel.discriminator(type, categorySchema);
   return { NewCategory, newCategory };
 };
 
@@ -68,7 +95,7 @@ const deleteCategory = async (req, res) => {
   return { message: `Category ${name} deleted successfully` };
 };
 
-export const categoryServiceV2 = {
+export const categoryService = {
   getAllCategory,
   createCategory,
   updateCategory,
