@@ -6,8 +6,6 @@ import ProductModel from "../models/productModel.js";
 import ProductFactory from "./productFactory.js";
 
 const createCategory = async (type, attributes) => {
-  console.log(attributes);
-
   const existingCategory = await Category.findOne({ name: type });
   if (existingCategory) {
     throw new ApiError(StatusCodes.CONFLICT, `Category ${type} already exists`);
