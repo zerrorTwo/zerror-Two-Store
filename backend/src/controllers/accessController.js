@@ -7,7 +7,6 @@ import {
 } from "../services/accessService.js";
 import asyncHandler from "../middlewares/asyncHandler.js";
 import { StatusCodes } from "http-status-codes";
-import { log } from "console";
 
 const signUpController = asyncHandler(async (req, res, next) => {
   try {
