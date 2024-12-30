@@ -1,17 +1,28 @@
-import categoryModel from "../models/categoryModelV2.js";
 import ProductModel from "../models/productModel.js";
-import { categoryServiceV2 } from "./categoryService.js";
+import { getInheritedAttributes } from "../helper/getInheritedAttributes.js";
+import CategoryModel from "../models/categoryModel.js";
+import ApiError from "../utils/ApiError.js";
+import { StatusCodes } from "http-status-codes";
 
 class ProductFactory {
   static async createProduct(type, payload) {
-    const model = categoryModel.findOne({ name: type });
+    // Tìm Category dựa trên type
+    const category = await CategoryModel.findOne({ name: type });
 
-    if (!model) {
-      await categoryServiceV2.createCategory(type, payload.attributes);
+    if (!category) {
+      throw new ApiError(StatusCodes.NOT_FOUND, `Category ${type} not found`);
+    } else {
+      if (mongoose.models[type]) {
+        delete mongoose.models[type];
+      }
     }
 
+    const inheritedAttributes = await getInheritedAttributes(category._id);
+
+    const allAttributes = [...inheritedAttributes, ...category.attributes];
+
     const sanitizedAttributes = {};
-    payload.attributes.forEach((attr) => {
+    allAttributes.forEach((attr) => {
       sanitizedAttributes[attr.name] = attr.value;
     });
 
@@ -20,6 +31,7 @@ class ProductFactory {
       attributes: sanitizedAttributes,
     });
     await newProduct.save();
+
     return newProduct;
   }
 }
