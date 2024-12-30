@@ -22,17 +22,16 @@ const productSchema = new mongoose.Schema(
     description: { type: String },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
-    type: { type: String, required: true },
+    type: {
+      type: String,
+      required: true,
+      ref: "Category",
+    },
     attributes: { type: Schema.Types.Mixed, required: true },
     reviews: [reviewSchema],
     rating: { type: Number, required: true, default: 0 },
     numReviews: { type: Number, required: true, default: 0 },
-    tag: {
-      type: Array,
-      default: function () {
-        return [this.type];
-      },
-    },
+    tag: { type: Array },
   },
   { timestamps: true }
 );
