@@ -1,13 +1,13 @@
+import categoryModel from "../models/categoryModelV2.js";
 import ProductModel from "../models/productModel.js";
-import { categoryServiceV2 } from "./categoryServiceV2.js";
+import { categoryServiceV2 } from "./categoryService.js";
 
 class ProductFactory {
-  static productRegistry = {};
-
   static async createProduct(type, payload) {
-    let model = ProductFactory.productRegistry[type];
+    const model = categoryModel.findOne({ name: type });
+
     if (!model) {
-      model = await categoryServiceV2.createCategory(type, payload.attributes);
+      await categoryServiceV2.createCategory(type, payload.attributes);
     }
 
     const sanitizedAttributes = {};
