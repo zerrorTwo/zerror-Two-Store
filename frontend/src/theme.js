@@ -13,7 +13,7 @@ const theme = createTheme({
       paper: "#f4f4f4", // Màu nền của các thành phần như Card, Paper
     },
     text: {
-      primary: "#777", // Màu chữ chính
+      primary: "#999", // Màu chữ chính
       secondary: "#FFF", // Màu chữ phụ
       blackColor: "#000", // Màu
     },

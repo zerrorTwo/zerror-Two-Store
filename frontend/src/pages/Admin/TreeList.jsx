@@ -1,47 +1,3 @@
-const categories = [
-  {
-    _id: "6772684ec72cff4922b047cb",
-    name: "Clothing",
-    children: [
-      {
-        _id: "67726b3599d961b82df2c6b2",
-        name: "Men's Clothing",
-        attributes: [
-          {
-            name: "size",
-            type: "String",
-            required: true,
-          },
-          {
-            name: "color",
-            type: "String",
-            required: true,
-          },
-          {
-            name: "material",
-            type: "String",
-            required: true,
-          },
-          {
-            name: "fit",
-            type: "String",
-            required: true,
-          },
-          {
-            name: "season",
-            type: "String",
-            required: false,
-          },
-        ],
-        parentId: "6772684ec72cff4922b047cb",
-        createdAt: "2024-12-30T09:43:17.364Z",
-        updatedAt: "2024-12-30T09:43:17.364Z",
-        __v: 0,
-      },
-    ],
-  },
-];
-
 import React, { useState } from "react";
 import {
   Box,
@@ -53,21 +9,22 @@ import {
   Typography,
 } from "@mui/material";
 import { ExpandLess, ExpandMore } from "@mui/icons-material";
-import PropTypes from "prop-types"; // Import PropTypes for prop validation
+import PropTypes from "prop-types";
+import { useGetAllCategoryQuery } from "../../redux/api/categorySlice";
 
 const TreeList = ({ selectedCategory, setSelectedCategory }) => {
+  const { data: categories, isLoading, error } = useGetAllCategoryQuery();
   const [open, setOpen] = useState({});
 
-  const handleClick = (itemId) => {
-    setOpen({ ...open, [itemId]: !open[itemId] });
+  const handleClick = (name) => {
+    setOpen((prevOpen) => ({
+      ...prevOpen,
+      [name]: !prevOpen[name],
+    }));
   };
 
-  const handleCategorySelect = (name) => {
-    if (selectedCategory === name) {
-      setSelectedCategory(null); // Deselect if already selected
-    } else {
-      setSelectedCategory(name); // Select the new category
-    }
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
   };
 
   const renderCategories = (categories, level = 0) => {
@@ -77,49 +34,57 @@ const TreeList = ({ selectedCategory, setSelectedCategory }) => {
           <Box sx={{ display: "flex", alignItems: "center" }}>
             <Typography sx={{ width: `${level * 16}px` }} />
             <FormControlLabel
-              value={category._id}
               control={
                 <Radio
+                  checked={
+                    selectedCategory
+                      ? selectedCategory._id === category._id
+                      : false
+                  }
+                  onChange={() => handleCategorySelect(category)}
+                  size="small"
                   sx={{
                     "& .MuiSvgIcon-root": {
                       color: "white",
                     },
                   }}
-                  onClick={() => handleCategorySelect(category.name)}
-                  size="small"
                 />
               }
               label={category.name}
               labelPlacement="end"
-              checked={selectedCategory === category.name}
             />
           </Box>
-          {category.children ? (
-            open[category.itemId] ? (
+          {category.children && category.children.length > 0 ? (
+            open[category.name] ? (
               <ExpandLess
                 sx={{ cursor: "pointer" }}
-                onClick={() => handleClick(category.itemId)}
+                onClick={() => handleClick(category.name)}
               />
             ) : (
               <ExpandMore
                 sx={{ cursor: "pointer" }}
-                onClick={() => handleClick(category.itemId)}
+                onClick={() => handleClick(category.name)}
               />
             )
           ) : null}
         </ListItem>
-        <Collapse in={open[category.itemId]} timeout="auto" unmountOnExit>
-          {category.children && renderCategories(category.children, level + 1)}
-        </Collapse>
+        {category.children && category.children.length > 0 && (
+          <Collapse in={open[category.name]} timeout="auto" unmountOnExit>
+            {renderCategories(category.children, level + 1)}
+          </Collapse>
+        )}
       </React.Fragment>
     ));
   };
 
-  return <List>{renderCategories(categories)}</List>;
+  if (isLoading) return <Typography>Loading...</Typography>;
+  if (error) return <Typography>Error fetching categories</Typography>;
+
+  return <List>{categories && renderCategories(categories)}</List>;
 };
 
 TreeList.propTypes = {
-  selectedCategory: PropTypes.string, // Expecting selectedCategory as a string
+  selectedCategory: PropTypes.object, // Expecting selectedCategory as an object
   setSelectedCategory: PropTypes.func.isRequired, // Expecting setSelectedCategory as a function
 };
 

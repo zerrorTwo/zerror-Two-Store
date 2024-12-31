@@ -14,6 +14,7 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
     getAllCategory: builder.query({
       query: () => ({
         url: `${BASE_URL}/category`,
+        method: "GET",
       }),
       providesTags: ["Category"],
       keepUnusedDataFor: 5,

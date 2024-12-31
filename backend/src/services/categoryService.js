@@ -23,20 +23,26 @@ const getAllCategory = async (req, res) => {
           as: "children", // Tên của trường chứa danh mục con
         },
       },
-      // Lọc ra chỉ tên và danh sách con (nếu có)
+      // Lọc ra các trường cần thiết bao gồm cả attributes
       {
         $project: {
           name: 1, // Trả về trường name
-          children: 1, // Trả về trường children nếu có
+          attributes: 1, // Trả về trường attributes của category cha
+          children: {
+            _id: 1,
+            name: 1,
+            attributes: 1, // Trả về trường attributes của danh mục con
+          },
         },
       },
     ]);
 
-    // Trả về danh sách các danh mục gốc và danh mục con
-    res.status(200).json(categories);
+    return categories;
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: "Error fetching categories" });
+    res
+      .status(StatusCodes.BAD_REQUEST)
+      .json({ message: "Error fetching categories" });
   }
 };
 
@@ -44,6 +50,9 @@ const createCategory = async (req, res) => {
   // console.log(req.body);
 
   const { name, attributes, parentName } = req.body;
+  if (mongoose.models.name) {
+    delete mongoose.models.name; // Xóa mô hình bị trùng
+  }
 
   let inheritedAttributes = [];
   let parentId;
