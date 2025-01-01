@@ -19,7 +19,15 @@ import TreeSelect from "./TreeList";
 import CustomSelect from "../../components/CustomSelect";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { selectOptions } from "../../constants/type.js";
+import ClearIcon from "@mui/icons-material/Clear";
 import ButtonPrimary from "../../components/ButtonPrimary";
+import {
+  useCreateNewMutation,
+  useDeleteCategoryMutation,
+  useUpdateCategoryMutation,
+} from "../../redux/api/categorySlice";
+import { toast } from "react-toastify";
+import ConfirmDialog from "../../components/ConfirmDialog"; // Import ConfirmDialog
 
 function CateDashboard() {
   const theme = useTheme();
@@ -27,7 +35,8 @@ function CateDashboard() {
   const [radioValue, setRadioValue] = useState("new");
   const [anchorEl, setAnchorEl] = useState(null);
   const [name, setName] = useState("");
-  const [parentName, setParentName] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false); // State for ConfirmDialog
+
   const [formFields, setFormFields] = useState([
     {
       attribute: "",
@@ -39,19 +48,39 @@ function CateDashboard() {
   useEffect(() => {
     if (selectedCategory) {
       setName(selectedCategory.name || "");
-      setParentName(selectedCategory.parentName || "");
       setFormFields(
         selectedCategory.attributes.map((attr) => ({
           attribute: attr.name,
           type: attr.type,
           required: attr.required,
+          requiredFromCategory: attr.required, // Set this flag based on category data
         }))
       );
     }
   }, [selectedCategory]);
 
+  // Fetch API
+  const [createNew, { isLoading: isLoadingCreate }] = useCreateNewMutation();
+  const [update, { isLoading: isLoadingUpdate }] = useUpdateCategoryMutation();
+  const [deleteCategory, { isLoading: isLoadingDelete }] =
+    useDeleteCategoryMutation();
+
   const handleRadioChange = (event) => {
-    setRadioValue(event.target.value);
+    const value = event.target.value;
+    setRadioValue(value);
+
+    if (value === "new") {
+      // Reset các thuộc tính và tên khi chọn New
+      setName("");
+      setFormFields([
+        {
+          attribute: "",
+          type: "",
+          required: true,
+        },
+      ]);
+      setSelectedCategory(null); // Bỏ chọn danh mục đã chọn
+    }
   };
 
   const handleButtonClick = (event) => {
@@ -91,17 +120,108 @@ function CateDashboard() {
     setFormFields(newFormFields);
   };
 
-  const handleSave = () => {
-    const data = {
-      name,
-      parentName,
-      attributes: formFields.map((field) => ({
-        name: field.attribute,
-        type: field.type,
-        required: field.required,
-      })),
-    };
-    console.log(data);
+  const handleSave = async () => {
+    try {
+      if (!name) {
+        toast.error("Name is required");
+        return; // Nếu tên trống, dừng lại không thực hiện tiếp
+      }
+      const isValid = formFields.every((field) => field.type.trim() !== "");
+      if (!isValid) {
+        toast.error("All attributes must have a type.");
+        return; // Nếu có trường 'type' trống, dừng lại không thực hiện tiếp
+      }
+      let data = {
+        name,
+        attributes: formFields.map((field) => ({
+          name: field.attribute,
+          type: field.type,
+          required: field.required,
+        })),
+      };
+      // Thêm parentName vào object data chỉ khi có giá trị
+      if (selectedCategory) {
+        data.parentName = selectedCategory.name;
+      }
+
+      const newCate = await createNew(data).unwrap();
+      // console.log(newCate);
+
+      if (newCate) {
+        setName("");
+        setFormFields([{ attribute: "", type: "", required: true }]);
+        setAnchorEl(null);
+        toast.success("Category created successfully");
+      }
+    } catch (error) {
+      toast.error(error.data?.message || "Fail to create new!!");
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!name) {
+      toast.error("Name is required");
+      return; // Nếu tên trống, dừng lại không thực hiện tiếp
+    }
+    try {
+      const isValid = formFields.every((field) => field.type.trim() !== "");
+      if (!isValid) {
+        toast.error("All attributes must have a type.");
+        return;
+      }
+
+      let data = {
+        name,
+        attributes: formFields.map((field) => ({
+          name: field.attribute,
+          type: field.type,
+          required: field.required,
+        })),
+      };
+
+      if (selectedCategory) {
+        data.parentName = selectedCategory.name;
+      }
+
+      const updateCate = await update({
+        id: selectedCategory._id,
+        data,
+      }).unwrap();
+
+      if (updateCate) {
+        toast.success("Category updated successfully");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.data?.message || "Fail to update!!");
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!name) {
+      toast.error("Name is required");
+      return; // Nếu tên trống, dừng lại không thực hiện tiếp
+    }
+    try {
+      const deleletd = await deleteCategory(selectedCategory._id);
+
+      if (deleletd) {
+        setName("");
+        setFormFields([{ attribute: "", type: "", required: true }]);
+        setAnchorEl(null);
+        setSelectedCategory(null);
+        toast.success("Category delete successfully");
+        setConfirmOpen(false);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error(error.data?.message || "Fail to delete!!");
+    }
+  };
+
+  const handleRemoveField = (index) => {
+    const newFormFields = formFields.filter((_, i) => i !== index);
+    setFormFields(newFormFields);
   };
 
   const open = Boolean(anchorEl);
@@ -211,6 +331,8 @@ function CateDashboard() {
                   p: 2,
                   width: "80vw",
                   bgcolor: theme.palette.background.default,
+                  maxHeight: "300px", // Set maximum height
+                  overflowY: "auto", // Enable vertical scroll if content overflows
                 }}
               >
                 <TreeSelect
@@ -235,10 +357,13 @@ function CateDashboard() {
             <TextField
               variant="standard"
               required
-              autoFocus
+              autoFocus={true}
               value={name || ""}
               onChange={(e) => setName(e.target.value)}
               sx={{
+                "& .MuiInputBase-input": {
+                  WebkitTextFillColor: theme.palette.text.secondary,
+                },
                 "& .MuiInput-underline:after": {
                   borderBottomColor: theme.palette.text.secondary,
                 },
@@ -260,12 +385,14 @@ function CateDashboard() {
               Parent
             </Typography>
             <TextField
+              disabled
               variant="standard"
               required
-              autoFocus
-              value={parentName || ""}
-              onChange={(e) => setParentName(e.target.value)}
+              value={selectedCategory?.name || ""}
               sx={{
+                "& .MuiInputBase-input": {
+                  WebkitTextFillColor: theme.palette.text.primary,
+                },
                 "& .MuiInput-underline:after": {
                   borderBottomColor: theme.palette.text.secondary,
                 },
@@ -293,8 +420,10 @@ function CateDashboard() {
                   onChange={(event) => handleInputChange(index, event)}
                   variant="standard"
                   required
-                  autoFocus
                   sx={{
+                    "& .MuiInputBase-input": {
+                      WebkitTextFillColor: theme.palette.text.secondary,
+                    },
                     "& .MuiInput-underline:after": {
                       borderBottomColor: theme.palette.text.secondary,
                     },
@@ -318,30 +447,60 @@ function CateDashboard() {
                   <Checkbox
                     checked={field.required}
                     onChange={(event) => handleCheckboxChange(index, event)}
+                    disabled={field.requiredFromCategory}
                     sx={{
-                      color: "white",
+                      color: "green",
                       "&.Mui-checked": {
-                        color: "white",
+                        color: "green",
                       },
                     }}
                   />
                 }
                 label="Required"
                 sx={{
-                  color: "white",
+                  "& .MuiTypography-root": {
+                    color: `${theme.palette.text.primary} !important`,
+                  },
                 }}
               />
+              <IconButton onClick={() => handleRemoveField(index)}>
+                <Tooltip title="Remove attribute">
+                  <ClearIcon sx={{ color: theme.palette.error.main }} />
+                </Tooltip>
+              </IconButton>
             </Box>
           ))}
 
-          <IconButton onClick={handleAddField}>
+          <IconButton sx={{ mb: 2 }} onClick={handleAddField}>
             <Tooltip title="More attribute">
               <AddCircleIcon sx={{ color: theme.palette.text.secondary }} />
             </Tooltip>
           </IconButton>
         </Box>
-        <ButtonPrimary text="Save" onClick={handleSave} />
+        <Box display={"flex"} gap={2} justifyContent={"center"} mb={5}>
+          <ButtonPrimary
+            text="New"
+            onClick={handleSave}
+            isLoading={isLoadingCreate}
+          />
+          <ButtonPrimary
+            text="Update"
+            onClick={handleUpdate}
+            isLoading={isLoadingUpdate}
+          />
+          <ButtonPrimary
+            text="Delete"
+            onClick={() => setConfirmOpen(true)} // Open ConfirmDialog on delete
+            isLoading={isLoadingDelete}
+          />
+        </Box>
       </Box>
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        onConfirm={handleDelete}
+        itemCount={selectedCategory ? 1 : 0}
+      />
     </Box>
   );
 }
