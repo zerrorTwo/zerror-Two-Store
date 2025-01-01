@@ -13,7 +13,6 @@ import UserDashboard from "./pages/Admin/UserDashboard";
 import AdminAuth from "./pages/Auth/AdminAuth";
 import Profile from "./pages/Profile";
 import CategoryDashBoard from "./pages/Admin/CategoryDashBoard";
-import CateDashboard from "./pages/Admin/CateDashboard";
 
 function App() {
   const dispatch = useDispatch();
@@ -41,7 +40,7 @@ function App() {
         <Route path="menu" element={<Menu />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
-        <Route path="cate" element={<CateDashboard />} />
+        {/* <Route path="cate" element={<CateDashboard />} /> */}
 
         {/* Need login to access */}
         <Route element={<RequireAuth />}>
