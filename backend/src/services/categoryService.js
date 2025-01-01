@@ -47,62 +47,66 @@ const getAllCategory = async (req, res) => {
 };
 
 const createCategory = async (req, res) => {
-  // console.log(req.body);
+  try {
+    const { name, attributes, parentName } = req.body;
 
-  const { name, attributes, parentName } = req.body;
-  if (mongoose.models.name) {
-    delete mongoose.models.name; // Xóa mô hình bị trùng
-  }
+    const exits = await CategoryModel.findOne({ name: name });
 
-  let inheritedAttributes = [];
-  let parentId;
-
-  if (parentName) {
-    // Lấy attributes từ danh mục cha
-    const parentCategory = await CategoryModel.findOne({ name: parentName });
-
-    if (!parentCategory) {
-      throw new ApiError(StatusCodes.NOT_FOUND, "Parent category not found");
+    if (exits) {
+      throw new ApiError(StatusCodes.CONFLICT, "Category already exists");
     }
-    inheritedAttributes = parentCategory.attributes;
-    parentId = parentCategory._id;
+    if (ProductModel.discriminator[name]) {
+      console.log(123);
+      delete ProductModel.discriminator[name];
+    }
+
+    let parentId;
+
+    if (parentName) {
+      // Lấy attributes từ danh mục cha
+      const parentCategory = await CategoryModel.findOne({ name: parentName });
+
+      if (!parentCategory) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Parent category not found");
+      }
+      parentId = parentCategory._id;
+    }
+
+    // Tạo danh mục mới
+    const newCategory = new CategoryModel({
+      name: name,
+      attributes: attributes,
+      parentId: parentId,
+    });
+    await newCategory.save();
+
+    // Tạo schema động
+    const schemaFields = {};
+    attributes.forEach((attr) => {
+      schemaFields[attr.name] = {
+        type: mongoose.Schema.Types[attr.type],
+        required: attr.required,
+      };
+    });
+
+    const categorySchema = new mongoose.Schema(schemaFields);
+    const NewCategory = ProductModel.discriminator(name, categorySchema);
+
+    return { NewCategory, newCategory };
+  } catch (error) {
+    throw error;
   }
-
-  // Hợp nhất attributes từ danh mục cha và mới
-  const allAttributes = [...inheritedAttributes, ...attributes];
-
-  // Tạo danh mục mới
-  const newCategory = new CategoryModel({
-    name: name,
-    attributes: allAttributes,
-    parentId: parentId,
-  });
-  await newCategory.save();
-
-  // Tạo schema động
-  const schemaFields = {};
-  allAttributes.forEach((attr) => {
-    schemaFields[attr.name] = {
-      type: mongoose.Schema.Types[attr.type],
-      required: attr.required,
-    };
-  });
-
-  const categorySchema = new mongoose.Schema(schemaFields);
-  const NewCategory = ProductModel.discriminator(name, categorySchema);
-
-  return { NewCategory, newCategory };
 };
 
 const updateCategory = async (req, res) => {
   const { id } = req.params;
-  const data = req.body;
+  const { data } = req.body;
 
   if (!id) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Id not found");
   }
 
-  const category = await CategoryModel.find({ id });
+  const category = await CategoryModel.findById(id);
   if (!category) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Category not found");
   }
@@ -110,6 +114,7 @@ const updateCategory = async (req, res) => {
   const categoryNew = await CategoryModel.findByIdAndUpdate(id, data, {
     new: true,
   });
+  // console.log(categoryNew);
 
   if (!categoryNew) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Data not found");
@@ -124,16 +129,28 @@ const deleteCategory = async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "Id not found");
   }
 
+  // Tìm danh mục cha
   const category = await CategoryModel.findById(id);
   if (!category) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Category not found");
   }
 
   const name = category.name;
+  delete mongoose.models[name];
 
-  await CategoryModel.deleteOne(category);
+  // Tìm và xóa tất cả danh mục con có parentId là danh mục này
+  const subCategories = await CategoryModel.find({ parentId: id });
+  if (subCategories.length > 0) {
+    await CategoryModel.deleteMany({ parentId: id });
+  }
 
-  return { message: `Category ${name} deleted successfully` };
+  // Xóa danh mục cha
+  await CategoryModel.deleteOne({ _id: id });
+  if (ProductModel.discriminator[name]) {
+    delete ProductModel.discriminator[name];
+  }
+
+  return `Category ${name} deleted successfully`;
 };
 
 export const categoryService = {

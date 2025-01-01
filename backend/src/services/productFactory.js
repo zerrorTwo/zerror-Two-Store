@@ -3,6 +3,7 @@ import { getInheritedAttributes } from "../helper/getInheritedAttributes.js";
 import CategoryModel from "../models/categoryModel.js";
 import ApiError from "../utils/ApiError.js";
 import { StatusCodes } from "http-status-codes";
+import mongoose from "mongoose";
 
 class ProductFactory {
   static async createProduct(type, payload) {
