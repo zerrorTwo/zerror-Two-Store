@@ -4,11 +4,12 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import Typography from "@mui/material/Typography";
-import { Box, Button, useTheme, Card, Tabs, Tab } from "@mui/material";
+import { Box, Button, useTheme, Tabs, Tab, TextField } from "@mui/material";
 import InputBase from "./InputBase";
 import ButtonPrimary from "./ButtonPrimary";
 import InputSets from "./InputSets"; // Import the new component
 import DynamicTable from "./DynamicTable"; // Import DynamicTable component
+import InformationTab from "./ProductTab/InformationTab";
 
 function TabPanel(props) {
   const { children, value, index, ...other } = props;
@@ -49,6 +50,8 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
 
   const [categories, setCategories] = useState([]);
   const [tableData, setTableData] = useState([]);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [newCategoryItems, setNewCategoryItems] = useState([""]);
 
   useEffect(() => {
     if (row) {
@@ -148,20 +151,81 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
 
   const handleAddField = (setIndex) => {
     setCategories((prevCategories) => {
+      const newCategories = [...prevCategories]; // Create a copy of the categories array
+      const updatedItems = [...newCategories[setIndex].items]; // Create a copy of the items array
+      updatedItems.push("");
+      newCategories[setIndex].items = updatedItems;
+      return newCategories;
+    });
+  };
+
+  const handleDeleteField = (setIndex, itemIndex) => {
+    setCategories((prevCategories) => {
       const newCategories = [...prevCategories];
-      newCategories[setIndex].items.push("");
+      newCategories[setIndex].items.splice(itemIndex, 1);
       return newCategories;
     });
   };
 
   const handleAddSet = () => {
+    // Ensure the new category name is not empty and at least one item has a value
+    if (
+      newCategoryName.trim() === "" ||
+      newCategoryItems.every((item) => item.trim() === "")
+    ) {
+      return;
+    }
+
+    const filteredItems = newCategoryItems.filter((item) => item.trim() !== "");
+
     setCategories((prevCategories) => [
       ...prevCategories,
       {
-        label: "New Category",
-        items: [""],
+        label: newCategoryName,
+        items: filteredItems,
       },
     ]);
+    setNewCategoryName("");
+    setNewCategoryItems([""]);
+
+    // Regenerate table data after adding a new set
+    generateTableData([
+      ...categories,
+      {
+        label: newCategoryName,
+        items: filteredItems,
+      },
+    ]);
+  };
+
+  const handleNewItemChange = (itemIndex, value) => {
+    setNewCategoryItems((prevItems) => {
+      const newItems = [...prevItems];
+      newItems[itemIndex] = value;
+      return newItems;
+    });
+  };
+
+  const addNewItemField = () => {
+    setNewCategoryItems((prevItems) => [...prevItems, ""]);
+  };
+
+  const handleCategoryInputChange = (setIndex, itemIndex, value) => {
+    setCategories((prevCategories) => {
+      const newCategories = [...prevCategories];
+      newCategories[setIndex].items[itemIndex] = value;
+
+      // Check if the updated category has at least one non-empty item
+      const hasNonEmptyItem = newCategories[setIndex].items.some(
+        (item) => item.trim() !== ""
+      );
+
+      // Regenerate the table data only if the category has at least one non-empty item
+      if (hasNonEmptyItem) {
+        generateTableData(newCategories);
+      }
+      return newCategories;
+    });
   };
 
   const handleSubmit = async (event) => {
@@ -232,221 +296,11 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
           />
         </Tabs>
         <TabPanel value={value} index={0}>
-          <Box display={"flex"} flexDirection={"column"} gap={2}>
-            <Box display={"flex"} gap={4}>
-              <InputBase
-                fullWidth={true}
-                margin="normal"
-                label="Name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-              />
-              <InputBase
-                fullWidth={false}
-                margin="normal"
-                label="Type"
-                name="type"
-                value={formData.type}
-                onChange={handleInputChange}
-              />
-            </Box>
-            <InputBase
-              multiline={true}
-              margin="normal"
-              label="Description"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-            />
-            <Box sx={{ mt: 2, display: "flex" }}>
-              {/* Upload Main Image */}
-              <Card
-                sx={{
-                  maxHeight: "160px",
-                  maxWidth: "160px",
-                  height: "160px",
-                  width: "160px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  border: "2px dashed gray", // Màu viền cho khu vực upload
-                }}
-                onClick={() => document.getElementById("mainImgInput").click()} // Mở file input khi click vào Card
-              >
-                {formData.mainImg ? (
-                  <img
-                    src={
-                      typeof formData.mainImg === "string"
-                        ? formData.mainImg
-                        : URL.createObjectURL(formData.mainImg)
-                    }
-                    alt="Main Image"
-                    style={{
-                      maxHeight: "160px",
-                      maxWidth: "160px",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  <Typography variant="body2">
-                    Click to upload main image
-                  </Typography>
-                )}
-                <input
-                  id="mainImgInput"
-                  type="file"
-                  hidden
-                  name="mainImg"
-                  onChange={handleFileChange}
-                />
-              </Card>
-
-              {/* Upload Image 1 */}
-              <Card
-                sx={{
-                  maxHeight: "160px",
-                  maxWidth: "160px",
-                  height: "160px",
-                  width: "160px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  border: "2px dashed gray", // Màu viền cho khu vực upload
-                }}
-                onClick={() => document.getElementById("imgInput1").click()} // Mở file input khi click vào Card
-              >
-                {formData.img[0] ? (
-                  <img
-                    src={
-                      typeof formData.img[0] === "string"
-                        ? formData.img[0]
-                        : URL.createObjectURL(formData.img[0])
-                    }
-                    alt="Image 1"
-                    style={{
-                      maxHeight: "160px",
-                      maxWidth: "160px",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  <Typography variant="body2">
-                    Click to upload image 1
-                  </Typography>
-                )}
-                <input
-                  id="imgInput1"
-                  type="file"
-                  hidden
-                  name="img1"
-                  onChange={(event) => {
-                    const file = event.target.files[0];
-                    setFormData((prevData) => ({
-                      ...prevData,
-                      img: [file, ...prevData.img.slice(1)], // Chỉ cập nhật ảnh 1
-                    }));
-                  }}
-                />
-              </Card>
-
-              {/* Upload Image 2 */}
-              <Card
-                sx={{
-                  maxHeight: "160px",
-                  maxWidth: "160px",
-                  height: "160px",
-                  width: "160px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  border: "2px dashed gray", // Màu viền cho khu vực upload
-                }}
-                onClick={() => document.getElementById("imgInput2").click()} // Mở file input khi click vào Card
-              >
-                {formData.img[1] ? (
-                  <img
-                    src={
-                      typeof formData.img[1] === "string"
-                        ? formData.img[1]
-                        : URL.createObjectURL(formData.img[1])
-                    }
-                    alt="Image 2"
-                    style={{
-                      maxHeight: "160px",
-                      maxWidth: "160px",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  <Typography variant="body2">
-                    Click to upload image 2
-                  </Typography>
-                )}
-                <input
-                  id="imgInput2"
-                  type="file"
-                  hidden
-                  name="img2"
-                  onChange={(event) => {
-                    const file = event.target.files[0];
-                    setFormData((prevData) => ({
-                      ...prevData,
-                      img: [prevData.img[0], file, ...prevData.img.slice(2)], // Chỉ cập nhật ảnh 2
-                    }));
-                  }}
-                />
-              </Card>
-
-              {/* Upload Image 3 */}
-              <Card
-                sx={{
-                  maxHeight: "160px",
-                  maxWidth: "160px",
-                  height: "160px",
-                  width: "160px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  border: "2px dashed gray", // Màu viền cho khu vực upload
-                }}
-                onClick={() => document.getElementById("imgInput3").click()} // Mở file input khi click vào Card
-              >
-                {formData.img[2] ? (
-                  <img
-                    src={
-                      typeof formData.img[2] === "string"
-                        ? formData.img[2]
-                        : URL.createObjectURL(formData.img[2])
-                    }
-                    alt="Image 3"
-                    style={{
-                      maxHeight: "160px",
-                      maxWidth: "160px",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  <Typography variant="body2">
-                    Click to upload image 3
-                  </Typography>
-                )}
-                <input
-                  id="imgInput3"
-                  type="file"
-                  hidden
-                  name="img3"
-                  onChange={(event) => {
-                    const file = event.target.files[0];
-                    setFormData((prevData) => ({
-                      ...prevData,
-                      img: [prevData.img[0], prevData.img[1], file], // Chỉ cập nhật ảnh 3
-                    }));
-                  }}
-                />
-              </Card>
-            </Box>
-          </Box>
+          <InformationTab
+            formData={formData}
+            handleInputChange={handleInputChange}
+            handleFileChange={handleFileChange}
+          />
         </TabPanel>
         <TabPanel value={value} index={1}>
           <Box>
@@ -473,7 +327,26 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
               <InputSets
                 categories={categories}
                 handleAddField={handleAddField}
+                handleCategoryInputChange={handleCategoryInputChange} // Pass the new handle function
+                handleDeleteField={handleDeleteField} // Pass the delete function
               />
+              <TextField
+                label="New Category Name"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                fullWidth
+                margin="normal"
+              />
+              {newCategoryItems.map((item, index) => (
+                <TextField
+                  key={index}
+                  value={item}
+                  onChange={(e) => handleNewItemChange(index, e.target.value)}
+                  fullWidth
+                  margin="normal"
+                />
+              ))}
+              <Button onClick={addNewItemField}>Add New Item</Button>
               <ButtonPrimary
                 text="Thêm phân loại hàng"
                 onClick={handleAddSet}
