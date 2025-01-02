@@ -16,18 +16,19 @@ const reviewSchema = mongoose.Schema(
 
 const productSchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
+    name: { type: String, unique: true, required: true },
     thumb: { type: String, required: true },
-    img: { type: String },
+    mainImg: { type: String, required: true },
+    img: { type: Array },
     description: { type: String },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true },
     type: {
-      type: String,
+      type: Schema.Types.ObjectId,
       required: true,
       ref: "Category",
     },
-    attributes: { type: Schema.Types.Mixed, required: true },
+    attributes: { type: Schema.Types.Mixed, required: false },
     reviews: [reviewSchema],
     rating: { type: Number, required: true, default: 0 },
     numReviews: { type: Number, required: true, default: 0 },
