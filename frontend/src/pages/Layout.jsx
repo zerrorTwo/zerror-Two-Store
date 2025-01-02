@@ -266,7 +266,7 @@ export default function Layout() {
                 dropdownItems={[
                   { label: "Analytics", to: "/" },
                   { label: "Order", to: "/" },
-                  { label: "Product", to: "/" },
+                  { label: "Product", to: "/product" },
                   { label: "Category", to: "/category" },
                   { label: "User", to: "/user" },
                 ]}
