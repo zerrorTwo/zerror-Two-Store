@@ -1,34 +1,53 @@
 import PropTypes from "prop-types";
-import { Box, Typography } from "@mui/material";
-import InputBase from "./InputBase";
-import ButtonOutLined from "./ButtonOutLined";
+import {
+  Box,
+  TextField,
+  Button,
+  Typography,
+  IconButton,
+  InputAdornment,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-const InputSets = ({ categories, handleAddField }) => {
+const InputSets = ({
+  categories,
+  handleAddField,
+  handleCategoryInputChange,
+  handleDeleteField,
+}) => {
   return (
-    <>
+    <Box>
       {categories.map((category, setIndex) => (
-        <Box
-          pb={2}
-          key={setIndex}
-          margin={"0 auto"}
-          display={"flex"}
-          flexDirection={"column"}
-          gap={3}
-          maxWidth={350}
-        >
-          <Box display={"flex"} flexDirection={"column"} gap={2}>
-            <Typography variant="subtitle1">{category.label}</Typography>
-            {category.items.map((item, itemIndex) => (
-              <InputBase key={itemIndex} label={category.label} value={item} />
-            ))}
-            <ButtonOutLined
-              text={`Thêm ${category.label}`}
-              onClick={() => handleAddField(setIndex)}
+        <Box key={category.label} mb={2}>
+          <Typography variant="subtitle1">{category.label}</Typography>
+          {category.items.map((item, itemIndex) => (
+            <TextField
+              required
+              key={itemIndex}
+              value={item}
+              onChange={(e) =>
+                handleCategoryInputChange(setIndex, itemIndex, e.target.value)
+              }
+              fullWidth
+              margin="normal"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label="delete item"
+                      onClick={() => handleDeleteField(setIndex, itemIndex)}
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
-          </Box>
+          ))}
+          <Button onClick={() => handleAddField(setIndex)}>Add Field</Button>
         </Box>
       ))}
-    </>
+    </Box>
   );
 };
 
@@ -36,10 +55,12 @@ InputSets.propTypes = {
   categories: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.string.isRequired,
-      items: PropTypes.array.isRequired,
+      items: PropTypes.arrayOf(PropTypes.string).isRequired,
     })
   ).isRequired,
   handleAddField: PropTypes.func.isRequired,
+  handleCategoryInputChange: PropTypes.func.isRequired,
+  handleDeleteField: PropTypes.func.isRequired,
 };
 
 export default InputSets;

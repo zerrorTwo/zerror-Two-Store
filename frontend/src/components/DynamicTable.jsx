@@ -27,7 +27,9 @@ const DynamicTable = ({ categories, tableData, handleTableChange }) => {
             <TableRow sx={{ height: "20px" }} key={index}>
               {categories.map((category) => (
                 <TableCell key={category.label}>
-                  {row[category.label.toLowerCase()]}
+                  {typeof row[category.label.toLowerCase()] === "object"
+                    ? JSON.stringify(row[category.label.toLowerCase()])
+                    : row[category.label.toLowerCase()]}
                 </TableCell>
               ))}
               <TableCell>
@@ -77,8 +79,8 @@ DynamicTable.propTypes = {
   ).isRequired,
   tableData: PropTypes.arrayOf(
     PropTypes.shape({
-      price: PropTypes.string,
-      stock: PropTypes.string,
+      price: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+      stock: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
     })
   ).isRequired,
   handleTableChange: PropTypes.func.isRequired,
