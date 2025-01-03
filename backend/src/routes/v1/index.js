@@ -1,5 +1,4 @@
 import express from "express";
-import path from "path";
 import { StatusCodes } from "http-status-codes";
 import { userRoute } from "./userRoute.js";
 import { authRoute } from "./authRoute.js";
@@ -17,12 +16,6 @@ Router.use("/auth", authRoute);
 Router.use("/users", userRoute);
 Router.use("/category", categoryRouter);
 Router.use("/products", productRoute);
-
-const __dirname = path.resolve();
-Router.use(
-  "/upload",
-  express.static(path.join(__dirname + "/uploads")),
-  uploadRoute
-);
+Router.use("/upload", uploadRoute); // Use uploadRoute for handling uploads
 
 export const APIS_V1 = Router;

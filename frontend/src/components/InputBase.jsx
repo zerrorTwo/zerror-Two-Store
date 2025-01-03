@@ -2,6 +2,7 @@ import { FormControl, TextField, useTheme } from "@mui/material";
 import PropTypes from "prop-types";
 
 function InputBase({
+  id,
   value,
   onChange,
   label,
@@ -11,12 +12,14 @@ function InputBase({
   name,
   required = false,
   multiline = false,
+  maxWidth = false,
 }) {
   const theme = useTheme();
 
   return (
-    <FormControl sx={{ maxWidth: "350px" }}>
+    <FormControl sx={{ maxWidth: maxWidth ? "100%" : "350px" }}>
       <TextField
+        id={id} // Use the passed id prop here
         sx={{
           borderRadius: 1,
           "& .MuiInputLabel-root": {
@@ -59,6 +62,7 @@ function InputBase({
 }
 
 InputBase.propTypes = {
+  id: PropTypes.string.isRequired, // Add id prop as required
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   label: PropTypes.string.isRequired,
@@ -73,6 +77,7 @@ InputBase.propTypes = {
   name: PropTypes.string,
   required: PropTypes.bool,
   multiline: PropTypes.bool,
+  maxWidth: PropTypes.bool,
 };
 
 export default InputBase;

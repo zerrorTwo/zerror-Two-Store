@@ -34,7 +34,14 @@ const getComparator = (order, orderBy) => {
     : (a, b) => -descendingComparator(a, b, orderBy);
 };
 
-const GenericTable = ({ rows, headCells, handleUpdateClick }) => {
+const GenericTable = ({
+  name,
+  create,
+  rows,
+  headCells,
+  handleUpdateClick,
+  handleCreateClick,
+}) => {
   const rowsPerPage = 10;
   const theme = useTheme();
 
@@ -104,9 +111,12 @@ const GenericTable = ({ rows, headCells, handleUpdateClick }) => {
     >
       <Paper sx={{ width: "100%", backgroundColor: "transparent" }}>
         <GenericTableToolbar
+          name={name}
+          create={create}
           numSelected={selected.length}
           selected={selected}
           setSelected={setSelected}
+          handleCreateClick={handleCreateClick}
         />
         <TableContainer>
           <Table
@@ -224,8 +234,11 @@ const GenericTable = ({ rows, headCells, handleUpdateClick }) => {
 
 GenericTable.propTypes = {
   rows: PropTypes.array.isRequired,
+  name: PropTypes.string.isRequired,
+  create: PropTypes.bool.isRequired,
   headCells: PropTypes.array.isRequired,
   handleUpdateClick: PropTypes.func.isRequired,
+  handleCreateClick: PropTypes.func.isRequired,
 };
 
 export default GenericTable;

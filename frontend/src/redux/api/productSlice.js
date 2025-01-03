@@ -1,5 +1,5 @@
 import { apiSlice } from "./apiSlice";
-import { PRODUCT_URL } from "../constants";
+import { PRODUCT_URL, UPLOAD_URL } from "../constants";
 
 export const productApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -11,14 +11,14 @@ export const productApiSlice = apiSlice.injectEndpoints({
       providesTags: ["Product"],
       keepUnusedDataFor: 5,
     }),
-    // createNew: builder.mutation({
-    //   query: (body) => ({
-    //     url: `${PRODUCT_URL}/category/`,
-    //     method: "POST",
-    //     body,
-    //   }),
-    //   invalidatesTags: ["Category"],
-    // }),
+    createNewProduct: builder.mutation({
+      query: ({ data }) => ({
+        url: `${PRODUCT_URL}/`,
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Product"],
+    }),
 
     // updateCategory: builder.mutation({
     //   query: ({ id, ...body }) => ({
@@ -44,7 +44,19 @@ export const productApiSlice = apiSlice.injectEndpoints({
     //   }),
     //   keepUnusedDataFor: 60,
     // }),
+
+    uploadProductImage: builder.mutation({
+      query: (data) => ({
+        url: `${UPLOAD_URL}/`,
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
-export const { useGetAllProductQuery } = productApiSlice;
+export const {
+  useGetAllProductQuery,
+  useUploadProductImageMutation,
+  useCreateNewProductMutation,
+} = productApiSlice;

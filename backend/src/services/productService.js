@@ -1,4 +1,5 @@
 import { StatusCodes } from "http-status-codes";
+import slugify from "slugify";
 import ApiError from "../utils/ApiError.js";
 import ProductModel from "../models/productModel.js";
 import CategoryModel from "../models/categoryModel2.js";
@@ -7,6 +8,7 @@ const createProduct = async (req, res) => {
   try {
     const data = req.body;
     const existingProduct = await ProductModel.findOne({ name: data.name });
+
     if (existingProduct) {
       throw new ApiError(
         StatusCodes.BAD_REQUEST,
@@ -14,13 +16,18 @@ const createProduct = async (req, res) => {
       );
     }
 
-    const type = CategoryModel.findOne({ name: data.type });
+    const type = await CategoryModel.findOne({ name: data.type });
+
     if (!type) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
         `Category ${data.type} not found`
       );
     }
+    data.thumb = slugify(data.name);
+    data.type = type._id;
+    // console.log(data);
+
     const newProduct = await ProductModel.create(data);
     return newProduct;
   } catch (error) {

@@ -6,16 +6,25 @@ import {
   Tooltip,
   Box,
   CircularProgress,
+  Button,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { useTheme } from "@mui/material/styles";
 import ConfirmDialog from "./ConfirmDialog";
+import AddCircleIcon from "@mui/icons-material/AddCircle";
 import { useState } from "react";
 import { useDeleteAllMutation } from "../redux/api/userSlice.js";
 import { toast } from "react-toastify";
 
-const GenericTableToolbar = ({ numSelected, selected, setSelected }) => {
+const GenericTableToolbar = ({
+  name = "List User",
+  create = false,
+  numSelected,
+  selected,
+  setSelected,
+  handleCreateClick,
+}) => {
   const theme = useTheme();
   const [openDialog, setOpenDialog] = useState(false);
   const [deleteUsers, { isLoading }] = useDeleteAllMutation();
@@ -70,8 +79,21 @@ const GenericTableToolbar = ({ numSelected, selected, setSelected }) => {
           id="tableTitle"
           component="div"
         >
-          List User
+          {name}
         </Typography>
+      )}
+      {create && (
+        <Tooltip title="Click to create new">
+          <Button
+            sx={{ fontSize: 10, display: "-webkit-box", pr: 4 }}
+            component="label"
+            variant="outlined"
+            startIcon={<AddCircleIcon />}
+            onClick={handleCreateClick}
+          >
+            Create new
+          </Button>
+        </Tooltip>
       )}
       {numSelected > 0 ? (
         <>
@@ -104,8 +126,11 @@ const GenericTableToolbar = ({ numSelected, selected, setSelected }) => {
 
 GenericTableToolbar.propTypes = {
   numSelected: PropTypes.number.isRequired,
+  name: PropTypes.string.isRequired,
+  create: PropTypes.bool.isRequired,
   selected: PropTypes.array.isRequired,
   setSelected: PropTypes.func.isRequired,
+  handleCreateClick: PropTypes.func,
 };
 
 export default GenericTableToolbar;

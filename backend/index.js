@@ -1,13 +1,11 @@
-// packages
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import compression from "compression";
-import { APIS_V1 } from "./src/routes/v1/index.js";
 import cors from "cors";
-
-//utils
+import path from "path";
+import { APIS_V1 } from "./src/routes/v1/index.js";
 import connectDB from "./src/config/db.js";
 import { errorHandlingMiddleware } from "./src/middlewares/errorMiddleware.js";
 import passportMiddleware from "./src/auth/AuthStrategy/googleStategy.js";
@@ -20,7 +18,6 @@ connectDB();
 
 const app = express();
 app.use(compression());
-
 app.use(express.json());
 app.use(helmet());
 app.use(express.urlencoded({ extended: true }));
@@ -34,6 +31,10 @@ app.use(
 );
 
 passportMiddleware(app);
+
+// Serve static files from the "uploads" directory
+const __dirname = path.resolve();
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.use("/v1/api", APIS_V1);
 app.use(errorHandlingMiddleware);

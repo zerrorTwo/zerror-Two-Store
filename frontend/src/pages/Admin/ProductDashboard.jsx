@@ -1,11 +1,17 @@
 import { useGetAllProductQuery } from "../../redux/api/productSlice.js"; // Adjust the import path as needed
+import { useGetAllCategoryQuery } from "../../redux/api/categorySlice.js"; // Adjust the import path as needed
 import GenericTable from "../../components/GenericTable"; // Adjust the import path as needed
 import { useState, useCallback } from "react";
-import FullScreenDialogCom from "../../components/FullScreenDialogCom"; // Adjust the import path
+import FullScreenDialogCom from "../../components/FullScreenDialogCom"; // Adjust the import path as needed
 
 const ProductDashboard = () => {
   // Fetch dữ liệu chỉ một lần khi component được mount
   const { data: rows = [], error, isLoading } = useGetAllProductQuery();
+  const {
+    data: listCate = [],
+    error: categoryError,
+    isLoading: categoryLoading,
+  } = useGetAllCategoryQuery(); // Fetch categories
   const processedRows = rows.map((row) => ({
     ...row,
     type: row.type?.name || "Unknown", // Lấy name từ type
@@ -13,10 +19,19 @@ const ProductDashboard = () => {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [isCreate, setIsCreate] = useState(false);
 
   const handleUpdateClick = useCallback((event, row) => {
     event.stopPropagation();
     setSelectedRow(row);
+    setIsCreate(false);
+    setDialogOpen(true);
+  }, []);
+
+  const handleCreateClick = useCallback((event) => {
+    event.stopPropagation();
+    setSelectedRow(null);
+    setIsCreate(true);
     setDialogOpen(true);
   }, []);
 
@@ -39,20 +54,25 @@ const ProductDashboard = () => {
     { id: "type", numeric: false, disablePadding: false, label: "Type" },
   ];
 
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error loading data</div>;
+  if (isLoading || categoryLoading) return <div>Loading...</div>;
+  if (error || categoryError) return <div>Error loading data</div>;
 
   return (
     <>
       <GenericTable
+        name="List Product"
+        create={true}
         rows={processedRows}
         headCells={headCells}
         handleUpdateClick={handleUpdateClick}
+        handleCreateClick={handleCreateClick}
       />
       <FullScreenDialogCom
+        create={isCreate}
         open={dialogOpen}
         handleClose={handleCloseDialog}
         row={selectedRow}
+        listCate={listCate} // Pass categories to FullScreenDialogCom
       />
     </>
   );
