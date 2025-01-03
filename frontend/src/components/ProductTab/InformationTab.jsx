@@ -1,37 +1,78 @@
 import PropTypes from "prop-types";
-import { Box, Card, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  MenuItem,
+  TextField,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import InputBase from "../InputBase";
+import { PRIMITIVE_URL } from "../../redux/constants";
 
-const InformationTab = ({ formData, handleInputChange, handleFileChange }) => {
+const InformationTab = ({
+  formData,
+  handleInputChange,
+  handleFileChange,
+  listCate,
+}) => {
+  const theme = useTheme();
+
+  console.log("guvhuhvbj", `${PRIMITIVE_URL}${formData.mainImg}`);
+
   return (
-    <Box display={"flex"} flexDirection={"column"} gap={2}>
-      <Box display={"flex"} gap={4}>
+    <Box display="flex" flexDirection="column" gap={2}>
+      <Box display="flex" gap={4} alignItems="center">
         <InputBase
-          fullWidth={true}
+          required={true}
+          fullWidth
           margin="normal"
           label="Name"
           name="name"
           value={formData.name}
           onChange={handleInputChange}
         />
-        <InputBase
-          fullWidth={false}
-          margin="normal"
-          label="Type"
-          name="type"
-          value={formData.type}
-          onChange={handleInputChange}
-        />
+        <Box display="flex" alignItems="center">
+          <TextField
+            sx={{
+              width: 300,
+              mt: 0,
+              "& .MuiInputBase-input": {
+                color: theme.palette.text.blackColor,
+              },
+              "& .MuiInputLabel-root": {
+                color: theme.palette.text.blackColor,
+              },
+            }}
+            select
+            fullWidth={false}
+            margin="normal"
+            name="type"
+            label="Type"
+            value={formData.type}
+            onChange={handleInputChange}
+          >
+            <MenuItem value="">
+              <em>Chose your category</em>
+            </MenuItem>
+            {listCate.map((category) => (
+              <MenuItem key={category._id} value={category.name}>
+                {category.name}
+              </MenuItem>
+            ))}
+          </TextField>
+        </Box>
       </Box>
       <InputBase
-        multiline={true}
+        id="description" // Unique id for the description field
+        multiline
         margin="normal"
         label="Description"
         name="description"
         value={formData.description}
         onChange={handleInputChange}
       />
-      <Box sx={{ mt: 2, display: "flex" }}>
+      <Box display="flex" gap={2} sx={{ mt: 2 }}>
         {/* Upload Main Image */}
         <Card
           sx={{
@@ -42,15 +83,15 @@ const InformationTab = ({ formData, handleInputChange, handleFileChange }) => {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            border: "2px dashed gray", // Màu viền cho khu vực upload
+            border: "2px dashed gray",
           }}
-          onClick={() => document.getElementById("mainImgInput").click()} // Mở file input khi click vào Card
+          onClick={() => document.getElementById("mainImgInput").click()}
         >
           {formData.mainImg ? (
             <img
               src={
                 typeof formData.mainImg === "string"
-                  ? formData.mainImg
+                  ? `${PRIMITIVE_URL}${formData.mainImg}`
                   : URL.createObjectURL(formData.mainImg)
               }
               alt="Main Image"
@@ -82,15 +123,15 @@ const InformationTab = ({ formData, handleInputChange, handleFileChange }) => {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            border: "2px dashed gray", // Màu viền cho khu vực upload
+            border: "2px dashed gray",
           }}
-          onClick={() => document.getElementById("imgInput1").click()} // Mở file input khi click vào Card
+          onClick={() => document.getElementById("imgInput1").click()}
         >
           {formData.img[0] ? (
             <img
               src={
                 typeof formData.img[0] === "string"
-                  ? formData.img[0]
+                  ? `${PRIMITIVE_URL}${formData.img[0]}`
                   : URL.createObjectURL(formData.img[0])
               }
               alt="Image 1"
@@ -122,15 +163,15 @@ const InformationTab = ({ formData, handleInputChange, handleFileChange }) => {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            border: "2px dashed gray", // Màu viền cho khu vực upload
+            border: "2px dashed gray",
           }}
-          onClick={() => document.getElementById("imgInput2").click()} // Mở file input khi click vào Card
+          onClick={() => document.getElementById("imgInput2").click()}
         >
           {formData.img[1] ? (
             <img
               src={
                 typeof formData.img[1] === "string"
-                  ? formData.img[1]
+                  ? `${PRIMITIVE_URL}${formData.img[1]}`
                   : URL.createObjectURL(formData.img[1])
               }
               alt="Image 2"
@@ -162,15 +203,15 @@ const InformationTab = ({ formData, handleInputChange, handleFileChange }) => {
             display: "flex",
             justifyContent: "center",
             alignItems: "center",
-            border: "2px dashed gray", // Màu viền cho khu vực upload
+            border: "2px dashed gray",
           }}
-          onClick={() => document.getElementById("imgInput3").click()} // Mở file input khi click vào Card
+          onClick={() => document.getElementById("imgInput3").click()}
         >
           {formData.img[2] ? (
             <img
               src={
                 typeof formData.img[2] === "string"
-                  ? formData.img[2]
+                  ? `${PRIMITIVE_URL}${formData.img[2]}`
                   : URL.createObjectURL(formData.img[2])
               }
               alt="Image 3"
@@ -198,6 +239,7 @@ const InformationTab = ({ formData, handleInputChange, handleFileChange }) => {
 
 InformationTab.propTypes = {
   formData: PropTypes.object.isRequired,
+  listCate: PropTypes.array.isRequired,
   handleInputChange: PropTypes.func.isRequired,
   handleFileChange: PropTypes.func.isRequired,
 };

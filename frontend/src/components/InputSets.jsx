@@ -6,6 +6,7 @@ import {
   Typography,
   IconButton,
   InputAdornment,
+  useTheme,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
@@ -14,12 +15,26 @@ const InputSets = ({
   handleAddField,
   handleCategoryInputChange,
   handleDeleteField,
+  handleDeleteCategory,
 }) => {
+  const theme = useTheme();
   return (
     <Box>
       {categories.map((category, setIndex) => (
         <Box key={category.label} mb={2}>
-          <Typography variant="subtitle1">{category.label}</Typography>
+          <Box
+            display="flex"
+            alignItems="center"
+            justifyContent="space-between"
+          >
+            <Typography variant="subtitle1">{category.label}</Typography>
+            <IconButton
+              aria-label="delete category"
+              onClick={() => handleDeleteCategory(setIndex)}
+            >
+              <DeleteIcon />
+            </IconButton>
+          </Box>
           {category.items.map((item, itemIndex) => (
             <TextField
               required
@@ -44,7 +59,19 @@ const InputSets = ({
               }}
             />
           ))}
-          <Button onClick={() => handleAddField(setIndex)}>Add Field</Button>
+          <Button
+            sx={{
+              mt: 1,
+              backgroundColor: theme.palette.primary.main,
+              color: theme.palette.primary.contrastText,
+              "&:hover": {
+                backgroundColor: theme.palette.primary.dark,
+              },
+            }}
+            onClick={() => handleAddField(setIndex)}
+          >
+            Add Field
+          </Button>
         </Box>
       ))}
     </Box>
@@ -61,6 +88,7 @@ InputSets.propTypes = {
   handleAddField: PropTypes.func.isRequired,
   handleCategoryInputChange: PropTypes.func.isRequired,
   handleDeleteField: PropTypes.func.isRequired,
+  handleDeleteCategory: PropTypes.func.isRequired,
 };
 
 export default InputSets;

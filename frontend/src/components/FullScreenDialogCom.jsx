@@ -10,30 +10,19 @@ import ButtonPrimary from "./ButtonPrimary";
 import InputSets from "./InputSets"; // Import the new component
 import DynamicTable from "./DynamicTable"; // Import DynamicTable component
 import InformationTab from "./ProductTab/InformationTab";
+import TabPanel from "./ProductTab/TabPanel";
+import {
+  useUploadProductImageMutation,
+  useCreateNewProductMutation,
+} from "../redux/api/productSlice";
 
-function TabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`tabpanel-${index}`}
-      aria-labelledby={`tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
-
-TabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
-};
-
-function FullScreenDialogCom({ open, handleClose, row = null }) {
+function FullScreenDialogCom({
+  open,
+  handleClose,
+  row = null,
+  listCate,
+  create,
+}) {
   const theme = useTheme();
   const [value, setValue] = useState(0);
   const [formData, setFormData] = useState({
@@ -52,6 +41,8 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
   const [tableData, setTableData] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryItems, setNewCategoryItems] = useState([""]);
+  const [uploadProductImage] = useUploadProductImageMutation();
+  const [createProduct] = useCreateNewProductMutation();
 
   useEffect(() => {
     if (row) {
@@ -71,7 +62,6 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
         attributes: attributesStr || "{}",
       });
 
-      // Parse the attributes and set categories dynamically
       const attributes = JSON.parse(attributesStr || "{}");
       const attributeEntries = Object.entries(attributes);
       const filteredAttributes = Object.fromEntries(
@@ -83,20 +73,36 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
       }));
       setCategories(dynamicCategories);
 
-      // Generate initial table data
       generateTableData(dynamicCategories);
+    } else {
+      setFormData({
+        name: "",
+        description: "",
+        price: "",
+        quantity: "",
+        type: "",
+        thumb: null,
+        mainImg: null,
+        img: [],
+        attributes: "{}",
+      });
+      setCategories([]);
+      setTableData([]);
+      setNewCategoryName("");
+      setNewCategoryItems([""]);
     }
   }, [row]);
 
   useEffect(() => {
-    // Regenerate table data whenever categories change
     generateTableData(categories);
   }, [categories]);
 
   const generateTableData = (categories) => {
-    if (categories.length === 0) return;
+    if (categories.length === 0) {
+      setTableData([]);
+      return;
+    }
 
-    // Create combinations of categories and generate data
     const combinations = [];
     const combine = (index, current) => {
       if (index === categories.length) {
@@ -112,7 +118,6 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
     };
     combine(0, {});
 
-    // Initialize table data with price and stock fields
     const data = combinations.map((combination) => ({
       ...combination,
       price: "",
@@ -143,10 +148,22 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
 
   const handleFileChange = (event) => {
     const { name, files } = event.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: files[0],
-    }));
+    setFormData((prevData) => {
+      if (name === "mainImg") {
+        return {
+          ...prevData,
+          mainImg: files[0],
+        };
+      } else {
+        const imgIndex = parseInt(name.replace("img", "")) - 1;
+        const newImgArray = [...prevData.img];
+        newImgArray[imgIndex] = files[0];
+        return {
+          ...prevData,
+          img: newImgArray,
+        };
+      }
+    });
   };
 
   const handleAddField = (setIndex) => {
@@ -167,8 +184,15 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
     });
   };
 
+  const handleDeleteCategory = (setIndex) => {
+    setCategories((prevCategories) => {
+      const newCategories = [...prevCategories];
+      newCategories.splice(setIndex, 1);
+      return newCategories;
+    });
+  };
+
   const handleAddSet = () => {
-    // Ensure the new category name is not empty and at least one item has a value
     if (
       newCategoryName.trim() === "" ||
       newCategoryItems.every((item) => item.trim() === "")
@@ -188,7 +212,6 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
     setNewCategoryName("");
     setNewCategoryItems([""]);
 
-    // Regenerate table data after adding a new set
     generateTableData([
       ...categories,
       {
@@ -223,30 +246,72 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
       // Regenerate the table data only if the category has at least one non-empty item
       if (hasNonEmptyItem) {
         generateTableData(newCategories);
+      } else {
+        setTableData([]);
       }
       return newCategories;
     });
   };
 
+  console.log(formData);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
+      // Upload all images and get their URLs
+      const mainImgUrl = formData.mainImg
+        ? await uploadImage(formData.mainImg)
+        : null;
+
+      const imgUrls = await Promise.all(
+        formData.img.map((file) => uploadImage(file))
+      );
+
+      // Construct updatedAttributes dynamically
       const updatedAttributes = categories.reduce((acc, category) => {
         acc[category.label.toLowerCase()] = category.items;
         return acc;
       }, {});
 
+      const pricing = tableData.map((item) => {
+        const { price, stock, ...rest } = item;
+        return {
+          ...rest,
+          price: parseFloat(price) || 0,
+          quantity: parseInt(stock, 10) || 0,
+        };
+      });
+
       const updatedFormData = {
         ...formData,
-        attributes: JSON.stringify(updatedAttributes),
-        tableData,
+        attributes: {
+          ...updatedAttributes,
+          pricing: pricing,
+        },
+        mainImg: mainImgUrl,
+        img: imgUrls,
       };
 
-      console.log("Updating product with data:", updatedFormData);
+      console.log(updatedFormData);
+
+      if (create) {
+        const a = await createProduct({ data: updatedFormData }).unwrap();
+        console.log("Product created successfully", a);
+      } else {
+        console.log("Updating product with data:", updatedFormData);
+      }
+
       handleClose();
     } catch (error) {
-      console.error("Failed to update product", error);
+      console.error("Failed to submit product", error);
     }
+  };
+
+  const uploadImage = async (imageFile) => {
+    const formData = new FormData();
+    formData.append("image", imageFile);
+    const { image } = await uploadProductImage(formData).unwrap();
+    return image;
   };
 
   const handleNext = () => {
@@ -255,6 +320,24 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
 
   const handleBack = () => {
     setValue((prev) => Math.max(prev - 1, 0)); // Quay lại tab trước đó
+  };
+
+  // Validation function
+  const isFormValid = () => {
+    const { name, type, mainImg, price, quantity, img } = formData;
+    const areTableFieldsFilled =
+      tableData.length === 0 ||
+      tableData.every((item) => item.price !== "" && item.stock !== "");
+
+    return (
+      name !== "" &&
+      type !== "" &&
+      mainImg !== null &&
+      img[0] !== undefined &&
+      price !== "" &&
+      quantity !== "" &&
+      areTableFieldsFilled
+    );
   };
 
   return (
@@ -297,6 +380,7 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
         </Tabs>
         <TabPanel value={value} index={0}>
           <InformationTab
+            listCate={listCate}
             formData={formData}
             handleInputChange={handleInputChange}
             handleFileChange={handleFileChange}
@@ -307,6 +391,7 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
             <Box sx={{ mt: 3 }}>
               <Box display={"flex"} gap={2} mb={2}>
                 <InputBase
+                  id="price"
                   type="number"
                   margin="normal"
                   label="Price default"
@@ -315,6 +400,7 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
                   onChange={handleInputChange}
                 />
                 <InputBase
+                  id="quantity"
                   type="number"
                   margin="normal"
                   label="Quantity"
@@ -329,8 +415,32 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
                 handleAddField={handleAddField}
                 handleCategoryInputChange={handleCategoryInputChange} // Pass the new handle function
                 handleDeleteField={handleDeleteField} // Pass the delete function
+                handleDeleteCategory={handleDeleteCategory} // Pass the delete category function
               />
               <TextField
+                sx={{
+                  borderRadius: 1,
+                  "& .MuiInputLabel-root": {
+                    color: theme.palette.text.primary,
+                    "&.Mui-focused": {
+                      color: theme.palette.text.primary,
+                    },
+                  },
+                  "& .MuiInputBase-input": {
+                    color: theme.palette.text.blackColor,
+                  },
+                  "& .MuiOutlinedInput-root": {
+                    "& fieldset": {
+                      borderColor: theme.palette.text.primary,
+                    },
+                    "&:hover fieldset": {
+                      borderColor: theme.palette.text.primary,
+                    },
+                    "&.Mui-focused fieldset": {
+                      borderColor: theme.palette.text.primary,
+                    },
+                  },
+                }}
                 label="New Category Name"
                 value={newCategoryName}
                 onChange={(e) => setNewCategoryName(e.target.value)}
@@ -339,26 +449,53 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
               />
               {newCategoryItems.map((item, index) => (
                 <TextField
+                  sx={{
+                    borderRadius: 1,
+                    "& .MuiInputLabel-root": {
+                      color: theme.palette.text.primary,
+                      "&.Mui-focused": {
+                        color: theme.palette.text.primary,
+                      },
+                    },
+                    "& .MuiInputBase-input": {
+                      color: theme.palette.text.blackColor,
+                    },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: theme.palette.text.primary,
+                      },
+                      "&:hover fieldset": {
+                        borderColor: theme.palette.text.primary,
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: theme.palette.text.primary,
+                      },
+                    },
+                  }}
                   key={index}
+                  label="New field"
                   value={item}
                   onChange={(e) => handleNewItemChange(index, e.target.value)}
                   fullWidth
                   margin="normal"
                 />
               ))}
-              <Button onClick={addNewItemField}>Add New Item</Button>
-              <ButtonPrimary
-                text="Thêm phân loại hàng"
-                onClick={handleAddSet}
-              />
+              <Box display={"flex"} gap={2} my={2}>
+                <Button variant="outlined" onClick={addNewItemField}>
+                  Add New Item
+                </Button>
+                <ButtonPrimary text="More attributes" onClick={handleAddSet} />
+              </Box>
             </Box>
 
             <Typography>Table</Typography>
-            <DynamicTable
-              categories={categories}
-              tableData={tableData}
-              handleTableChange={handleTableChange}
-            />
+            {tableData.length > 0 && (
+              <DynamicTable
+                categories={categories}
+                tableData={tableData}
+                handleTableChange={handleTableChange}
+              />
+            )}
           </Box>
         </TabPanel>
       </DialogContent>
@@ -374,9 +511,23 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
         <Button onClick={handleClose}>Cancel</Button>
         {value === 0 && <Button onClick={handleNext}>Next</Button>}
         {value === 1 && <Button onClick={handleBack}>Back</Button>}
-        <Button onClick={handleSubmit} variant="contained">
-          Update
-        </Button>
+        {create ? (
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={!isFormValid()}
+          >
+            Submit
+          </Button>
+        ) : (
+          <Button
+            onClick={handleSubmit}
+            variant="contained"
+            disabled={!isFormValid()}
+          >
+            Update
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );
@@ -384,7 +535,9 @@ function FullScreenDialogCom({ open, handleClose, row = null }) {
 
 FullScreenDialogCom.propTypes = {
   open: PropTypes.bool.isRequired,
+  create: PropTypes.bool.isRequired,
   handleClose: PropTypes.func.isRequired,
+  listCate: PropTypes.array.isRequired,
   row: PropTypes.object,
 };
 
