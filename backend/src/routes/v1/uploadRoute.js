@@ -68,4 +68,36 @@ router.delete("/", (req, res) => {
     res.status(404).send({ message: "File not found" });
   }
 });
+
+// Route mới để upload ảnh vào thư mục categoriesImg
+router.post("/category", (req, res) => {
+  const storageCategoriesImg = multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, path.join("uploads", "categoriesImg")); // Lưu vào thư mục uploads/categoriesImg
+    },
+    filename: (req, file, cb) => {
+      const extname = path.extname(file.originalname);
+      cb(null, `${file.fieldname}-${Date.now()}${extname}`);
+    },
+  });
+
+  const uploadCategoriesImg = multer({
+    storage: storageCategoriesImg,
+    fileFilter,
+  }).single("image");
+
+  uploadCategoriesImg(req, res, (err) => {
+    if (err) {
+      res.status(400).send({ message: err.message });
+    } else if (req.file) {
+      res.status(200).send({
+        message: "Image uploaded successfully to categoriesImg",
+        image: `/${req.file.path}`,
+      });
+    } else {
+      res.status(400).send({ message: "No image file provided" });
+    }
+  });
+});
+
 export const uploadRoute = router;

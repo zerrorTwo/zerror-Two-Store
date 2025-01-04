@@ -8,6 +8,16 @@ const categorySchema = new mongoose.Schema({
     maxLength: 32,
     unique: true,
   },
+  slug: {
+    type: String,
+    trim: true,
+    required: true,
+  },
+  img: {
+    type: String,
+    trim: true,
+    required: true,
+  },
 });
 const CategoryModel = mongoose.model("Category", categorySchema);
 

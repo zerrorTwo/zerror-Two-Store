@@ -16,6 +16,7 @@ import {
 import EditIcon from "@mui/icons-material/Edit";
 import GenericTableHead from "./GenericTableHead";
 import GenericTableToolbar from "./GenericTableToolbar";
+import ConfirmDialog from "./ConfirmDialog";
 import { useTheme } from "@mui/material/styles";
 
 const descendingComparator = (a, b, orderBy) => {
@@ -35,21 +36,26 @@ const getComparator = (order, orderBy) => {
 };
 
 const GenericTable = ({
-  name,
+  name = "List User",
   create,
   rows,
   headCells,
   handleUpdateClick,
   handleCreateClick,
+  selected,
+  setSelected,
+  onDeleteConfirm,
+  isDeleteLoading,
 }) => {
+  console.log();
+
   const rowsPerPage = 10;
   const theme = useTheme();
 
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState(headCells[0].id);
-  const [selected, setSelected] = useState([]);
   const [page, setPage] = useState(0);
-  // console.log(selected);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
@@ -89,6 +95,14 @@ const GenericTable = ({
     setPage(newPage);
   };
 
+  const handleOpenDialog = () => {
+    setOpenDialog(true);
+  };
+
+  const handleCloseDialog = () => {
+    setOpenDialog(false);
+  };
+
   const emptyRows =
     page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
@@ -97,7 +111,7 @@ const GenericTable = ({
       [...rows]
         .sort(getComparator(order, orderBy))
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-    [order, orderBy, page, rowsPerPage, rows]
+    [order, orderBy, page, rows]
   );
 
   return (
@@ -113,10 +127,10 @@ const GenericTable = ({
         <GenericTableToolbar
           name={name}
           create={create}
-          numSelected={selected.length}
-          selected={selected}
-          setSelected={setSelected}
+          numSelected={selected?.length || 0}
           handleCreateClick={handleCreateClick}
+          handleOpenDialog={handleOpenDialog}
+          isLoading={isDeleteLoading}
         />
         <TableContainer>
           <Table
@@ -126,7 +140,7 @@ const GenericTable = ({
           >
             <GenericTableHead
               headCells={headCells}
-              numSelected={selected.length}
+              numSelected={selected?.length}
               order={order}
               orderBy={orderBy}
               onSelectAllClick={handleSelectAllClick}
@@ -135,7 +149,7 @@ const GenericTable = ({
             />
             <TableBody>
               {visibleRows.map((row, index) => {
-                const isItemSelected = selected.includes(row._id);
+                const isItemSelected = selected?.includes(row._id);
                 const labelId = `enhanced-table-checkbox-${index}`;
 
                 return (
@@ -149,7 +163,6 @@ const GenericTable = ({
                     selected={isItemSelected}
                     sx={{ cursor: "pointer" }}
                   >
-                    {/* Remove any whitespace between these elements */}
                     <TableCell padding="checkbox">
                       <Checkbox
                         sx={{
@@ -162,19 +175,17 @@ const GenericTable = ({
                         inputProps={{ "aria-labelledby": labelId }}
                       />
                     </TableCell>
-                    {/* Remove any whitespace between these elements */}
                     {headCells.map((cell, index) => (
                       <TableCell
                         key={index}
                         sx={{ color: theme.palette.text.secondary }}
-                        align="right"
+                        align="center"
                       >
                         {row[cell.id] != null ? String(row[cell.id]) : "N/A"}
                       </TableCell>
                     ))}
-                    {/* Remove any whitespace between these elements */}
                     <TableCell
-                      align="right"
+                      align="center"
                       sx={{ color: theme.palette.text.secondary }}
                     >
                       <Tooltip title="Update">
@@ -189,7 +200,7 @@ const GenericTable = ({
                             backgroundColor:
                               theme.palette.button.backgroundColor,
                           }}
-                          onClick={(event) => handleUpdateClick(event, row)} // Truyền cả event và row
+                          onClick={(event) => handleUpdateClick(event, row)}
                         >
                           <EditIcon />
                         </IconButton>
@@ -228,6 +239,15 @@ const GenericTable = ({
           onPageChange={handleChangePage}
         />
       </Paper>
+      <ConfirmDialog
+        open={openDialog}
+        onClose={handleCloseDialog}
+        onConfirm={() => {
+          onDeleteConfirm();
+          handleCloseDialog();
+        }}
+        itemCount={selected?.length}
+      />
     </Box>
   );
 };
@@ -238,7 +258,11 @@ GenericTable.propTypes = {
   create: PropTypes.bool.isRequired,
   headCells: PropTypes.array.isRequired,
   handleUpdateClick: PropTypes.func.isRequired,
-  handleCreateClick: PropTypes.func.isRequired,
+  handleCreateClick: PropTypes.func,
+  selected: PropTypes.array.isRequired,
+  setSelected: PropTypes.func.isRequired,
+  onDeleteConfirm: PropTypes.func.isRequired,
+  isDeleteLoading: PropTypes.bool,
 };
 
 export default GenericTable;

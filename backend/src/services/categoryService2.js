@@ -1,4 +1,5 @@
 import ApiError from "../utils/ApiError.js";
+import slugtify from "slugify";
 import { StatusCodes } from "http-status-codes";
 import categoryModel from "../models/categoryModel2.js";
 
@@ -8,6 +9,8 @@ const getAllCategory = async (req, res) => {
 
 const createCategory = async (req, res) => {
   const data = req.body;
+  console.log(data);
+
   data.name = data.name.trim().toUpperCase();
   // console.log(data.name.trim().toUpperCase());
 
@@ -22,6 +25,8 @@ const createCategory = async (req, res) => {
   if (categoryExist) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Category already exists");
   }
+
+  data.slug = slugtify(data.name);
   const category = new categoryModel(data);
   await category.save();
   return category;
@@ -30,6 +35,7 @@ const createCategory = async (req, res) => {
 const updateCategory = async (req, res) => {
   const { id } = req.params;
   const data = req.body;
+  console.log(data);
 
   if (!id) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Id not found");

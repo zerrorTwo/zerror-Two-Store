@@ -5,6 +5,7 @@ import {
   useCreateNewMutation,
   useGetAllCategoryQuery,
   useSearchCategoryQuery,
+  useUploadCategoryImageMutation, // Import the mutation for image upload
 } from "../../redux/api/categorySlice.js";
 import CategoryList from "../../components/CategoryList.jsx";
 import { toast } from "react-toastify";
@@ -18,6 +19,8 @@ function CategoryDashBoard() {
   const inputRef = useRef(null);
   const [isSearching, setIsSearching] = useState(false);
   const [renderData, setRenderData] = useState([]);
+  const [selectedImage, setSelectedImage] = useState(null); // State for selected image
+  const [imagePreview, setImagePreview] = useState(null); // State for image preview
 
   const {
     data: category,
@@ -30,6 +33,8 @@ function CategoryDashBoard() {
     useSearchCategoryQuery(search, {
       skip: !isSearching,
     });
+  const [uploadCategoryImage, { isLoading: isLoadingUpload }] =
+    useUploadCategoryImageMutation(); // Image upload mutation
 
   useEffect(() => {
     if (error && !hasShown.current) {
@@ -67,6 +72,18 @@ function CategoryDashBoard() {
     debouncedSearch(searchTerm);
   };
 
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleClick = async () => {
     if (!addValue.trim()) {
       toast.warning("Please enter a category name");
@@ -74,9 +91,23 @@ function CategoryDashBoard() {
     }
 
     try {
-      const result = await createNew({ name: addValue }).unwrap();
+      let imageUrl = null;
+      if (selectedImage) {
+        const formData = new FormData();
+        formData.append("image", selectedImage);
+        const uploadResult = await uploadCategoryImage(formData).unwrap();
+
+        imageUrl = uploadResult.image;
+      }
+
+      const result = await createNew({
+        name: addValue,
+        img: imageUrl,
+      }).unwrap();
       if (result) {
         setAddValue("");
+        setSelectedImage(null);
+        setImagePreview(null);
         inputRef.current.focus();
         setIsSearching(false);
         refetch();
@@ -160,58 +191,70 @@ function CategoryDashBoard() {
               label="Write category name"
               type="search"
             />
+
             <Box sx={{ mt: 2, display: "flex", gap: 2 }}>
               <ButtonPrimary
                 text="Add"
                 onClick={handleClick}
-                isLoading={!!isLoadingCreateNew}
+                isLoading={isLoadingCreateNew || isLoadingUpload}
               />
             </Box>
           </Box>
-          <Box component="form">
-            <TextField
-              sx={{
-                borderRadius: 1,
-                "& .MuiInputLabel-root": {
-                  color: theme.palette.text.primary,
-                  "&.Mui-focused": {
-                    color: theme.palette.text.primary,
-                  },
-                },
-                "& .MuiInputBase-input": {
-                  color: theme.palette.text.primary,
-                },
-                "& .MuiOutlinedInput-root": {
-                  "& fieldset": {
-                    borderColor: theme.palette.text.primary,
-                  },
-                  "&:hover fieldset": {
-                    borderColor: theme.palette.text.primary,
-                  },
-                  "&.Mui-focused fieldset": {
-                    borderColor: theme.palette.text.primary,
-                  },
-                },
-              }}
-              fullWidth
-              id="search-field"
-              value={search}
-              onChange={handleInputSearchChange}
-              helperText={
-                search.length > 32
-                  ? "Search term must have less than 32 characters"
-                  : ""
-              }
-              FormHelperTextProps={{
-                sx: { color: "#FE0032", fontStyle: "italic" },
-              }}
-              label="Search category"
-              type="search"
-            />
+          <Box mt={2} display={"flex"}>
+            <input type="file" onChange={handleImageChange} />
+            {imagePreview && (
+              <Box>
+                <img
+                  src={imagePreview}
+                  alt="preview"
+                  style={{ maxWidth: "100%", maxHeight: 150 }}
+                />
+              </Box>
+            )}
           </Box>
         </Box>
 
         <Divider sx={{ backgroundColor: theme.palette.text.primary, my: 4 }} />
+        <Box component="form" mb={2}>
+          <TextField
+            sx={{
+              borderRadius: 1,
+              "& .MuiInputLabel-root": {
+                color: theme.palette.text.primary,
+                "&.Mui-focused": {
+                  color: theme.palette.text.primary,
+                },
+              },
+              "& .MuiInputBase-input": {
+                color: theme.palette.text.primary,
+              },
+              "& .MuiOutlinedInput-root": {
+                "& fieldset": {
+                  borderColor: theme.palette.text.primary,
+                },
+                "&:hover fieldset": {
+                  borderColor: theme.palette.text.primary,
+                },
+                "&.Mui-focused fieldset": {
+                  borderColor: theme.palette.text.primary,
+                },
+              },
+            }}
+            id="search-field"
+            value={search}
+            onChange={handleInputSearchChange}
+            helperText={
+              search.length > 32
+                ? "Search term must have less than 32 characters"
+                : ""
+            }
+            FormHelperTextProps={{
+              sx: { color: "#FE0032", fontStyle: "italic" },
+            }}
+            label="Search category"
+            type="search"
+          />
+        </Box>
         <CategoryList
           category={renderData || []}
           isLoading={isLoading || isLoadingSearch}

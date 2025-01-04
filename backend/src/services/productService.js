@@ -74,6 +74,22 @@ const deleteProduct = async (req, res) => {
   }
 };
 
+const deleteManyProducts = async (req, res) => {
+  const products = req.body;
+  if (!products) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "products not found");
+  }
+  const respone = await ProductModel.deleteMany(products);
+
+  if (!respone) {
+    throw new ApiError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Failed to delete products"
+    );
+  }
+  return { message: `Products deleted successfully` };
+};
+
 const getAllProducts = async (req, res) => {
   try {
     const products = await ProductModel.find({})
@@ -124,5 +140,6 @@ export const productService = {
   updateProduct,
   deleteProduct,
   getPageProducts,
+  deleteManyProducts,
   getProductsByCategory,
 };

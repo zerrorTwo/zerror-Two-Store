@@ -53,6 +53,15 @@ export const productApiSlice = apiSlice.injectEndpoints({
       }),
     }),
 
+    deleteAllProduct: builder.mutation({
+      query: (_id) => ({
+        url: `${PRODUCT_URL}/delete`,
+        method: "DELETE",
+        body: { _id },
+      }),
+      invalidatesTags: ["Product"],
+    }),
+
     getProductImage: builder.query({
       query: (imagePath) => ({
         url: `${PRIMITIVE_URL}${imagePath}`, // BASE_URL là URL của server backend
@@ -68,5 +77,6 @@ export const {
   useLazyGetProductImageQuery,
   useUploadProductImageMutation,
   useUpdateProductMutation,
+  useDeleteAllProductMutation,
   useCreateNewProductMutation,
 } = productApiSlice;

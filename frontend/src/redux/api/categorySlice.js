@@ -1,5 +1,5 @@
 import { apiSlice } from "./apiSlice";
-import { BASE_URL } from "../constants";
+import { BASE_URL, UPLOAD_URL } from "../constants";
 
 export const categoryApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -21,7 +21,7 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
     }),
 
     updateCategory: builder.mutation({
-      query: ({ id, ...body }) => ({
+      query: ({ id, body }) => ({
         url: `${BASE_URL}/category/${id}`,
         method: "PUT",
         body,
@@ -44,6 +44,14 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
       }),
       keepUnusedDataFor: 60,
     }),
+
+    uploadCategoryImage: builder.mutation({
+      query: (data) => ({
+        url: `${UPLOAD_URL}/category`,
+        method: "POST",
+        body: data,
+      }),
+    }),
   }),
 });
 
@@ -52,5 +60,6 @@ export const {
   useCreateNewMutation,
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,
+  useUploadCategoryImageMutation,
   useSearchCategoryQuery,
 } = categoryApiSlice;
