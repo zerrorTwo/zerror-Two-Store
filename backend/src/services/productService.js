@@ -40,12 +40,19 @@ const createProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   try {
-    const { id } = req.params;
-    const data = req.body;
+    const id = req.params.id;
 
-    const product = await ProductModel.findByIdAndUpdate(id, data, {
-      new: true,
-    });
+    const data = req.body;
+    const type = CategoryModel.findOne({ name: data.updatedFormData.type });
+    data.updatedFormData.type = type._id;
+
+    const product = await ProductModel.findByIdAndUpdate(
+      id,
+      data.updatedFormData,
+      {
+        new: true,
+      }
+    );
     return product;
   } catch (error) {
     throw new ApiError(

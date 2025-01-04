@@ -23,8 +23,8 @@ const DynamicTable = ({ categories, tableData, handleTableChange }) => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {tableData.map((row, index) => (
-            <TableRow sx={{ height: "20px" }} key={index}>
+          {tableData.map((row, rowIndex) => (
+            <TableRow sx={{ height: "20px" }} key={rowIndex}>
               {categories.map((category) => (
                 <TableCell key={category.label}>
                   {typeof row[category.label.toLowerCase()] === "object"
@@ -43,7 +43,7 @@ const DynamicTable = ({ categories, tableData, handleTableChange }) => {
                   type="number"
                   value={row.price}
                   onChange={(e) =>
-                    handleTableChange(index, "price", e.target.value)
+                    handleTableChange(rowIndex, "price", e.target.value)
                   }
                 />
               </TableCell>
@@ -58,7 +58,7 @@ const DynamicTable = ({ categories, tableData, handleTableChange }) => {
                   type="number"
                   value={row.stock}
                   onChange={(e) =>
-                    handleTableChange(index, "stock", e.target.value)
+                    handleTableChange(rowIndex, "stock", e.target.value)
                   }
                 />
               </TableCell>

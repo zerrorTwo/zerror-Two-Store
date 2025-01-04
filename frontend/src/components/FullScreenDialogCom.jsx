@@ -8,13 +8,15 @@ import { Box, Button, useTheme, Tabs, Tab, TextField } from "@mui/material";
 import InputBase from "./InputBase";
 import ButtonPrimary from "./ButtonPrimary";
 import InputSets from "./InputSets"; // Import the new component
-import DynamicTable from "./DynamicTable"; // Import DynamicTable component
+import DynamicTable from "./ProductTab/DynamicTable"; // Import DynamicTable component
 import InformationTab from "./ProductTab/InformationTab";
 import TabPanel from "./ProductTab/TabPanel";
 import {
   useUploadProductImageMutation,
   useCreateNewProductMutation,
+  useUpdateProductMutation,
 } from "../redux/api/productSlice";
+import { toast } from "react-toastify";
 
 function FullScreenDialogCom({
   open,
@@ -39,10 +41,12 @@ function FullScreenDialogCom({
 
   const [categories, setCategories] = useState([]);
   const [tableData, setTableData] = useState([]);
+  const [initialPricing, setInitialPricing] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [newCategoryItems, setNewCategoryItems] = useState([""]);
   const [uploadProductImage] = useUploadProductImageMutation();
   const [createProduct] = useCreateNewProductMutation();
+  const [updateProduct] = useUpdateProductMutation();
 
   useEffect(() => {
     if (row) {
@@ -63,17 +67,20 @@ function FullScreenDialogCom({
       });
 
       const attributes = JSON.parse(attributesStr || "{}");
+
       const attributeEntries = Object.entries(attributes);
       const filteredAttributes = Object.fromEntries(
         attributeEntries.slice(0, -1)
       );
+
       const dynamicCategories = Object.keys(filteredAttributes).map((key) => ({
         label: key.charAt(0).toUpperCase() + key.slice(1),
         items: filteredAttributes[key] || [],
       }));
-      setCategories(dynamicCategories);
 
-      generateTableData(dynamicCategories);
+      setCategories(dynamicCategories);
+      setInitialPricing(attributes.pricing || []);
+      generateTableData(dynamicCategories, attributes.pricing);
     } else {
       setFormData({
         name: "",
@@ -90,14 +97,15 @@ function FullScreenDialogCom({
       setTableData([]);
       setNewCategoryName("");
       setNewCategoryItems([""]);
+      setInitialPricing([]);
     }
   }, [row]);
 
   useEffect(() => {
-    generateTableData(categories);
-  }, [categories]);
+    generateTableData(categories, initialPricing);
+  }, [categories, initialPricing]);
 
-  const generateTableData = (categories) => {
+  const generateTableData = (categories, initialPricing = []) => {
     if (categories.length === 0) {
       setTableData([]);
       return;
@@ -118,11 +126,19 @@ function FullScreenDialogCom({
     };
     combine(0, {});
 
-    const data = combinations.map((combination) => ({
-      ...combination,
-      price: "",
-      stock: "",
-    }));
+    const data = combinations.map((combination) => {
+      const matchingPricing = initialPricing.find((pricing) =>
+        Object.keys(combination).every(
+          (key) => combination[key] === pricing[key]
+        )
+      );
+      return {
+        ...combination,
+        price: matchingPricing ? matchingPricing.price : "",
+        stock: matchingPricing ? matchingPricing.quantity : "",
+      };
+    });
+
     setTableData(data);
   };
 
@@ -212,13 +228,16 @@ function FullScreenDialogCom({
     setNewCategoryName("");
     setNewCategoryItems([""]);
 
-    generateTableData([
-      ...categories,
-      {
-        label: newCategoryName,
-        items: filteredItems,
-      },
-    ]);
+    generateTableData(
+      [
+        ...categories,
+        {
+          label: newCategoryName,
+          items: filteredItems,
+        },
+      ],
+      initialPricing
+    );
   };
 
   const handleNewItemChange = (itemIndex, value) => {
@@ -245,7 +264,7 @@ function FullScreenDialogCom({
 
       // Regenerate the table data only if the category has at least one non-empty item
       if (hasNonEmptyItem) {
-        generateTableData(newCategories);
+        generateTableData(newCategories, initialPricing);
       } else {
         setTableData([]);
       }
@@ -253,18 +272,24 @@ function FullScreenDialogCom({
     });
   };
 
-  console.log(formData);
-
   const handleSubmit = async (event) => {
     event.preventDefault();
     try {
-      // Upload all images and get their URLs
-      const mainImgUrl = formData.mainImg
-        ? await uploadImage(formData.mainImg)
-        : null;
+      let mainImgUrl = formData.mainImg;
+      if (formData.mainImg && formData.mainImg !== row.mainImg) {
+        mainImgUrl = await uploadImage(formData.mainImg);
+      } else {
+        mainImgUrl = row.mainImg;
+      }
 
       const imgUrls = await Promise.all(
-        formData.img.map((file) => uploadImage(file))
+        formData.img.map(async (file, index) => {
+          if (file && file !== row.img[index]) {
+            return await uploadImage(file);
+          } else {
+            return row.img[index];
+          }
+        })
       );
 
       // Construct updatedAttributes dynamically
@@ -292,13 +317,25 @@ function FullScreenDialogCom({
         img: imgUrls,
       };
 
-      console.log(updatedFormData);
-
       if (create) {
-        const a = await createProduct({ data: updatedFormData }).unwrap();
-        console.log("Product created successfully", a);
+        try {
+          await createProduct({ data: updatedFormData }).unwrap();
+          toast.success("Product created successfully");
+        } catch (error) {
+          toast.error(error?.message || error?.data?.message);
+        }
       } else {
-        console.log("Updating product with data:", updatedFormData);
+        try {
+          const updated = await updateProduct({
+            id: row._id,
+            updatedFormData,
+          }).unwrap();
+          if (updated) {
+            toast.success("Product updated successfully");
+          }
+        } catch (error) {
+          toast.error(error?.message || error?.data?.message);
+        }
       }
 
       handleClose();

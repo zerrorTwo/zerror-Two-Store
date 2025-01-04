@@ -2,7 +2,7 @@ import PropTypes from "prop-types";
 import { Box, Typography } from "@mui/material";
 import InputSets from "../InputSets";
 import ButtonPrimary from "../ButtonPrimary";
-import DynamicTable from "../DynamicTable";
+import DynamicTable from "./DynamicTable";
 import InputBase from "../InputBase";
 
 const AttributesTab = ({

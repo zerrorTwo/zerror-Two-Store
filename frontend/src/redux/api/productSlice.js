@@ -1,5 +1,5 @@
 import { apiSlice } from "./apiSlice";
-import { PRODUCT_URL, UPLOAD_URL } from "../constants";
+import { PRIMITIVE_URL, PRODUCT_URL, UPLOAD_URL } from "../constants";
 
 export const productApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -20,14 +20,14 @@ export const productApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["Product"],
     }),
 
-    // updateCategory: builder.mutation({
-    //   query: ({ id, ...body }) => ({
-    //     url: `${PRODUCT_URL}/category/${id}`,
-    //     method: "PUT",
-    //     body,
-    //   }),
-    //   invalidatesTags: ["Category"],
-    // }),
+    updateProduct: builder.mutation({
+      query: ({ id, ...body }) => ({
+        url: `${PRODUCT_URL}/${id}`,
+        method: "PUT",
+        body,
+      }),
+      invalidatesTags: ["Product"],
+    }),
 
     // deleteCategory: builder.mutation({
     //   query: (_id) => ({
@@ -52,11 +52,21 @@ export const productApiSlice = apiSlice.injectEndpoints({
         body: data,
       }),
     }),
+
+    getProductImage: builder.query({
+      query: (imagePath) => ({
+        url: `${PRIMITIVE_URL}${imagePath}`, // BASE_URL là URL của server backend
+        method: "GET",
+        responseType: "blob", // Nếu muốn nhận tệp hình ảnh dưới dạng blob
+      }),
+    }),
   }),
 });
 
 export const {
   useGetAllProductQuery,
+  useLazyGetProductImageQuery,
   useUploadProductImageMutation,
+  useUpdateProductMutation,
   useCreateNewProductMutation,
 } = productApiSlice;
