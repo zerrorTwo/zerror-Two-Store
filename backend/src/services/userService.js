@@ -61,7 +61,6 @@ const updateUserById = async (req, res) => {
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
-  // console.log(req.body);
 
   user.userName = req.body.userName || user.userName;
   user.email = req.body.email || user.email;
@@ -96,13 +95,11 @@ const deleteUserById = async (req, res) => {
 
 const deleteManyUsers = async (req, res) => {
   const users = req.body;
-  console.log(users);
 
   if (!users) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Users not found");
   }
   const respone = await UserModel.deleteMany(users);
-  console.log(respone);
 
   if (!respone) {
     throw new ApiError(

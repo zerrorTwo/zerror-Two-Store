@@ -1,12 +1,18 @@
-import { useGetAllCurrentUserQuery } from "../../redux/api/userSlice.js"; // Adjust the import path as needed
-import GenericTable from "../../components/GenericTable.jsx"; // Adjust the import path as needed
+import {
+  useGetAllCurrentUserQuery,
+  useDeleteAllMutation,
+} from "../../redux/api/userSlice.js";
+import GenericTable from "../../components/GenericTable.jsx";
 import { useState } from "react";
-import PopoverCom from "../../components/PopoverCom.jsx"; // Adjust the import path
+import PopoverCom from "../../components/PopoverCom.jsx";
+import { toast } from "react-toastify";
 
 const UserDashboard = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
+  const [selected, setSelected] = useState([]); // Move selected state here
   const { data: rows = [], error, isLoading } = useGetAllCurrentUserQuery();
+  const [deleteUsers, { isLoading: isDeleteLoading }] = useDeleteAllMutation();
 
   const handleUpdateClick = (event, row) => {
     event.stopPropagation();
@@ -17,6 +23,18 @@ const UserDashboard = () => {
   const handleClosePopover = () => {
     setAnchorEl(null);
     setSelectedRow(null);
+  };
+
+  // Add delete handler
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteUsers(selected).unwrap();
+      toast.success("Users deleted successfully");
+      setSelected([]);
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error(error.data?.message || "Failed to delete users");
+    }
   };
 
   const headCells = [
@@ -43,9 +61,15 @@ const UserDashboard = () => {
   return (
     <>
       <GenericTable
+        name="List User"
+        create={false}
         rows={rows}
         headCells={headCells}
         handleUpdateClick={handleUpdateClick}
+        selected={selected}
+        setSelected={setSelected}
+        onDeleteConfirm={handleDeleteConfirm}
+        isDeleteLoading={isDeleteLoading}
       />
       <PopoverCom
         anchorEl={anchorEl}

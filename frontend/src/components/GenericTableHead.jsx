@@ -46,7 +46,7 @@ const GenericTableHead = ({
         {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
-            align="right"
+            align="center"
             padding={headCell.disablePadding ? "none" : "normal"}
             sortDirection={orderBy === headCell.id ? order : false}
             sx={{ color: theme.palette.text.secondary }}
@@ -74,7 +74,7 @@ const GenericTableHead = ({
             </TableSortLabel>
           </TableCell>
         ))}
-        <TableCell align="right" sx={{ color: theme.palette.text.secondary }}>
+        <TableCell align="center" sx={{ color: theme.palette.text.secondary }}>
           Actions
         </TableCell>
       </TableRow>

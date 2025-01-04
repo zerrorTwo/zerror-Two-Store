@@ -1,6 +1,7 @@
 import express from "express";
 import {
   createProduct,
+  deleteManyProducts,
   getAllProducts,
   getPageProducts,
   updateProduct,
@@ -9,6 +10,7 @@ import {
 const Router = express.Router();
 Router.route("/").post(createProduct).get(getPageProducts);
 Router.route("/all").get(getAllProducts);
+Router.route("/delete").delete(deleteManyProducts);
 Router.route("/:id").put(updateProduct);
 
 export const productRoute = Router;

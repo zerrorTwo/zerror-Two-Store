@@ -17,7 +17,7 @@ function ButtonPrimary({ text, onClick, isLoading }) {
 ButtonPrimary.propTypes = {
   text: PropTypes.string.isRequired,
   onClick: PropTypes.func.isRequired,
-  isLoading: PropTypes.bool.isRequired,
+  isLoading: PropTypes.bool,
 };
 
 export default ButtonPrimary;

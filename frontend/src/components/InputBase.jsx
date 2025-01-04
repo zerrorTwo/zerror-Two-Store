@@ -17,10 +17,11 @@ function InputBase({
   const theme = useTheme();
 
   return (
-    <FormControl sx={{ maxWidth: maxWidth ? "100%" : "350px" }}>
+    <FormControl sx={{ width: maxWidth ? "100%" : "350px" }}>
       <TextField
         id={id} // Use the passed id prop here
         sx={{
+          width: maxWidth ? "100%" : "350px",
           borderRadius: 1,
           "& .MuiInputLabel-root": {
             color: theme.palette.text.primary,
