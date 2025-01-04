@@ -18,8 +18,6 @@ const InformationTab = ({
 }) => {
   const theme = useTheme();
 
-  console.log("guvhuhvbj", `${PRIMITIVE_URL}${formData.mainImg}`);
-
   return (
     <Box display="flex" flexDirection="column" gap={2}>
       <Box display="flex" gap={4} alignItems="center">

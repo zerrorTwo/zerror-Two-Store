@@ -10,6 +10,8 @@ const createProduct = asyncHandeler(async (req, res) => {
 
 const updateProduct = asyncHandeler(async (req, res) => {
   const product = await productService.updateProduct(req, res);
+  // console.log(product);
+
   res.status(StatusCodes.CREATED).json(product);
 });
 

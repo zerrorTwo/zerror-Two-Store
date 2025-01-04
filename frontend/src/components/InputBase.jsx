@@ -62,7 +62,7 @@ function InputBase({
 }
 
 InputBase.propTypes = {
-  id: PropTypes.string.isRequired, // Add id prop as required
+  id: PropTypes.string, // Add id prop as required
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   label: PropTypes.string.isRequired,
