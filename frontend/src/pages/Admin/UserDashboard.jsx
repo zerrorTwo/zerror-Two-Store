@@ -10,7 +10,7 @@ import { toast } from "react-toastify";
 const UserDashboard = () => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
-  const [selected, setSelected] = useState([]); // Move selected state here
+  const [selected, setSelected] = useState([]);
   const { data: rows = [], error, isLoading } = useGetAllCurrentUserQuery();
   const [deleteUsers, { isLoading: isDeleteLoading }] = useDeleteAllMutation();
 
@@ -25,7 +25,6 @@ const UserDashboard = () => {
     setSelectedRow(null);
   };
 
-  // Add delete handler
   const handleDeleteConfirm = async () => {
     try {
       await deleteUsers(selected).unwrap();

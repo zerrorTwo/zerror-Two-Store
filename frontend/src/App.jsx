@@ -14,6 +14,7 @@ import AdminAuth from "./pages/Auth/AdminAuth";
 import Profile from "./pages/Profile";
 import CategoryDashBoard from "./pages/Admin/CategoryDashBoard";
 import ProductDashboard from "./pages/Admin/ProductDashboard";
+import LayoutAdmin from "./pages/Admin/LayoutAdmin";
 
 function App() {
   const dispatch = useDispatch();
@@ -36,6 +37,7 @@ function App() {
 
   return (
     <Routes>
+      <Route path="layout" element={<LayoutAdmin />} />
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="menu" element={<Menu />} />
