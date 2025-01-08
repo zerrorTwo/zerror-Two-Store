@@ -47,8 +47,6 @@ const GenericTable = ({
   onDeleteConfirm,
   isDeleteLoading,
 }) => {
-  console.log();
-
   const rowsPerPage = 10;
   const theme = useTheme();
 
