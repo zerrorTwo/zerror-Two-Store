@@ -1,161 +1,174 @@
-// import { StatusCodes } from "http-status-codes";
-// import CategoryModel from "../models/categoryModel.js";
-// import ApiError from "../utils/ApiError.js";
-// import mongoose from "mongoose";
-// import ProductModel from "../models/productModel.js";
+import ApiError from "../utils/ApiError.js";
+import slugtify from "slugify";
+import { StatusCodes } from "http-status-codes";
+import CategoryModel from "../models/categoryModel.js";
+import slugify from "slugify";
+import mongoose from "mongoose";
 
-// const getAllCategory = async (req, res) => {
-//   try {
-//     // Truy vấn danh mục gốc và các danh mục con của chúng
-//     const categories = await CategoryModel.aggregate([
-//       // Lọc danh mục gốc (không có parentId)
-//       {
-//         $match: {
-//           parentId: null, // Lọc danh mục không có parentId (danh mục gốc)
-//         },
-//       },
-//       // Tìm các danh mục con cho từng danh mục gốc
-//       {
-//         $lookup: {
-//           from: "categories", // Tên collection của danh mục (mặc định là plural hóa tên model)
-//           localField: "_id", // Trường _id của category
-//           foreignField: "parentId", // Trường parentId của danh mục con
-//           as: "children", // Tên của trường chứa danh mục con
-//         },
-//       },
-//       // Lọc ra các trường cần thiết bao gồm cả attributes
-//       {
-//         $project: {
-//           name: 1, // Trả về trường name
-//           attributes: 1, // Trả về trường attributes của category cha
-//           children: {
-//             _id: 1,
-//             name: 1,
-//             attributes: 1, // Trả về trường attributes của danh mục con
-//           },
-//         },
-//       },
-//     ]);
+const getCategoryTree = async (parent = null) => {
+  const categories = await CategoryModel.find({ parent }).select("-__v").lean();
+  const tree = await Promise.all(
+    categories.map(async (category) => {
+      const children = await getCategoryTree(category._id); // Lấy danh mục con
+      return {
+        ...category,
+        children,
+      };
+    })
+  );
+  return tree;
+};
 
-//     return categories;
-//   } catch (err) {
-//     console.error(err);
-//     res
-//       .status(StatusCodes.BAD_REQUEST)
-//       .json({ message: "Error fetching categories" });
-//   }
-// };
+const getAllCategories = async (req, res) => {
+  try {
+    const categoryTree = await getCategoryTree();
+    return categoryTree;
+  } catch (error) {
+    throw error;
+  }
+};
 
-// const createCategory = async (req, res) => {
-//   try {
-//     const { name, attributes, parentName } = req.body;
+const createCategory = async (req, res) => {
+  const data = req.body;
 
-//     const exits = await CategoryModel.findOne({ name: name });
+  data.name = data.name.trim().toUpperCase();
 
-//     if (exits) {
-//       throw new ApiError(StatusCodes.CONFLICT, "Category already exists");
-//     }
-//     if (ProductModel.discriminator[name]) {
-//       console.log(123);
-//       delete ProductModel.discriminator[name];
-//     }
+  if (!data) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Data not found");
+  }
 
-//     let parentId;
+  data.name = data.name.trim().toUpperCase();
 
-//     if (parentName) {
-//       // Lấy attributes từ danh mục cha
-//       const parentCategory = await CategoryModel.findOne({ name: parentName });
+  const categoryExist = await CategoryModel.findOne({
+    name: data.name,
+  });
 
-//       if (!parentCategory) {
-//         throw new ApiError(StatusCodes.NOT_FOUND, "Parent category not found");
-//       }
-//       parentId = parentCategory._id;
-//     }
+  if (categoryExist) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Category already exists");
+  }
 
-//     // Tạo danh mục mới
-//     const newCategory = new CategoryModel({
-//       name: name,
-//       attributes: attributes,
-//       parentId: parentId,
-//     });
-//     await newCategory.save();
+  if (data.parent) {
+    data.parent = data.parent.trim().toUpperCase();
+    const parentCategory = await CategoryModel.findOne({ name: data.parent });
+    if (!parentCategory)
+      throw new ApiError(StatusCodes.NOT_FOUND, "Parent category not found");
+    data.parent = parentCategory._id;
 
-//     // Tạo schema động
-//     const schemaFields = {};
-//     attributes.forEach((attr) => {
-//       schemaFields[attr.name] = {
-//         type: mongoose.Schema.Types[attr.type],
-//         required: attr.required,
-//       };
-//     });
+    parentCategory.children.push(categoryExist ? categoryExist._id : null);
+    await parentCategory.save();
+  }
 
-//     const categorySchema = new mongoose.Schema(schemaFields);
-//     const NewCategory = ProductModel.discriminator(name, categorySchema);
+  data.slug = slugtify(data.name, { lower: true, strict: true });
+  const category = new CategoryModel(data);
+  await category.save();
+  return category;
+};
 
-//     return { NewCategory, newCategory };
-//   } catch (error) {
-//     throw error;
-//   }
-// };
+const updateCategory = async (req, res) => {
+  const { id } = req.params;
+  const data = req.body;
 
-// const updateCategory = async (req, res) => {
-//   const { id } = req.params;
-//   const { data } = req.body;
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid category ID");
+  }
 
-//   if (!id) {
-//     throw new ApiError(StatusCodes.NOT_FOUND, "Id not found");
-//   }
+  const category = await CategoryModel.findById(id);
+  if (!category) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Category not found");
+  }
 
-//   const category = await CategoryModel.findById(id);
-//   if (!category) {
-//     throw new ApiError(StatusCodes.NOT_FOUND, "Category not found");
-//   }
+  // Nếu đổi tên, kiểm tra sự tồn tại
+  if (data.name && data.name.trim().toUpperCase() !== category.name) {
+    const categoryExist = await CategoryModel.findOne({
+      name: data.name.trim().toUpperCase(),
+    });
+    if (categoryExist) {
+      throw new ApiError(
+        StatusCodes.BAD_REQUEST,
+        "Category with this name already exists"
+      );
+    }
+    category.name = data.name.trim().toUpperCase();
+    category.slug = slugify(data.name, { lower: true, strict: true });
+  }
+  // Cập nhật các trường khác nếu có
+  if (data.img) category.img = data.img;
+  if (data.description) category.description = data.description;
 
-//   const categoryNew = await CategoryModel.findByIdAndUpdate(id, data, {
-//     new: true,
-//   });
-//   // console.log(categoryNew);
+  await category.save();
 
-//   if (!categoryNew) {
-//     throw new ApiError(StatusCodes.BAD_REQUEST, "Data not found");
-//   }
-//   return categoryNew;
-// };
+  return category;
+};
 
-// const deleteCategory = async (req, res) => {
-//   const { id } = req.params;
+const deleteCategory = async (req, res) => {
+  const { id } = req.params;
 
-//   if (!id) {
-//     throw new ApiError(StatusCodes.NOT_FOUND, "Id not found");
-//   }
+  // Kiểm tra ID hợp lệ
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid category ID");
+  }
 
-//   // Tìm danh mục cha
-//   const category = await CategoryModel.findById(id);
-//   if (!category) {
-//     throw new ApiError(StatusCodes.NOT_FOUND, "Category not found");
-//   }
+  // Tìm danh mục cần xóa
+  const category = await CategoryModel.findById(id);
+  if (!category) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Category not found");
+  }
 
-//   const name = category.name;
-//   delete mongoose.models[name];
+  // Hàm đệ quy để xóa tất cả danh mục con
+  const deleteChildren = async (categoryId) => {
+    const category = await CategoryModel.findById(categoryId);
+    if (category && category.children && category.children.length > 0) {
+      for (let childId of category.children) {
+        await deleteChildren(childId); // Đệ quy xóa tất cả danh mục con
+      }
+    }
+    // Thay thế remove bằng findByIdAndDelete
+    await CategoryModel.findByIdAndDelete(categoryId); // Xóa danh mục hiện tại
+  };
 
-//   // Tìm và xóa tất cả danh mục con có parentId là danh mục này
-//   const subCategories = await CategoryModel.find({ parentId: id });
-//   if (subCategories.length > 0) {
-//     await CategoryModel.deleteMany({ parentId: id });
-//   }
+  // Xóa các danh mục con của danh mục chính
+  if (category.children.length > 0) {
+    for (let childId of category.children) {
+      await deleteChildren(childId); // Xóa từng danh mục con
+    }
+  }
 
-//   // Xóa danh mục cha
-//   await CategoryModel.deleteOne({ _id: id });
-//   if (ProductModel.discriminator[name]) {
-//     delete ProductModel.discriminator[name];
-//   }
+  // Xóa danh mục chính (danh mục cần xóa)
+  await CategoryModel.findByIdAndDelete(id); // Xóa danh mục
 
-//   return `Category ${name} deleted successfully`;
-// };
+  // Cập nhật danh mục cha nếu có
+  if (category.parent) {
+    const parentCategory = await CategoryModel.findById(category.parent);
+    parentCategory.children = parentCategory.children.filter(
+      (childId) => childId && childId.toString() !== id // Kiểm tra childId có phải là null hay không
+    );
+    await parentCategory.save();
+  }
 
-// export const categoryService = {
-//   getAllCategory,
-//   createCategory,
-//   updateCategory,
-//   deleteCategory,
-// };
+  return { message: "Category deleted successfully" };
+};
+
+const searchCategory = async (req, res) => {
+  let { keyword } = req.query;
+  keyword = keyword.trim().toUpperCase();
+  if (keyword === undefined) {
+    return await CategoryModel.find({});
+  }
+  try {
+    const categories = await CategoryModel.find({
+      name: { $regex: keyword },
+    });
+
+    return categories;
+  } catch (error) {
+    throw new Error(`Error searching categories: ${error.message}`);
+  }
+};
+
+export const categoryService = {
+  getAllCategories,
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  searchCategory,
+};

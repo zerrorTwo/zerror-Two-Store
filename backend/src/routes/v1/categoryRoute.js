@@ -5,14 +5,14 @@ import {
   getAllCategory,
   searchCategory,
   updateCategory,
-} from "../../controllers/categoryController2.js";
+} from "../../controllers/categoryController.js";
 import { authentication, authorization } from "../../auth/authUtil.js";
 
 const Router = express.Router();
 Router.get("/search", searchCategory);
 Router.get("/", getAllCategory);
 
-Router.use(authentication, authorization);
+// Router.use(authentication, authorization);
 
 Router.post("/", createCategory);
 

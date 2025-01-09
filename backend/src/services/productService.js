@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import slugify from "slugify";
 import ApiError from "../utils/ApiError.js";
 import ProductModel from "../models/productModel.js";
-import CategoryModel from "../models/categoryModel2.js";
+import CategoryModel from "../models/categoryModel.js";
 
 const createProduct = async (req, res) => {
   try {
