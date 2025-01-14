@@ -28,6 +28,40 @@ const getAllCategories = async (req, res) => {
   }
 };
 
+const getCategoriesByLevel = async (req, res) => {
+  try {
+    const level = parseInt(req.query.level) || 1; // Lấy cấp độ từ query string (mặc định là 1)
+
+    const getCategoriesFlat = async (parent = null, levelRemaining = 1) => {
+      if (levelRemaining <= 0) {
+        return []; // Nếu không cần cấp độ nào nữa, trả về danh sách rỗng
+      }
+
+      // Lấy danh mục hiện tại
+      const categories = await CategoryModel.find({ parent })
+        .select("-__v")
+        .lean();
+
+      // Nếu cần thêm cấp độ khác, gọi đệ quy
+      const childCategories = await Promise.all(
+        categories.map(async (category) =>
+          getCategoriesFlat(category._id, levelRemaining - 1)
+        )
+      );
+
+      // Gộp tất cả thành danh sách phẳng
+      return [...categories, ...childCategories.flat()];
+    };
+
+    // Gọi hàm để lấy danh mục theo cấp độ
+    const categories = await getCategoriesFlat(null, level);
+
+    return categories;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const createCategory = async (req, res) => {
   const data = req.body;
 
