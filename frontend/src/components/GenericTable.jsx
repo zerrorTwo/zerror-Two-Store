@@ -44,7 +44,7 @@ const GenericTable = ({
   headCells,
   handleUpdateClick,
   handleCreateClick,
-  handleReview,
+  handleMoreClick,
   selected,
   setSelected,
   onDeleteConfirm,
@@ -263,12 +263,12 @@ const GenericTable = ({
                             <EditIcon />
                           </IconButton>
                         </Tooltip>
-                        {handleReview && (
+                        {handleMoreClick && (
                           <Tooltip title="Review">
                             <IconButton
                               onClick={(event) => {
                                 event.stopPropagation();
-                                handleReview(row); // Truyền đúng row vào hàm
+                                handleMoreClick(row); // Truyền đúng row vào hàm
                               }}
                               sx={{
                                 "&:hover": {
@@ -339,7 +339,7 @@ GenericTable.propTypes = {
   headCells: PropTypes.array.isRequired,
   handleUpdateClick: PropTypes.func.isRequired,
   handleCreateClick: PropTypes.func,
-  handleReview: PropTypes.func,
+  handleMoreClick: PropTypes.func,
   selected: PropTypes.array.isRequired,
   setSelected: PropTypes.func.isRequired,
   onDeleteConfirm: PropTypes.func.isRequired,
