@@ -1,508 +1,259 @@
-// import { useState, useEffect } from "react";
-// import {
-//   Box,
-//   Divider,
-//   FormControlLabel,
-//   Radio,
-//   RadioGroup,
-//   Typography,
-//   useTheme,
-//   Popover,
-//   Button,
-//   TextField,
-//   Checkbox,
-//   IconButton,
-//   Tooltip,
-// } from "@mui/material";
-// import SentimentSatisfiedAltIcon from "@mui/icons-material/SentimentSatisfiedAlt";
-// import TreeSelect from "./TreeList";
-// import CustomSelect from "../../components/CustomSelect";
-// import AddCircleIcon from "@mui/icons-material/AddCircle";
-// import { selectOptions } from "../../constants/type.js";
-// import ClearIcon from "@mui/icons-material/Clear";
-// import ButtonPrimary from "../../components/ButtonPrimary";
-// import {
-//   useCreateNewMutation,
-//   useDeleteCategoryMutation,
-//   useUpdateCategoryMutation,
-// } from "../../redux/api/categorySlice";
-// import { toast } from "react-toastify";
-// import ConfirmDialog from "../../components/ConfirmDialog"; // Import ConfirmDialog
+import { Box, Card, Divider, Typography, useTheme } from "@mui/material";
+import { useEffect, useRef, useState } from "react";
+import { toast } from "react-toastify";
+import GenericTable from "../../components/GenericTable";
+import {
+  useCreateNewMutation,
+  useDeleteCategoryMutation,
+  useUploadCategoryImageMutation,
+  useGetChildrenCategoryQuery,
+  useGetAllCategoriesParentQuery, // API lấy danh mục cha
+} from "../../redux/api/categorySlice";
+import FormBase from "../../components/FormBase";
+import PopoverPaper from "../../components/PopoverPaper";
 
-// function CateDashboard() {
-//   const theme = useTheme();
-//   const [selectedCategory, setSelectedCategory] = useState(null);
-//   const [radioValue, setRadioValue] = useState("new");
-//   const [anchorEl, setAnchorEl] = useState(null);
-//   const [name, setName] = useState("");
-//   const [confirmOpen, setConfirmOpen] = useState(false); // State for ConfirmDialog
+function CateDashBoard() {
+  const theme = useTheme();
 
-//   const [formFields, setFormFields] = useState([
-//     {
-//       attribute: "",
-//       type: "",
-//       required: true,
-//     },
-//   ]);
+  // Fetch top-level categories
+  const {
+    data: listCate = [],
+    error: categoryError,
+    isLoading: categoryLoading,
+  } = useGetAllCategoriesParentQuery();
 
-//   useEffect(() => {
-//     if (selectedCategory) {
-//       setName(selectedCategory.name || "");
-//       setFormFields(
-//         selectedCategory.attributes.map((attr) => ({
-//           attribute: attr.name,
-//           type: attr.type,
-//           required: attr.required,
-//           requiredFromCategory: attr.required, // Set this flag based on category data
-//         }))
-//       );
-//     }
-//   }, [selectedCategory]);
+  const [createNew, { isLoading: isLoadingCreateNew }] = useCreateNewMutation();
+  const [deleteAll, { isLoading: isDeleteLoading }] =
+    useDeleteCategoryMutation();
+  const [uploadCategoryImage] = useUploadCategoryImageMutation();
 
-//   // Fetch API
-//   const [createNew, { isLoading: isLoadingCreate }] = useCreateNewMutation();
-//   const [update, { isLoading: isLoadingUpdate }] = useUpdateCategoryMutation();
-//   const [deleteCategory, { isLoading: isLoadingDelete }] =
-//     useDeleteCategoryMutation();
+  // State
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [selected, setSelected] = useState([]); // Selected categories
+  const [anchorEl, setAnchorEl] = useState(null); // Popover anchor
+  const [imagePreview, setImagePreview] = useState(null); // Image preview
+  const [selectedImage, setSelectedImage] = useState(null); // Selected image
+  const [parent, setParent] = useState(null); // Parent category ID
+  const [rows, setRows] = useState([]); // Rows for table
+  const formRef = useRef(null);
 
-//   const handleRadioChange = (event) => {
-//     const value = event.target.value;
-//     setRadioValue(value);
+  // Fetch children categories
+  const { refetch: fetchChildren } = useGetChildrenCategoryQuery(parent, {
+    skip: !parent, // Không gọi API nếu không có parent
+  });
 
-//     if (value === "new") {
-//       // Reset các thuộc tính và tên khi chọn New
-//       setName("");
-//       setFormFields([
-//         {
-//           attribute: "",
-//           type: "",
-//           required: true,
-//         },
-//       ]);
-//       setSelectedCategory(null); // Bỏ chọn danh mục đã chọn
-//     }
-//   };
+  // Lắng nghe thay đổi của parent để gọi API lấy danh mục con
+  useEffect(() => {
+    if (parent) {
+      fetchChildren()
+        .then((result) => {
+          setRows(result.data); // Cập nhật danh sách con
+          toast.success("Children categories loaded successfully");
+        })
+        .catch((error) => {
+          toast.error("Failed to load children categories", error);
+        });
+    }
+  }, [parent, fetchChildren]);
 
-//   const handleButtonClick = (event) => {
-//     setAnchorEl(event.currentTarget);
-//   };
+  console.log(parent);
 
-//   const handlePopoverClose = () => {
-//     setAnchorEl(null);
-//   };
+  // Event handlers
+  const handleUpdateClick = (event, row) => {
+    event.stopPropagation();
+    setSelectedRow(row);
+    setAnchorEl(event.currentTarget);
+  };
 
-//   const handleSelectChange = (index, event) => {
-//     const newFormFields = [...formFields];
-//     newFormFields[index].type = event.target.value;
-//     setFormFields(newFormFields);
-//   };
+  const handleCloseDialog = () => {
+    setAnchorEl(null);
+    setSelectedRow(null);
+  };
 
-//   const handleAddField = () => {
-//     setFormFields([
-//       ...formFields,
-//       {
-//         attribute: "",
-//         type: "",
-//         required: true,
-//       },
-//     ]);
-//   };
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
-//   const handleInputChange = (index, event) => {
-//     const newFormFields = [...formFields];
-//     newFormFields[index].attribute = event.target.value;
-//     setFormFields(newFormFields);
-//   };
+  const handleCreateClick = (event) => {
+    event.stopPropagation();
+    const firstRow = {
+      _id: "",
+      name: "",
+      img: "",
+    };
+    setSelectedRow(firstRow);
+    setAnchorEl(event.currentTarget);
+  };
 
-//   const handleCheckboxChange = (index, event) => {
-//     const newFormFields = [...formFields];
-//     newFormFields[index].required = event.target.checked;
-//     setFormFields(newFormFields);
-//   };
+  const handleDeleteConfirm = async () => {
+    try {
+      await deleteAll(selected).unwrap();
+      toast.success("Category deleted successfully");
+      setSelected([]);
+    } catch (error) {
+      toast.error("Failed to delete category", error);
+    }
+  };
 
-//   const handleSave = async () => {
-//     try {
-//       if (!name) {
-//         toast.error("Name is required");
-//         return; // Nếu tên trống, dừng lại không thực hiện tiếp
-//       }
-//       const isValid = formFields.every((field) => field.type.trim() !== "");
-//       if (!isValid) {
-//         toast.error("All attributes must have a type.");
-//         return; // Nếu có trường 'type' trống, dừng lại không thực hiện tiếp
-//       }
-//       let data = {
-//         name,
-//         attributes: formFields.map((field) => ({
-//           name: field.attribute,
-//           type: field.type,
-//           required: field.required,
-//         })),
-//       };
-//       // Thêm parentName vào object data chỉ khi có giá trị
-//       if (selectedCategory) {
-//         data.parentName = selectedCategory.name;
-//       }
+  const handleReview = (row) => {
+    setParent(row._id); // Thay đổi parent, useEffect sẽ xử lý việc gọi API
+  };
 
-//       const newCate = await createNew(data).unwrap();
-//       // console.log(newCate);
+  // Define table columns
+  const headCells = [
+    { id: "_id", numeric: true, disablePadding: false, label: "ID" },
+    { id: "name", numeric: false, disablePadding: false, label: "Name" },
+    {
+      id: "img",
+      numeric: false,
+      disablePadding: false,
+      label: "Image",
+      img: true,
+    },
+  ];
 
-//       if (newCate) {
-//         setName("");
-//         setFormFields([{ attribute: "", type: "", required: true }]);
-//         setAnchorEl(null);
-//         toast.success("Category created successfully");
-//       }
-//     } catch (error) {
-//       toast.error(error.data?.message || "Fail to create new!!");
-//     }
-//   };
+  // Process rows for table
+  useEffect(() => {
+    if (listCate.length > 0) {
+      setRows(
+        listCate.map((category) => ({
+          _id: category._id,
+          name: category.name,
+          img: category.img,
+        }))
+      );
+    }
+  }, [listCate]);
 
-//   const handleUpdate = async () => {
-//     if (!name) {
-//       toast.error("Name is required");
-//       return; // Nếu tên trống, dừng lại không thực hiện tiếp
-//     }
-//     try {
-//       const isValid = formFields.every((field) => field.type.trim() !== "");
-//       if (!isValid) {
-//         toast.error("All attributes must have a type.");
-//         return;
-//       }
+  // Form change handler
+  const handleFormChange = (field, value) => {
+    setSelectedRow((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+  };
 
-//       let data = {
-//         name,
-//         attributes: formFields.map((field) => ({
-//           name: field.attribute,
-//           type: field.type,
-//           required: field.required,
-//         })),
-//       };
+  const handleSubmitCreate = async () => {
+    try {
+      const formData = formRef.current.getFormData();
+      let imageUrl = null;
+      if (selectedImage) {
+        const formData = new FormData();
+        formData.append("image", selectedImage);
+        const uploadResult = await uploadCategoryImage(formData).unwrap();
 
-//       if (selectedCategory) {
-//         data.parentName = selectedCategory.name;
-//       }
+        imageUrl = uploadResult.image;
+      }
+      formData.img = imageUrl;
+      formData.parent = parent;
 
-//       const updateCate = await update({
-//         id: selectedCategory._id,
-//         data,
-//       }).unwrap();
+      const newCate = await createNew(formData);
+      if (newCate) {
+        toast.success("Category created successfully");
+        handleCloseDialog();
+      }
+    } catch (error) {
+      toast.error(error);
+    }
+  };
 
-//       if (updateCate) {
-//         toast.success("Category updated successfully");
-//       }
-//     } catch (error) {
-//       console.log(error);
-//       toast.error(error.data?.message || "Fail to update!!");
-//     }
-//   };
+  if (categoryLoading) return <div>Loading...</div>;
+  if (categoryError) return <div>Error loading categories</div>;
 
-//   const handleDelete = async () => {
-//     if (!name) {
-//       toast.error("Name is required");
-//       return; // Nếu tên trống, dừng lại không thực hiện tiếp
-//     }
-//     try {
-//       const deleletd = await deleteCategory(selectedCategory._id);
+  return (
+    <Box sx={{ border: "1px solid #555", borderRadius: 1, p: 2 }}>
+      <Box display={"flex"} justifyContent={"start"}>
+        <Box display={"grid"}>
+          <Typography variant="h5">Manager Category</Typography>
+          <Divider
+            sx={{
+              width: "100%",
+              bgcolor: theme.palette.button.backgroundColor,
+            }}
+          />
+        </Box>
+      </Box>
 
-//       if (deleletd) {
-//         setName("");
-//         setFormFields([{ attribute: "", type: "", required: true }]);
-//         setAnchorEl(null);
-//         setSelectedCategory(null);
-//         toast.success("Category delete successfully");
-//         setConfirmOpen(false);
-//       }
-//     } catch (error) {
-//       console.log(error);
-//       toast.error(error.data?.message || "Fail to delete!!");
-//     }
-//   };
+      <Box mt={5}>
+        <Box>
+          <GenericTable
+            name="List Category"
+            create={true}
+            rows={rows}
+            headCells={headCells}
+            handleUpdateClick={handleUpdateClick}
+            handleCreateClick={handleCreateClick}
+            handleReview={handleReview}
+            selected={selected}
+            setSelected={setSelected}
+            onDeleteConfirm={handleDeleteConfirm}
+            isDeleteLoading={false}
+          />
+          <PopoverPaper
+            item={selectedRow}
+            open={Boolean(anchorEl)}
+            anchorEl={anchorEl}
+            handleClose={handleCloseDialog}
+            handleCreate={handleSubmitCreate}
+            isLoadingDelete={isDeleteLoading}
+            isLoading={isLoadingCreateNew}
+          >
+            <Box sx={{ m: "0 auto", display: "table", mt: 2 }}>
+              <Card
+                sx={{
+                  maxHeight: "160px",
+                  maxWidth: "160px",
+                  height: "160px",
+                  width: "160px",
+                  display: "flex",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  border: "2px dashed gray",
+                }}
+                onClick={() => document.getElementById("mainImgInput").click()}
+              >
+                {imagePreview ? (
+                  <img
+                    src={imagePreview}
+                    alt="Main Image"
+                    style={{
+                      maxHeight: "160px",
+                      maxWidth: "160px",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  <Typography variant="body2">
+                    Click to upload main image
+                  </Typography>
+                )}
+                <input
+                  id="mainImgInput"
+                  type="file"
+                  hidden
+                  name="mainImg"
+                  onChange={handleImageChange}
+                />
+              </Card>
+            </Box>
+            <FormBase
+              ref={formRef}
+              item={selectedRow || { _id: "", name: "" }}
+              onChange={handleFormChange}
+            />
+          </PopoverPaper>
+        </Box>
+      </Box>
+    </Box>
+  );
+}
 
-//   const handleRemoveField = (index) => {
-//     const newFormFields = formFields.filter((_, i) => i !== index);
-//     setFormFields(newFormFields);
-//   };
-
-//   const open = Boolean(anchorEl);
-//   const id = open ? "simple-popover" : undefined;
-
-//   return (
-//     <Box sx={{ flexGrow: 1, my: 3, mx: 1 }}>
-//       <Box>
-//         <Typography variant="h4" sx={{ color: theme.palette.text.secondary }}>
-//           Category Dashboard
-//         </Typography>
-//       </Box>
-//       <Box
-//         sx={{
-//           width: "100%",
-//           py: 3,
-//           height: "100%",
-//           display: "grid",
-//           justifyContent: "center",
-//         }}
-//       >
-//         <Typography
-//           variant="h6"
-//           sx={{
-//             alignItems: "center",
-//             display: "flex",
-//             gap: 1,
-//             margin: "0 auto",
-//           }}
-//         >
-//           <SentimentSatisfiedAltIcon />
-//           Create new or select one to create category
-//         </Typography>
-//         <Box sx={{ display: "flex", justifyContent: "center", gap: 2 }}>
-//           <RadioGroup
-//             row
-//             aria-labelledby="demo-row-radio-buttons-group-label"
-//             name="row-radio-buttons-group"
-//             value={radioValue}
-//             onChange={handleRadioChange}
-//           >
-//             <FormControlLabel
-//               value="new"
-//               control={
-//                 <Radio
-//                   sx={{
-//                     "& .MuiSvgIcon-root": {
-//                       color: "white",
-//                     },
-//                   }}
-//                 />
-//               }
-//               label="New"
-//             />
-//             <FormControlLabel
-//               value="available"
-//               control={
-//                 <Radio
-//                   sx={{
-//                     "& .MuiSvgIcon-root": {
-//                       color: "white",
-//                     },
-//                   }}
-//                 />
-//               }
-//               label="Available"
-//             />
-//           </RadioGroup>
-//         </Box>
-//         {radioValue === "available" && (
-//           <>
-//             <Box sx={{ display: "flex", gap: 2 }}>
-//               <Button
-//                 sx={{ width: "200px" }}
-//                 aria-describedby={id}
-//                 variant="contained"
-//                 onClick={handleButtonClick}
-//               >
-//                 Select Category
-//               </Button>
-//               {selectedCategory && (
-//                 <Typography
-//                   variant="h6"
-//                   sx={{ color: theme.palette.button.error }}
-//                 >
-//                   Selected Category: {selectedCategory.name}
-//                 </Typography>
-//               )}
-//             </Box>
-
-//             <Popover
-//               id={id}
-//               open={open}
-//               anchorEl={anchorEl}
-//               onClose={handlePopoverClose}
-//               anchorOrigin={{
-//                 vertical: "bottom",
-//                 horizontal: "left",
-//               }}
-//               transformOrigin={{
-//                 vertical: "top",
-//                 horizontal: "left",
-//               }}
-//             >
-//               <Box
-//                 sx={{
-//                   p: 2,
-//                   width: "80vw",
-//                   bgcolor: theme.palette.background.default,
-//                   maxHeight: "300px", // Set maximum height
-//                   overflowY: "auto", // Enable vertical scroll if content overflows
-//                 }}
-//               >
-//                 <TreeSelect
-//                   selectedCategory={selectedCategory}
-//                   setSelectedCategory={setSelectedCategory}
-//                 />
-//               </Box>
-//             </Popover>
-//           </>
-//         )}
-//         <Divider
-//           sx={{ bgcolor: theme.palette.text.primary, width: "80vw", mt: 2 }}
-//         />
-//         <Box sx={{ mt: 2 }}>
-//           <Box display={"flex"} alignItems={"center"} gap={2} py={2}>
-//             <Typography
-//               variant="body1"
-//               sx={{ color: theme.palette.text.primary }}
-//             >
-//               Name
-//             </Typography>
-//             <TextField
-//               variant="standard"
-//               required
-//               autoFocus={true}
-//               value={name || ""}
-//               onChange={(e) => setName(e.target.value)}
-//               sx={{
-//                 "& .MuiInputBase-input": {
-//                   WebkitTextFillColor: theme.palette.text.secondary,
-//                 },
-//                 "& .MuiInput-underline:after": {
-//                   borderBottomColor: theme.palette.text.secondary,
-//                 },
-//                 "& .MuiInput-underline:before": {
-//                   borderBottomColor: theme.palette.text.secondary,
-//                 },
-//                 "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
-//                   borderBottomColor: theme.palette.text.secondary,
-//                 },
-//               }}
-//             />
-//           </Box>
-
-//           <Box display={"flex"} alignItems={"center"} gap={2} py={2}>
-//             <Typography
-//               variant="body1"
-//               sx={{ color: theme.palette.text.primary }}
-//             >
-//               Parent
-//             </Typography>
-//             <TextField
-//               disabled
-//               variant="standard"
-//               required
-//               value={selectedCategory?.name || ""}
-//               sx={{
-//                 "& .MuiInputBase-input": {
-//                   WebkitTextFillColor: theme.palette.text.primary,
-//                 },
-//                 "& .MuiInput-underline:after": {
-//                   borderBottomColor: theme.palette.text.secondary,
-//                 },
-//                 "& .MuiInput-underline:before": {
-//                   borderBottomColor: theme.palette.text.secondary,
-//                 },
-//                 "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
-//                   borderBottomColor: theme.palette.text.secondary,
-//                 },
-//               }}
-//             />
-//           </Box>
-
-//           {formFields.map((field, index) => (
-//             <Box key={index} display={"flex"} gap={10} alignItems={"center"}>
-//               <Box display={"flex"} alignItems={"center"} gap={2} py={2}>
-//                 <Typography
-//                   variant="body1"
-//                   sx={{ color: theme.palette.text.primary }}
-//                 >
-//                   Attribute
-//                 </Typography>
-//                 <TextField
-//                   value={field.attribute || ""}
-//                   onChange={(event) => handleInputChange(index, event)}
-//                   variant="standard"
-//                   required
-//                   sx={{
-//                     "& .MuiInputBase-input": {
-//                       WebkitTextFillColor: theme.palette.text.secondary,
-//                     },
-//                     "& .MuiInput-underline:after": {
-//                       borderBottomColor: theme.palette.text.secondary,
-//                     },
-//                     "& .MuiInput-underline:before": {
-//                       borderBottomColor: theme.palette.text.secondary,
-//                     },
-//                     "& .MuiInput-underline:hover:not(.Mui-disabled):before": {
-//                       borderBottomColor: theme.palette.text.secondary,
-//                     },
-//                   }}
-//                 />
-//               </Box>
-//               <CustomSelect
-//                 label="Type"
-//                 options={selectOptions}
-//                 value={field.type || ""}
-//                 onChange={(event) => handleSelectChange(index, event)}
-//               />
-//               <FormControlLabel
-//                 control={
-//                   <Checkbox
-//                     checked={field.required}
-//                     onChange={(event) => handleCheckboxChange(index, event)}
-//                     disabled={field.requiredFromCategory}
-//                     sx={{
-//                       color: "green",
-//                       "&.Mui-checked": {
-//                         color: "green",
-//                       },
-//                     }}
-//                   />
-//                 }
-//                 label="Required"
-//                 sx={{
-//                   "& .MuiTypography-root": {
-//                     color: `${theme.palette.text.primary} !important`,
-//                   },
-//                 }}
-//               />
-//               <IconButton onClick={() => handleRemoveField(index)}>
-//                 <Tooltip title="Remove attribute">
-//                   <ClearIcon sx={{ color: theme.palette.error.main }} />
-//                 </Tooltip>
-//               </IconButton>
-//             </Box>
-//           ))}
-
-//           <IconButton sx={{ mb: 2 }} onClick={handleAddField}>
-//             <Tooltip title="More attribute">
-//               <AddCircleIcon sx={{ color: theme.palette.text.secondary }} />
-//             </Tooltip>
-//           </IconButton>
-//         </Box>
-//         <Box display={"flex"} gap={2} justifyContent={"center"} mb={5}>
-//           <ButtonPrimary
-//             text="New"
-//             onClick={handleSave}
-//             isLoading={isLoadingCreate}
-//           />
-//           <ButtonPrimary
-//             text="Update"
-//             onClick={handleUpdate}
-//             isLoading={isLoadingUpdate}
-//           />
-//           <ButtonPrimary
-//             text="Delete"
-//             onClick={() => setConfirmOpen(true)} // Open ConfirmDialog on delete
-//             isLoading={isLoadingDelete}
-//           />
-//         </Box>
-//       </Box>
-//       <ConfirmDialog
-//         open={confirmOpen}
-//         onClose={() => setConfirmOpen(false)}
-//         onConfirm={handleDelete}
-//         itemCount={selectedCategory ? 1 : 0}
-//       />
-//     </Box>
-//   );
-// }
-
-// export default CateDashboard;
+export default CateDashBoard;

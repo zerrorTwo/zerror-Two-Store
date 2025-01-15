@@ -10,6 +10,7 @@ import PropTypes from "prop-types";
 function PopoverPaper({
   isLoadingUpdate,
   isLoadingDelete,
+  isLoading,
   item,
   open,
   updateBtn,
@@ -17,6 +18,7 @@ function PopoverPaper({
   handleClose,
   handleUpdate,
   handleDelete,
+  handleCreate,
   children,
 }) {
   const theme = useTheme();
@@ -44,6 +46,21 @@ function PopoverPaper({
 
       <Box sx={{ m: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
         <Button onClick={handleClose}>Cancel</Button>
+        {handleCreate && (
+          <Button
+            onClick={handleCreate}
+            variant="contained"
+            sx={{
+              backgroundColor: theme.palette.button.backgroundColor,
+            }}
+          >
+            {isLoading ? (
+              <CircularProgress size={25} color="inherit" />
+            ) : (
+              "Create"
+            )}
+          </Button>
+        )}
         {updateBtn && (
           <Button
             onClick={handleUpdate}
@@ -79,17 +96,19 @@ function PopoverPaper({
 
 PopoverPaper.propTypes = {
   item: PropTypes.shape({
-    _id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
+    _id: PropTypes.string,
+    name: PropTypes.string,
   }),
-  isLoadingUpdate: PropTypes.bool.isRequired,
-  isLoadingDelete: PropTypes.bool.isRequired,
+  isLoadingUpdate: PropTypes.bool,
+  isLoading: PropTypes.bool,
+  isLoadingDelete: PropTypes.bool,
   open: PropTypes.bool.isRequired,
-  updateBtn: PropTypes.bool.isRequired,
-  deleteBtn: PropTypes.bool.isRequired,
+  updateBtn: PropTypes.bool,
+  deleteBtn: PropTypes.bool,
   handleClose: PropTypes.func.isRequired,
-  handleUpdate: PropTypes.func.isRequired,
-  handleDelete: PropTypes.func.isRequired,
+  handleUpdate: PropTypes.func,
+  handleDelete: PropTypes.func,
+  handleCreate: PropTypes.func,
   children: PropTypes.node,
 };
 

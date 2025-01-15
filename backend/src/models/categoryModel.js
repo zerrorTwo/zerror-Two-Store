@@ -24,14 +24,14 @@ const categorySchema = new mongoose.Schema({
     trim: true,
     required: true,
   },
+  level: {
+    type: Number,
+    default: 1,
+    min: 1,
+    max: 3,
+  },
   children: {
     type: [{ type: mongoose.Types.ObjectId, ref: "Category" }],
-    validate: {
-      validator: function (value) {
-        return value.length <= 2; // Giới hạn tối đa 2 phần tử
-      },
-      message: "Each category can have only 2 subcategories",
-    },
   },
 });
 

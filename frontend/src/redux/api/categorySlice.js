@@ -3,14 +3,6 @@ import { BASE_URL, UPLOAD_URL } from "../constants";
 
 export const categoryApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    createNew: builder.mutation({
-      query: (body) => ({
-        url: `${BASE_URL}/category/`,
-        method: "POST",
-        body,
-      }),
-      invalidatesTags: ["Category"],
-    }),
     getAllCategory: builder.query({
       query: () => ({
         url: `${BASE_URL}/category`,
@@ -18,6 +10,33 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
       }),
       providesTags: ["Category"],
       keepUnusedDataFor: 5,
+    }),
+
+    getChildrenCategory: builder.query({
+      query: (_id) => ({
+        url: `${BASE_URL}/category/${_id}`,
+        method: "GET",
+      }),
+      providesTags: ["Category"],
+      keepUnusedDataFor: 5,
+    }),
+
+    getAllCategoriesParent: builder.query({
+      query: () => ({
+        url: `${BASE_URL}/category`,
+        method: "GET",
+      }),
+      providesTags: ["Category"],
+      keepUnusedDataFor: 5,
+    }),
+
+    createNew: builder.mutation({
+      query: (body) => ({
+        url: `${BASE_URL}/category/`,
+        method: "POST",
+        body,
+      }),
+      invalidatesTags: ["Category"],
     }),
 
     updateCategory: builder.mutation({
@@ -30,8 +49,9 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
     }),
 
     deleteCategory: builder.mutation({
-      query: (_id) => ({
-        url: `${BASE_URL}/category/${_id}`,
+      query: (body) => ({
+        url: `${BASE_URL}/category`,
+        body,
         method: "DELETE",
       }),
       invalidatesTags: ["Category"],
@@ -57,6 +77,8 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
 
 export const {
   useGetAllCategoryQuery,
+  useGetAllCategoriesParentQuery,
+  useGetChildrenCategoryQuery,
   useCreateNewMutation,
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,

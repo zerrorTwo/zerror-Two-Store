@@ -12,9 +12,10 @@ import RequireAuth from "./pages/Auth/RequireAuth";
 import UserDashboard from "./pages/Admin/UserDashboard";
 import AdminAuth from "./pages/Auth/AdminAuth";
 import Profile from "./pages/Profile";
-import CategoryDashBoard from "./pages/Admin/CategoryDashBoard";
+import CateDashBoard from "./pages/Admin/CateDashBoard";
 import ProductDashboard from "./pages/Admin/ProductDashboard";
 import LayoutAdmin from "./pages/Admin/LayoutAdmin";
+import CategoryDashBoard from "./pages/Admin/CategoryDashBoard";
 
 function App() {
   const dispatch = useDispatch();
@@ -37,7 +38,9 @@ function App() {
 
   return (
     <Routes>
-      <Route path="layout" element={<LayoutAdmin />} />
+      <Route path="layout" element={<LayoutAdmin />}>
+        <Route path="cate" element={<CateDashBoard />} />
+      </Route>
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="menu" element={<Menu />} />
