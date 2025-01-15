@@ -30,7 +30,7 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
 
-    createNew: builder.mutation({
+    createNewCategory: builder.mutation({
       query: (body) => ({
         url: `${BASE_URL}/category/`,
         method: "POST",
@@ -79,7 +79,7 @@ export const {
   useGetAllCategoryQuery,
   useGetAllCategoriesParentQuery,
   useGetChildrenCategoryQuery,
-  useCreateNewMutation,
+  useCreateNewCategoryMutation,
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,
   useUploadCategoryImageMutation,

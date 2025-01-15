@@ -52,6 +52,7 @@ const getChildCategories = async (req, res) => {
 
 const createCategory = async (req, res) => {
   const data = req.body;
+  console.log(data);
 
   data.name = data.name.trim().toUpperCase();
 
@@ -71,7 +72,7 @@ const createCategory = async (req, res) => {
   let parentCategory;
   if (data.parent) {
     data.parent = data.parent.trim().toUpperCase();
-    parentCategory = await CategoryModel.findOne({ name: data.parent });
+    parentCategory = await CategoryModel.findById({ _id: data.parent });
     data.parent = parentCategory._id;
   }
 

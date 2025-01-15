@@ -1,16 +1,25 @@
-import { Box, Card, Divider, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  CircularProgress,
+  Divider,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 import GenericTable from "../../components/GenericTable";
 import {
-  useCreateNewMutation,
   useDeleteCategoryMutation,
   useUploadCategoryImageMutation,
   useGetChildrenCategoryQuery,
-  useGetAllCategoriesParentQuery, // API lấy danh mục cha
+  useGetAllCategoriesParentQuery,
+  useCreateNewCategoryMutation,
 } from "../../redux/api/categorySlice";
 import FormBase from "../../components/FormBase";
 import PopoverPaper from "../../components/PopoverPaper";
+import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 
 function CateDashBoard() {
   const theme = useTheme();
@@ -22,7 +31,8 @@ function CateDashBoard() {
     isLoading: categoryLoading,
   } = useGetAllCategoriesParentQuery();
 
-  const [createNew, { isLoading: isLoadingCreateNew }] = useCreateNewMutation();
+  const [createNew, { isLoading: isLoadingCreateNew }] =
+    useCreateNewCategoryMutation();
   const [deleteAll, { isLoading: isDeleteLoading }] =
     useDeleteCategoryMutation();
   const [uploadCategoryImage] = useUploadCategoryImageMutation();
@@ -35,7 +45,12 @@ function CateDashBoard() {
   const [selectedImage, setSelectedImage] = useState(null); // Selected image
   const [parent, setParent] = useState(null); // Parent category ID
   const [rows, setRows] = useState([]); // Rows for table
+  const [isLoadingBack, setIsLoadingBack] = useState(false);
+
   const formRef = useRef(null);
+
+  // State to track category history
+  const [categoryHistory, setCategoryHistory] = useState([]);
 
   // Fetch children categories
   const { refetch: fetchChildren } = useGetChildrenCategoryQuery(parent, {
@@ -48,13 +63,14 @@ function CateDashBoard() {
       fetchChildren()
         .then((result) => {
           setRows(result.data); // Cập nhật danh sách con
-          toast.success("Children categories loaded successfully");
         })
         .catch((error) => {
           toast.error("Failed to load children categories", error);
         });
+    } else if (listCate.length > 0) {
+      setRows(listCate); // Hiển thị danh sách cha khi không có parent
     }
-  }, [parent, fetchChildren]);
+  }, [parent, fetchChildren, listCate]);
 
   console.log(parent);
 
@@ -103,8 +119,27 @@ function CateDashBoard() {
     }
   };
 
-  const handleReview = (row) => {
+  const handleMoreClick = (row) => {
+    setCategoryHistory((prevHistory) => [...prevHistory, parent]); // Lưu lại danh mục cha hiện tại
     setParent(row._id); // Thay đổi parent, useEffect sẽ xử lý việc gọi API
+  };
+
+  const handleBackClick = async () => {
+    setIsLoadingBack(true); // Set loading trước khi xử lý
+
+    // Lấy danh mục cha gần nhất từ categoryHistory
+    const lastParent = categoryHistory.pop();
+    setParent(lastParent); // Quay lại danh mục cha gần nhất
+    setCategoryHistory([...categoryHistory]); // Cập nhật lại lịch sử
+
+    // Mô phỏng quá trình lấy dữ liệu (giả sử có một API hoặc tác vụ cần thời gian)
+    try {
+      await fetchChildren();
+    } catch (error) {
+      toast.error("Failed to load categories", error);
+    } finally {
+      setIsLoadingBack(false); // Set lại loading sau khi xử lý xong
+    }
   };
 
   // Define table columns
@@ -155,10 +190,14 @@ function CateDashBoard() {
       formData.img = imageUrl;
       formData.parent = parent;
 
-      const newCate = await createNew(formData);
+      console.log(formData);
+      const newCate = await createNew(formData).unwrap();
+
       if (newCate) {
         toast.success("Category created successfully");
         handleCloseDialog();
+      } else {
+        toast.error("Failed to create category");
       }
     } catch (error) {
       toast.error(error);
@@ -182,75 +221,92 @@ function CateDashBoard() {
         </Box>
       </Box>
 
-      <Box mt={5}>
-        <Box>
-          <GenericTable
-            name="List Category"
-            create={true}
-            rows={rows}
-            headCells={headCells}
-            handleUpdateClick={handleUpdateClick}
-            handleCreateClick={handleCreateClick}
-            handleReview={handleReview}
-            selected={selected}
-            setSelected={setSelected}
-            onDeleteConfirm={handleDeleteConfirm}
-            isDeleteLoading={false}
-          />
-          <PopoverPaper
-            item={selectedRow}
-            open={Boolean(anchorEl)}
-            anchorEl={anchorEl}
-            handleClose={handleCloseDialog}
-            handleCreate={handleSubmitCreate}
-            isLoadingDelete={isDeleteLoading}
-            isLoading={isLoadingCreateNew}
-          >
-            <Box sx={{ m: "0 auto", display: "table", mt: 2 }}>
-              <Card
-                sx={{
-                  maxHeight: "160px",
-                  maxWidth: "160px",
-                  height: "160px",
-                  width: "160px",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  border: "2px dashed gray",
-                }}
-                onClick={() => document.getElementById("mainImgInput").click()}
-              >
-                {imagePreview ? (
-                  <img
-                    src={imagePreview}
-                    alt="Main Image"
-                    style={{
-                      maxHeight: "160px",
-                      maxWidth: "160px",
-                      objectFit: "cover",
-                    }}
-                  />
-                ) : (
-                  <Typography variant="body2">
-                    Click to upload main image
-                  </Typography>
-                )}
-                <input
-                  id="mainImgInput"
-                  type="file"
-                  hidden
-                  name="mainImg"
-                  onChange={handleImageChange}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "flex-end",
+          my: 2,
+        }}
+      >
+        <Button
+          sx={{
+            color: theme.palette.text.secondary,
+          }}
+          startIcon={<ChevronLeftIcon />}
+          variant="outlined"
+          onClick={handleBackClick} // Quay lại danh mục cha trước đó
+        >
+          {isLoadingBack ? <CircularProgress size={25} /> : "BACK"}
+        </Button>
+      </Box>
+
+      <Box>
+        <GenericTable
+          name="List Category"
+          create={true}
+          rows={rows}
+          headCells={headCells}
+          handleUpdateClick={handleUpdateClick}
+          handleCreateClick={handleCreateClick}
+          handleMoreClick={handleMoreClick}
+          selected={selected}
+          setSelected={setSelected}
+          onDeleteConfirm={handleDeleteConfirm}
+          isDeleteLoading={false}
+        />
+        <PopoverPaper
+          item={selectedRow}
+          open={Boolean(anchorEl)}
+          anchorEl={anchorEl}
+          handleClose={handleCloseDialog}
+          handleCreate={handleSubmitCreate}
+          isLoadingDelete={isDeleteLoading}
+          isLoading={isLoadingCreateNew}
+        >
+          <Box sx={{ m: "0 auto", display: "table", mt: 2 }}>
+            <Card
+              sx={{
+                maxHeight: "160px",
+                maxWidth: "160px",
+                height: "160px",
+                width: "160px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                border: "2px dashed gray",
+              }}
+              onClick={() => document.getElementById("mainImgInput").click()}
+            >
+              {imagePreview ? (
+                <img
+                  src={imagePreview}
+                  alt="Main Image"
+                  style={{
+                    maxHeight: "160px",
+                    maxWidth: "160px",
+                    objectFit: "cover",
+                  }}
                 />
-              </Card>
-            </Box>
-            <FormBase
-              ref={formRef}
-              item={selectedRow || { _id: "", name: "" }}
-              onChange={handleFormChange}
-            />
-          </PopoverPaper>
-        </Box>
+              ) : (
+                <Typography variant="body2">
+                  Click to upload main image
+                </Typography>
+              )}
+              <input
+                id="mainImgInput"
+                type="file"
+                hidden
+                name="mainImg"
+                onChange={handleImageChange}
+              />
+            </Card>
+          </Box>
+          <FormBase
+            ref={formRef}
+            item={selectedRow || { _id: "", name: "" }}
+            onChange={handleFormChange}
+          />
+        </PopoverPaper>
       </Box>
     </Box>
   );
