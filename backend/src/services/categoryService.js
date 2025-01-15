@@ -28,35 +28,23 @@ const getAllCategories = async (req, res) => {
   }
 };
 
-const getCategoriesByLevel = async (req, res) => {
+const getAllCategoriesParent = async (req, res) => {
   try {
-    const level = parseInt(req.query.level) || 1; // Lấy cấp độ từ query string (mặc định là 1)
-
-    const getCategoriesFlat = async (parent = null, levelRemaining = 1) => {
-      if (levelRemaining <= 0) {
-        return []; // Nếu không cần cấp độ nào nữa, trả về danh sách rỗng
-      }
-
-      // Lấy danh mục hiện tại
-      const categories = await CategoryModel.find({ parent })
-        .select("-__v")
-        .lean();
-
-      // Nếu cần thêm cấp độ khác, gọi đệ quy
-      const childCategories = await Promise.all(
-        categories.map(async (category) =>
-          getCategoriesFlat(category._id, levelRemaining - 1)
-        )
-      );
-
-      // Gộp tất cả thành danh sách phẳng
-      return [...categories, ...childCategories.flat()];
-    };
-
-    // Gọi hàm để lấy danh mục theo cấp độ
-    const categories = await getCategoriesFlat(null, level);
-
+    const categories = await CategoryModel.find({ parent: null });
     return categories;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getChildCategories = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const parentCategory = await CategoryModel.findById(id).lean();
+    const childCategories = await CategoryModel.find({
+      _id: { $in: parentCategory.children },
+    });
+    return childCategories;
   } catch (error) {
     throw error;
   }
@@ -80,21 +68,19 @@ const createCategory = async (req, res) => {
   if (categoryExist) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Category already exists");
   }
-
+  let parentCategory;
   if (data.parent) {
     data.parent = data.parent.trim().toUpperCase();
-    const parentCategory = await CategoryModel.findOne({ name: data.parent });
-    if (!parentCategory)
-      throw new ApiError(StatusCodes.NOT_FOUND, "Parent category not found");
+    parentCategory = await CategoryModel.findOne({ name: data.parent });
     data.parent = parentCategory._id;
-
-    parentCategory.children.push(categoryExist ? categoryExist._id : null);
-    await parentCategory.save();
   }
 
   data.slug = slugtify(data.name, { lower: true, strict: true });
   const category = new CategoryModel(data);
   await category.save();
+  parentCategory?.children.push(category._id.toString());
+  await parentCategory?.save();
+
   return category;
 };
 
@@ -135,17 +121,10 @@ const updateCategory = async (req, res) => {
 };
 
 const deleteCategory = async (req, res) => {
-  const { id } = req.params;
+  const categories = req.body; // Nhận mảng _id từ body request
 
-  // Kiểm tra ID hợp lệ
-  if (!mongoose.Types.ObjectId.isValid(id)) {
-    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid category ID");
-  }
-
-  // Tìm danh mục cần xóa
-  const category = await CategoryModel.findById(id);
-  if (!category) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "Category not found");
+  if (!categories || categories.length === 0) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Categories not found");
   }
 
   // Hàm đệ quy để xóa tất cả danh mục con
@@ -156,27 +135,38 @@ const deleteCategory = async (req, res) => {
         await deleteChildren(childId); // Đệ quy xóa tất cả danh mục con
       }
     }
-    // Thay thế remove bằng findByIdAndDelete
-    await CategoryModel.findByIdAndDelete(categoryId); // Xóa danh mục hiện tại
+    // Xóa danh mục hiện tại
+    await CategoryModel.findByIdAndDelete(categoryId); // Xóa danh mục
   };
 
-  // Xóa các danh mục con của danh mục chính
-  if (category.children.length > 0) {
-    for (let childId of category.children) {
-      await deleteChildren(childId); // Xóa từng danh mục con
+  // Xóa từng danh mục trong mảng categories
+  for (let categoryId of categories) {
+    const category = await CategoryModel.findById(categoryId);
+    if (!category) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        `Category with ID ${categoryId} not found`
+      );
     }
-  }
 
-  // Xóa danh mục chính (danh mục cần xóa)
-  await CategoryModel.findByIdAndDelete(id); // Xóa danh mục
+    // Xóa tất cả danh mục con của danh mục chính
+    if (category.children && category.children.length > 0) {
+      for (let childId of category.children) {
+        await deleteChildren(childId); // Đệ quy xóa tất cả danh mục con
+      }
+    }
 
-  // Cập nhật danh mục cha nếu có
-  if (category.parent) {
-    const parentCategory = await CategoryModel.findById(category.parent);
-    parentCategory.children = parentCategory.children.filter(
-      (childId) => childId && childId.toString() !== id // Kiểm tra childId có phải là null hay không
-    );
-    await parentCategory.save();
+    // Xóa danh mục chính
+    await CategoryModel.findByIdAndDelete(categoryId); // Xóa danh mục chính
+
+    // Cập nhật danh mục cha nếu có
+    if (category.parent) {
+      const parentCategory = await CategoryModel.findById(category.parent);
+      parentCategory.children = parentCategory.children.filter(
+        (childId) => childId && childId.toString() !== categoryId // Xóa ID danh mục hiện tại khỏi danh mục cha
+      );
+      await parentCategory.save();
+    }
   }
 
   return { message: "Category deleted successfully" };
@@ -205,4 +195,6 @@ export const categoryService = {
   updateCategory,
   deleteCategory,
   searchCategory,
+  getAllCategoriesParent,
+  getChildCategories,
 };

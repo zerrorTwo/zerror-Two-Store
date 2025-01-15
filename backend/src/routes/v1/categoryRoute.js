@@ -3,19 +3,22 @@ import {
   createCategory,
   deleteCategory,
   getAllCategory,
-  searchCategory,
+  getAllCategoryParent,
+  getChildCategories,
   updateCategory,
 } from "../../controllers/categoryController.js";
 import { authentication, authorization } from "../../auth/authUtil.js";
 
 const Router = express.Router();
-Router.get("/search", searchCategory);
-Router.get("/", getAllCategory);
+
+Router.route("/all").get(getAllCategory);
+
+Router.route("/").get(getAllCategoryParent);
 
 // Router.use(authentication, authorization);
 
-Router.post("/", createCategory);
+Router.route("/").delete(deleteCategory).post(createCategory);
 
-Router.route("/:id").put(updateCategory).delete(deleteCategory);
+Router.route("/:id").put(updateCategory).get(getChildCategories);
 
 export const categoryRouter = Router;

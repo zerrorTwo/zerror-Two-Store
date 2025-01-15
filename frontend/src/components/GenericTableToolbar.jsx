@@ -57,17 +57,15 @@ const GenericTableToolbar = ({
         </Typography>
       )}
       {create && (
-        <Tooltip title="Click to create new">
-          <Button
-            sx={{ fontSize: 10, display: "-webkit-box", pr: 4 }}
-            component="label"
-            variant="outlined"
-            startIcon={<AddCircleIcon />}
-            onClick={handleCreateClick}
-          >
-            Create new
-          </Button>
-        </Tooltip>
+        <Button
+          sx={{ fontSize: 10, display: "-webkit-box", pr: 4 }}
+          component="label"
+          variant="outlined"
+          startIcon={<AddCircleIcon />}
+          onClick={handleCreateClick}
+        >
+          Create new
+        </Button>
       )}
       {numSelected > 0 ? (
         <>

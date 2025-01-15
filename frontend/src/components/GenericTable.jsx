@@ -17,7 +17,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import GenericTableHead from "./GenericTableHead";
 import GenericTableToolbar from "./GenericTableToolbar";
 import ConfirmDialog from "./ConfirmDialog";
+import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { useTheme } from "@mui/material/styles";
+import { PRIMITIVE_URL } from "../redux/constants";
 
 const descendingComparator = (a, b, orderBy) => {
   if (b[orderBy] < a[orderBy]) {
@@ -42,6 +44,7 @@ const GenericTable = ({
   headCells,
   handleUpdateClick,
   handleCreateClick,
+  handleReview,
   selected,
   setSelected,
   onDeleteConfirm,
@@ -132,9 +135,19 @@ const GenericTable = ({
         />
         <TableContainer>
           <Table
-            sx={{ minWidth: 750 }}
+            sx={{
+              minWidth: 750,
+              "& .MuiTableRow-root": {
+                height: "48px !important",
+              },
+              "& .MuiTableCell-root": {
+                height: "48px !important",
+                padding: "0 16px",
+                lineHeight: "48px",
+              },
+            }}
             aria-labelledby="tableTitle"
-            size={"small"}
+            size="small"
           >
             <GenericTableHead
               headCells={headCells}
@@ -152,14 +165,13 @@ const GenericTable = ({
 
                 return (
                   <TableRow
-                    key={index}
                     hover
                     onClick={(event) => handleClick(event, row._id)}
                     role="checkbox"
                     aria-checked={isItemSelected}
                     tabIndex={-1}
                     selected={isItemSelected}
-                    sx={{ cursor: "pointer" }}
+                    key={row._id}
                   >
                     <TableCell padding="checkbox">
                       <Checkbox
@@ -170,45 +182,115 @@ const GenericTable = ({
                         }}
                         color="secondary"
                         checked={isItemSelected}
-                        inputProps={{ "aria-labelledby": labelId }}
+                        inputProps={{
+                          "aria-labelledby": labelId,
+                        }}
                       />
                     </TableCell>
-                    {headCells.map((cell, index) => (
-                      <TableCell
-                        key={index}
-                        sx={{ color: theme.palette.text.secondary }}
-                        align="center"
-                      >
-                        {row[cell.id] != null ? String(row[cell.id]) : "N/A"}
-                      </TableCell>
-                    ))}
+                    {headCells.map((cell, cellIndex) => {
+                      const cellValue = row[cell.id];
+                      return (
+                        <TableCell
+                          key={cellIndex}
+                          align="center"
+                          sx={{
+                            color: theme.palette.text.secondary,
+                          }}
+                        >
+                          {cellValue != null ? (
+                            cell.img ? (
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  height: "100%",
+                                }}
+                              >
+                                <img
+                                  src={`${PRIMITIVE_URL}${cellValue}`}
+                                  alt={cellValue}
+                                  style={{
+                                    width: "auto",
+                                    height: "30px",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              </Box>
+                            ) : (
+                              String(cellValue)
+                            )
+                          ) : (
+                            "N/A"
+                          )}
+                        </TableCell>
+                      );
+                    })}
                     <TableCell
                       align="center"
-                      sx={{ color: theme.palette.text.secondary }}
+                      sx={{
+                        color: theme.palette.text.secondary,
+                        "& .MuiButtonBase-root": {
+                          padding: "6px",
+                        },
+                      }}
                     >
-                      <Tooltip title="Update">
-                        <IconButton
-                          sx={{
-                            "&:hover": {
+                      <Box
+                        sx={{
+                          display: "flex",
+                          gap: 1,
+                          justifyContent: "center",
+                          height: "100%",
+                          alignItems: "center",
+                        }}
+                      >
+                        <Tooltip title="Update">
+                          <IconButton
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleUpdateClick(event, row);
+                            }}
+                            sx={{
+                              "&:hover": {
+                                backgroundColor:
+                                  theme.palette.button.hoverBackgroundColor,
+                              },
+                              color: theme.palette.text.secondary,
                               backgroundColor:
-                                theme.palette.button.hoverBackgroundColor,
-                            },
-                            cursor: "pointer",
-                            color: theme.palette.text.secondary,
-                            backgroundColor:
-                              theme.palette.button.backgroundColor,
-                          }}
-                          onClick={(event) => handleUpdateClick(event, row)}
-                        >
-                          <EditIcon />
-                        </IconButton>
-                      </Tooltip>
+                                theme.palette.button.backgroundColor,
+                            }}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        </Tooltip>
+                        {handleReview && (
+                          <Tooltip title="Review">
+                            <IconButton
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleReview(row); // Truyền đúng row vào hàm
+                              }}
+                              sx={{
+                                "&:hover": {
+                                  backgroundColor:
+                                    theme.palette.button.hoverBackgroundColor,
+                                },
+                                color: theme.palette.text.secondary,
+                                backgroundColor:
+                                  theme.palette.button.backgroundColor,
+                              }}
+                            >
+                              <MoreHorizIcon />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Box>
                     </TableCell>
                   </TableRow>
                 );
               })}
               {emptyRows > 0 && (
-                <TableRow style={{ height: 53 * emptyRows }}>
+                <TableRow style={{ height: 48 * emptyRows }}>
                   <TableCell colSpan={headCells.length + 2} />
                 </TableRow>
               )}
@@ -217,7 +299,7 @@ const GenericTable = ({
         </TableContainer>
         <TablePagination
           sx={{
-            "& .MuiTablePagination-selectLabel ": {
+            "& .MuiTablePagination-selectLabel": {
               display: "none",
             },
             "& .MuiTablePagination-input": {
@@ -257,6 +339,7 @@ GenericTable.propTypes = {
   headCells: PropTypes.array.isRequired,
   handleUpdateClick: PropTypes.func.isRequired,
   handleCreateClick: PropTypes.func,
+  handleReview: PropTypes.func,
   selected: PropTypes.array.isRequired,
   setSelected: PropTypes.func.isRequired,
   onDeleteConfirm: PropTypes.func.isRequired,

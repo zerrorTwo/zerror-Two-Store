@@ -42,8 +42,8 @@ const FormBase = forwardRef(({ item }, ref) => {
 
 FormBase.propTypes = {
   item: PropTypes.shape({
-    _id: PropTypes.string.isRequired,
-    name: PropTypes.string.isRequired,
+    _id: PropTypes.string,
+    name: PropTypes.string,
   }).isRequired,
 };
 
