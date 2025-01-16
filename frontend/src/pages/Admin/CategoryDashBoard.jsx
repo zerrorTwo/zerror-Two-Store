@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Box, Divider, TextField, Typography, useTheme } from "@mui/material";
 import ButtonPrimary from "../../components/ButtonPrimary.jsx";
 import {
-  useCreateNewMutation,
+  useCreateNewCategoryMutation,
   useGetAllCategoryQuery,
   useSearchCategoryQuery,
   useUploadCategoryImageMutation, // Import the mutation for image upload
@@ -28,7 +28,8 @@ function CategoryDashBoard() {
     error,
     refetch,
   } = useGetAllCategoryQuery();
-  const [createNew, { isLoading: isLoadingCreateNew }] = useCreateNewMutation();
+  const [createNew, { isLoading: isLoadingCreateNew }] =
+    useCreateNewCategoryMutation();
   const { data: searchResults, isLoading: isLoadingSearch } =
     useSearchCategoryQuery(search, {
       skip: !isSearching,

@@ -16,13 +16,27 @@ import {
   useGetChildrenCategoryQuery,
   useGetAllCategoriesParentQuery,
   useCreateNewCategoryMutation,
+  useUpdateCategoryMutation,
 } from "../../redux/api/categorySlice";
 import FormBase from "../../components/FormBase";
 import PopoverPaper from "../../components/PopoverPaper";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
+import { PRIMITIVE_URL } from "../../redux/constants";
 
 function CateDashBoard() {
   const theme = useTheme();
+
+  const headCells = [
+    { id: "_id", numeric: true, disablePadding: false, label: "ID" },
+    { id: "name", numeric: false, disablePadding: false, label: "Name" },
+    {
+      id: "img",
+      numeric: false,
+      disablePadding: false,
+      label: "Image",
+      img: true,
+    },
+  ];
 
   // Fetch top-level categories
   const {
@@ -33,12 +47,14 @@ function CateDashBoard() {
 
   const [createNew, { isLoading: isLoadingCreateNew }] =
     useCreateNewCategoryMutation();
+  const [update, { isLoading: isLoadingUpdate }] = useUpdateCategoryMutation();
   const [deleteAll, { isLoading: isDeleteLoading }] =
     useDeleteCategoryMutation();
   const [uploadCategoryImage] = useUploadCategoryImageMutation();
 
   // State
   const [selectedRow, setSelectedRow] = useState(null);
+  const [isCreating, setIsCreating] = useState(false); // Trạng thái "Create"
   const [selected, setSelected] = useState([]); // Selected categories
   const [anchorEl, setAnchorEl] = useState(null); // Popover anchor
   const [imagePreview, setImagePreview] = useState(null); // Image preview
@@ -49,15 +65,12 @@ function CateDashBoard() {
 
   const formRef = useRef(null);
 
-  // State to track category history
   const [categoryHistory, setCategoryHistory] = useState([]);
 
-  // Fetch children categories
   const { refetch: fetchChildren } = useGetChildrenCategoryQuery(parent, {
-    skip: !parent, // Không gọi API nếu không có parent
+    skip: !parent,
   });
 
-  // Lắng nghe thay đổi của parent để gọi API lấy danh mục con
   useEffect(() => {
     if (parent) {
       fetchChildren()
@@ -72,18 +85,61 @@ function CateDashBoard() {
     }
   }, [parent, fetchChildren, listCate]);
 
-  console.log(parent);
+  useEffect(() => {
+    if (listCate.length > 0) {
+      setRows(
+        listCate.map((category) => ({
+          _id: category._id,
+          name: category.name,
+          img: category.img,
+        }))
+      );
+    }
+  }, [listCate]);
 
-  // Event handlers
-  const handleUpdateClick = (event, row) => {
-    event.stopPropagation();
-    setSelectedRow(row);
-    setAnchorEl(event.currentTarget);
+  const handleMoreClick = (row) => {
+    setCategoryHistory((prevHistory) => [...prevHistory, parent]); // Lưu lại danh mục cha hiện tại
+    setParent(row._id); // Thay đổi parent, useEffect sẽ xử lý việc gọi API
   };
 
   const handleCloseDialog = () => {
     setAnchorEl(null);
     setSelectedRow(null);
+    setIsCreating(false);
+  };
+
+  const handleUpdateClick = (event, row) => {
+    event.stopPropagation();
+    setIsCreating(false);
+    setSelectedRow(row);
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleCreateClick = (event) => {
+    event.stopPropagation();
+    const firstRow = {
+      _id: "",
+      name: "",
+      img: "",
+    };
+    setSelectedRow(firstRow);
+    setIsCreating(true);
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleBackClick = async () => {
+    setIsLoadingBack(true);
+    const lastParent = categoryHistory.pop();
+    setParent(lastParent);
+    setCategoryHistory([...categoryHistory]);
+
+    try {
+      await fetchChildren();
+    } catch (error) {
+      toast.info("Here are the first list!!!!", error);
+    } finally {
+      setIsLoadingBack(false);
+    }
   };
 
   const handleImageChange = (event) => {
@@ -98,15 +154,11 @@ function CateDashBoard() {
     }
   };
 
-  const handleCreateClick = (event) => {
-    event.stopPropagation();
-    const firstRow = {
-      _id: "",
-      name: "",
-      img: "",
-    };
-    setSelectedRow(firstRow);
-    setAnchorEl(event.currentTarget);
+  const handleFormChange = (field, value) => {
+    setSelectedRow((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handleDeleteConfirm = async () => {
@@ -119,66 +171,10 @@ function CateDashBoard() {
     }
   };
 
-  const handleMoreClick = (row) => {
-    setCategoryHistory((prevHistory) => [...prevHistory, parent]); // Lưu lại danh mục cha hiện tại
-    setParent(row._id); // Thay đổi parent, useEffect sẽ xử lý việc gọi API
-  };
-
-  const handleBackClick = async () => {
-    setIsLoadingBack(true); // Set loading trước khi xử lý
-
-    // Lấy danh mục cha gần nhất từ categoryHistory
-    const lastParent = categoryHistory.pop();
-    setParent(lastParent); // Quay lại danh mục cha gần nhất
-    setCategoryHistory([...categoryHistory]); // Cập nhật lại lịch sử
-
-    // Mô phỏng quá trình lấy dữ liệu (giả sử có một API hoặc tác vụ cần thời gian)
-    try {
-      await fetchChildren();
-    } catch (error) {
-      toast.error("Failed to load categories", error);
-    } finally {
-      setIsLoadingBack(false); // Set lại loading sau khi xử lý xong
-    }
-  };
-
-  // Define table columns
-  const headCells = [
-    { id: "_id", numeric: true, disablePadding: false, label: "ID" },
-    { id: "name", numeric: false, disablePadding: false, label: "Name" },
-    {
-      id: "img",
-      numeric: false,
-      disablePadding: false,
-      label: "Image",
-      img: true,
-    },
-  ];
-
-  // Process rows for table
-  useEffect(() => {
-    if (listCate.length > 0) {
-      setRows(
-        listCate.map((category) => ({
-          _id: category._id,
-          name: category.name,
-          img: category.img,
-        }))
-      );
-    }
-  }, [listCate]);
-
-  // Form change handler
-  const handleFormChange = (field, value) => {
-    setSelectedRow((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
-
   const handleSubmitCreate = async () => {
     try {
       const formData = formRef.current.getFormData();
+
       let imageUrl = null;
       if (selectedImage) {
         const formData = new FormData();
@@ -188,16 +184,57 @@ function CateDashBoard() {
         imageUrl = uploadResult.image;
       }
       formData.img = imageUrl;
+      if (!formData.name || !formData.img) {
+        toast.error("Category name is required");
+        return;
+      }
       formData.parent = parent;
 
-      console.log(formData);
-      const newCate = await createNew(formData).unwrap();
+      const newCate = await createNew(formData);
+
+      if (newCate?.error) {
+        toast.error(newCate?.error?.data?.message);
+        return;
+      }
 
       if (newCate) {
         toast.success("Category created successfully");
         handleCloseDialog();
       } else {
         toast.error("Failed to create category");
+      }
+    } catch (error) {
+      toast.error(error);
+    }
+  };
+
+  const handleUpdateSubmit = async () => {
+    try {
+      const formData = formRef.current.getFormData();
+      let imageUrl = null;
+      if (selectedImage) {
+        const formData = new FormData();
+        formData.append("image", selectedImage);
+        const uploadResult = await uploadCategoryImage(formData);
+        imageUrl = uploadResult.image;
+      }
+      formData.img = imageUrl || selectedRow?.img;
+
+      if (!formData.name || !formData.img) {
+        toast.error("Category name is required");
+        return;
+      }
+
+      const updatedCate = await update({ id: selectedRow._id, body: formData });
+      if (updatedCate?.error) {
+        toast.error(updatedCate?.error?.data?.message);
+        return;
+      }
+      if (updatedCate) {
+        toast.success("Category updated successfully");
+        handleCloseDialog();
+      } else {
+        toast.error("Failed to update category");
       }
     } catch (error) {
       toast.error(error);
@@ -228,40 +265,55 @@ function CateDashBoard() {
           my: 2,
         }}
       >
-        <Button
-          sx={{
-            color: theme.palette.text.secondary,
-          }}
-          startIcon={<ChevronLeftIcon />}
-          variant="outlined"
-          onClick={handleBackClick} // Quay lại danh mục cha trước đó
-        >
-          {isLoadingBack ? <CircularProgress size={25} /> : "BACK"}
-        </Button>
+        {categoryHistory.length > 0 ? (
+          <Button
+            sx={{
+              color: theme.palette.text.secondary,
+            }}
+            startIcon={<ChevronLeftIcon />}
+            variant="outlined"
+            onClick={handleBackClick} // Quay lại danh mục cha trước đó
+          >
+            {isLoadingBack ? <CircularProgress size={25} /> : "BACK"}
+          </Button>
+        ) : (
+          <Box sx={{ width: "100px", height: "36px" }} /> // Phần giữ chỗ
+        )}
       </Box>
 
       <Box>
-        <GenericTable
-          name="List Category"
-          create={true}
-          rows={rows}
-          headCells={headCells}
-          handleUpdateClick={handleUpdateClick}
-          handleCreateClick={handleCreateClick}
-          handleMoreClick={handleMoreClick}
-          selected={selected}
-          setSelected={setSelected}
-          onDeleteConfirm={handleDeleteConfirm}
-          isDeleteLoading={false}
-        />
+        <Box>
+          {categoryLoading ? (
+            <CircularProgress />
+          ) : (
+            <GenericTable
+              name="List Category"
+              create={true}
+              rows={rows}
+              headCells={headCells}
+              handleUpdateClick={handleUpdateClick}
+              handleCreateClick={handleCreateClick}
+              handleMoreClick={
+                categoryHistory.length >= 2 ? () => {} : handleMoreClick
+              }
+              selected={selected}
+              setSelected={setSelected}
+              onDeleteConfirm={handleDeleteConfirm}
+              isDeleteLoading={isDeleteLoading}
+            />
+          )}
+        </Box>
         <PopoverPaper
           item={selectedRow}
           open={Boolean(anchorEl)}
           anchorEl={anchorEl}
           handleClose={handleCloseDialog}
-          handleCreate={handleSubmitCreate}
+          handleCreate={isCreating ? handleSubmitCreate : undefined}
+          handleUpdate={!isCreating ? handleUpdateSubmit : undefined}
           isLoadingDelete={isDeleteLoading}
           isLoading={isLoadingCreateNew}
+          isLoadingUpdate={isLoadingUpdate}
+          updateBtn={!isCreating}
         >
           <Box sx={{ m: "0 auto", display: "table", mt: 2 }}>
             <Card
@@ -277,9 +329,13 @@ function CateDashBoard() {
               }}
               onClick={() => document.getElementById("mainImgInput").click()}
             >
-              {imagePreview ? (
+              {imagePreview || selectedRow?.img ? (
                 <img
-                  src={imagePreview}
+                  src={
+                    imagePreview
+                      ? imagePreview
+                      : `${PRIMITIVE_URL}${selectedRow?.img}`
+                  }
                   alt="Main Image"
                   style={{
                     maxHeight: "160px",
