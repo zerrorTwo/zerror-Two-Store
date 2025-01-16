@@ -52,7 +52,6 @@ const getChildCategories = async (req, res) => {
 
 const createCategory = async (req, res) => {
   const data = req.body;
-  console.log(data);
 
   data.name = data.name.trim().toUpperCase();
 

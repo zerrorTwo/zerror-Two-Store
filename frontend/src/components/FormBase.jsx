@@ -24,7 +24,6 @@ const FormBase = forwardRef(({ item }, ref) => {
   return (
     <Box sx={{ p: 2 }}>
       <InputBase
-        maxWidth={true}
         name="name"
         label="Name"
         value={formData.name}
