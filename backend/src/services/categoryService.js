@@ -19,7 +19,7 @@ const getCategoryTree = async (parent = null) => {
   return tree;
 };
 
-const getAllCategories = async (req, res) => {
+const getAllCategoriesTree = async (req, res) => {
   try {
     // Lấy tất cả danh mục
     const allCategories = await CategoryModel.find({}).lean();
@@ -48,18 +48,59 @@ const getAllCategories = async (req, res) => {
   }
 };
 
-const getAllCategoriesParent = async (req, res) => {
+const getAllCategories = async (req, res) => {
+  try {
+    return await CategoryModel.find({})
+      .select("_id name slug img level")
+      .lean();
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getPageCategory = async (req, res) => {
   try {
     const parent = req.query.parent;
-    if (parent === "null" || !parent)
-      return await CategoryModel.find({ parent: null })
-        .select("_id name img level")
-        .lean();
+    const page = parseInt(req.query.page) || 1; // Default to page 1
+    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
 
-    const categories = await CategoryModel.find({ parent: parent })
-      .select("_id name img level")
-      .lean();
-    return categories;
+    // Calculate the number of items to skip
+    const skip = (page - 1) * limit;
+
+    let categories;
+
+    // Check if parent is null or not provided, then fetch categories without parent filter
+    if (parent === "null" || !parent) {
+      categories = await CategoryModel.find({ parent: null })
+        .skip(skip)
+        .limit(limit)
+        .select("_id name slug img level")
+        .lean();
+    } else {
+      // Fetch categories with the provided parent
+      categories = await CategoryModel.find({ parent: parent })
+        .skip(skip)
+        .limit(limit)
+        .select("_id name slug img level")
+        .lean();
+    }
+
+    let totalCategories;
+
+    if (parent !== "null") {
+      totalCategories = await CategoryModel.countDocuments({ parent: parent });
+    } else {
+      totalCategories = await CategoryModel.countDocuments({ parent: null });
+    }
+    // Get the total number of categories
+
+    return {
+      page,
+      limit,
+      totalPages: Math.ceil(totalCategories / limit),
+      totalCategories,
+      categories,
+    };
   } catch (error) {
     throw error;
   }
@@ -223,6 +264,7 @@ export const categoryService = {
   updateCategory,
   deleteCategory,
   searchCategory,
-  getAllCategoriesParent,
+  getPageCategory,
   getChildCategories,
+  getAllCategoriesTree,
 };

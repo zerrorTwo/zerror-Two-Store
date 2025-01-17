@@ -111,7 +111,10 @@ const getPageProducts = async (req, res) => {
     const skip = (page - 1) * limit;
 
     // Lấy danh sách sản phẩm từ database với phân trang
-    const products = await ProductModel.find({}).skip(skip).limit(limit);
+    const products = await ProductModel.find({})
+      .skip(skip)
+      .limit(limit)
+      .populate("type", "name"); // Thay thế _id của type bằng name từ CategoryModel
 
     // Tính tổng số sản phẩm
     const totalProducts = await ProductModel.countDocuments({});
@@ -125,7 +128,7 @@ const getPageProducts = async (req, res) => {
       products,
     };
   } catch (error) {
-    res.status(StatusCodes.BAD_REQUEST).json({ message: error.message });
+    throw error;
   }
 };
 

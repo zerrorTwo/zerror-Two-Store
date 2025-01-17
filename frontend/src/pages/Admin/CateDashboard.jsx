@@ -43,12 +43,14 @@ function CateDashBoard() {
       img: true,
     },
   ];
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
 
   const {
-    data: listCate = [],
+    data: { categories: listCate = [], totalPages } = {},
     error: categoryError,
     isLoading: categoryLoading,
-  } = useGetAllCategoriesQuery(parent);
+  } = useGetAllCategoriesQuery({ parent, page, limit: rowsPerPage });
 
   const [createNew, { isLoading: isLoadingCreateNew }] =
     useCreateNewCategoryMutation();
@@ -173,51 +175,48 @@ function CateDashBoard() {
   const handleSubmitCreate = async () => {
     try {
       const formData = formRef.current.getFormData();
-      let imageUrl = null;
       if (selectedImage) {
-        const formData = new FormData();
-        formData.append("image", selectedImage);
-        const uploadResult = await uploadCategoryImage(formData).unwrap();
-        imageUrl = uploadResult.image;
+        const formDataWithImage = new FormData();
+        formDataWithImage.append("image", selectedImage);
+        const uploadResult = await uploadCategoryImage(
+          formDataWithImage
+        ).unwrap();
+        formData.img = uploadResult.image;
       }
-      formData.img = imageUrl;
+
       if (!formData.name || !formData.img) {
         toast.error("Category name is required");
         return;
       }
+
       formData.parent = parentId;
       formData.level = lvl;
 
       const newCate = await createNew(formData);
-
       if (newCate?.error) {
         toast.error(newCate?.error?.data?.message);
         return;
       }
 
-      if (newCate) {
-        toast.success("Category created successfully");
-        setImagePreview(null);
-        handleCloseDialog();
-      } else {
-        toast.error("Failed to create category");
-      }
+      toast.success("Category created successfully");
+      setImagePreview(null);
+      handleCloseDialog();
     } catch (error) {
-      toast.error(error);
+      toast.error("Error creating category: " + error.message);
     }
   };
 
   const handleUpdateSubmit = async () => {
     try {
       const formData = formRef.current.getFormData();
-      let imageUrl = null;
       if (selectedImage) {
-        const formData = new FormData();
-        formData.append("image", selectedImage);
-        const uploadResult = await uploadCategoryImage(formData);
-        imageUrl = uploadResult.image;
+        const formDataWithImage = new FormData();
+        formDataWithImage.append("image", selectedImage);
+        const uploadResult = await uploadCategoryImage(formDataWithImage);
+        formData.img = uploadResult.image;
       }
-      formData.img = imageUrl || selectedRow?.img;
+
+      formData.img = formData.img || selectedRow?.img;
 
       if (!formData.name || !formData.img) {
         toast.error("Category name is required");
@@ -229,14 +228,10 @@ function CateDashBoard() {
         toast.error(updatedCate?.error?.data?.message);
         return;
       }
-      if (updatedCate) {
-        toast.success("Category updated successfully");
-        handleCloseDialog();
-      } else {
-        toast.error("Failed to update category");
-      }
+      toast.success("Category updated successfully");
+      handleCloseDialog();
     } catch (error) {
-      toast.error(error);
+      toast.error("Error updating category: " + error.message);
     }
   };
 
@@ -311,6 +306,14 @@ function CateDashBoard() {
               setSelected={setSelected}
               onDeleteConfirm={handleDeleteConfirm}
               isDeleteLoading={isDeleteLoading}
+              page={page - 1}
+              rowsPerPage={rowsPerPage}
+              totalPages={totalPages}
+              onPageChange={(_, newPage) => setPage(newPage + 1)}
+              onRowsPerPageChange={(event) => {
+                setRowsPerPage(parseInt(event.target.value, 10));
+                setPage(1);
+              }}
             />
           )}
         </Box>

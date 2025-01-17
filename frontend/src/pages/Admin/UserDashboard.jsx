@@ -3,27 +3,35 @@ import {
   useDeleteAllMutation,
 } from "../../redux/api/userSlice.js";
 import GenericTable from "../../components/GenericTable.jsx";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import PopoverCom from "../../components/PopoverCom.jsx";
 import { toast } from "react-toastify";
 
 const UserDashboard = () => {
+  const [page, setPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedRow, setSelectedRow] = useState(null);
   const [selected, setSelected] = useState([]);
-  const { data: rows = [], error, isLoading } = useGetAllCurrentUserQuery();
+
+  const {
+    data: { users: rows = [], totalPages } = {},
+    error,
+    isLoading,
+  } = useGetAllCurrentUserQuery({ page, limit: rowsPerPage });
+
   const [deleteUsers, { isLoading: isDeleteLoading }] = useDeleteAllMutation();
 
-  const handleUpdateClick = (event, row) => {
+  const handleUpdateClick = useCallback((event, row) => {
     event.stopPropagation();
     setAnchorEl(event.currentTarget);
     setSelectedRow(row);
-  };
+  }, []);
 
-  const handleClosePopover = () => {
+  const handleClosePopover = useCallback(() => {
     setAnchorEl(null);
     setSelectedRow(null);
-  };
+  }, []);
 
   const handleDeleteConfirm = async () => {
     try {
@@ -37,7 +45,7 @@ const UserDashboard = () => {
   };
 
   const headCells = [
-    { id: "_id", numeric: true, disablePadding: false, label: "ID" },
+    // { id: "_id", numeric: true, disablePadding: false, label: "ID" },
     {
       id: "userName",
       numeric: false,
@@ -46,7 +54,7 @@ const UserDashboard = () => {
     },
     { id: "email", numeric: false, disablePadding: false, label: "Email" },
     {
-      id: "number",
+      id: "phoneNumber",
       numeric: false,
       disablePadding: false,
       label: "Phone Number",
@@ -69,6 +77,14 @@ const UserDashboard = () => {
         setSelected={setSelected}
         onDeleteConfirm={handleDeleteConfirm}
         isDeleteLoading={isDeleteLoading}
+        page={page - 1}
+        rowsPerPage={rowsPerPage}
+        totalPages={totalPages}
+        onPageChange={(_, newPage) => setPage(newPage + 1)}
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(parseInt(event.target.value, 10));
+          setPage(1);
+        }}
       />
       <PopoverCom
         anchorEl={anchorEl}

@@ -2,18 +2,18 @@ import express from "express";
 import {
   createCategory,
   deleteCategory,
-  getAllCategory,
-  getAllCategoryParent,
+  getPageCategory,
   getChildCategories,
   updateCategory,
+  getAllCategories,
 } from "../../controllers/categoryController.js";
 import { authentication, authorization } from "../../auth/authUtil.js";
 
 const Router = express.Router();
 
-Router.route("/all").get(getAllCategory);
+Router.route("/all").get(getAllCategories);
 
-Router.route("/").get(getAllCategoryParent);
+Router.route("/").get(getPageCategory);
 
 // Router.use(authentication, authorization);
 
