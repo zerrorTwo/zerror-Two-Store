@@ -209,6 +209,7 @@ const GenericTable = ({
                                 }}
                               >
                                 <img
+                                  loading="lazy"
                                   src={`${PRIMITIVE_URL}${cellValue}`}
                                   alt={cellValue}
                                   style={{
@@ -314,7 +315,7 @@ const GenericTable = ({
               color: theme.palette.text.secondary,
             },
             "& .MuiButtonBase-root": {
-              color: "white",
+              color: `${theme.palette.text.secondary} !important`,
             },
           }}
           component="div"

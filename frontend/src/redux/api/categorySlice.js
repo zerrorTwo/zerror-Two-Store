@@ -30,6 +30,15 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
 
+    getAllCategories: builder.query({
+      query: (parent) => ({
+        url: `${BASE_URL}/category/?parent=${parent}`,
+        method: "GET",
+      }),
+      providesTags: ["Category"],
+      keepUnusedDataFor: 5,
+    }),
+
     createNewCategory: builder.mutation({
       query: (body) => ({
         url: `${BASE_URL}/category/`,
@@ -79,6 +88,7 @@ export const {
   useGetAllCategoryQuery,
   useGetAllCategoriesParentQuery,
   useGetChildrenCategoryQuery,
+  useGetAllCategoriesQuery,
   useCreateNewCategoryMutation,
   useUpdateCategoryMutation,
   useDeleteCategoryMutation,
