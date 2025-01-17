@@ -1,36 +1,39 @@
 import {
   Box,
-  Button,
+  Breadcrumbs,
   Card,
   CircularProgress,
   Divider,
   Typography,
   useTheme,
 } from "@mui/material";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react"; // Import React.memo
 import { toast } from "react-toastify";
 import GenericTable from "../../components/GenericTable";
 import {
   useDeleteCategoryMutation,
   useUploadCategoryImageMutation,
-  useGetChildrenCategoryQuery,
-  useGetAllCategoriesParentQuery,
   useCreateNewCategoryMutation,
   useUpdateCategoryMutation,
+  useGetAllCategoriesQuery,
 } from "../../redux/api/categorySlice";
 import FormBase from "../../components/FormBase";
 import PopoverPaper from "../../components/PopoverPaper";
-import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import { PRIMITIVE_URL } from "../../redux/constants";
-import { Link, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
+
+// Wrap GenericTable and PopoverPaper with memo
+const MemoizedGenericTable = memo(GenericTable);
+const MemoizedPopoverPaper = memo(PopoverPaper);
 
 function CateDashBoard() {
   const theme = useTheme();
   const [searchParams] = useSearchParams();
-  const parent = searchParams.get("parent"); // Lấy giá trị từ query string
+  const parent = searchParams.get("parent") || null;
+
+  const navigate = useNavigate();
 
   const headCells = [
-    // { id: "_id", numeric: true, disablePadding: false, label: "ID" },
     { id: "name", numeric: false, disablePadding: false, label: "Name" },
     {
       id: "img",
@@ -41,12 +44,11 @@ function CateDashBoard() {
     },
   ];
 
-  // Fetch top-level categories
   const {
     data: listCate = [],
     error: categoryError,
     isLoading: categoryLoading,
-  } = useGetAllCategoriesParentQuery();
+  } = useGetAllCategoriesQuery(parent);
 
   const [createNew, { isLoading: isLoadingCreateNew }] =
     useCreateNewCategoryMutation();
@@ -55,52 +57,63 @@ function CateDashBoard() {
     useDeleteCategoryMutation();
   const [uploadCategoryImage] = useUploadCategoryImageMutation();
 
-  // State
   const [selectedRow, setSelectedRow] = useState(null);
-  const [isCreating, setIsCreating] = useState(false); // Trạng thái "Create"
-  const [selected, setSelected] = useState([]); // Selected categories
-  const [anchorEl, setAnchorEl] = useState(null); // Popover anchor
-  const [imagePreview, setImagePreview] = useState(null); // Image preview
-  const [selectedImage, setSelectedImage] = useState(null); // Selected image
-  const [parentId, setParentId] = useState(null); // Parent category ID
-  const [rows, setRows] = useState([]); // Rows for table
-  const [isLoadingBack, setIsLoadingBack] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [selected, setSelected] = useState([]);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [parentId, setParentId] = useState(null);
+  const [rows, setRows] = useState([]);
+  const [lvl, setLvl] = useState(1);
+  const [breadcrumbItems, setBreadcrumbItems] = useState([]);
 
   const formRef = useRef(null);
 
-  const [categoryHistory, setCategoryHistory] = useState([]);
-
-  const { refetch: fetchChildren } = useGetChildrenCategoryQuery(parentId, {
-    skip: !parentId,
-  });
+  const prevListCate = useRef(listCate);
 
   useEffect(() => {
-    if (parentId) {
-      fetchChildren()
-        .then((result) => {
-          setRows(result.data); // Cập nhật danh sách con
-        })
-        .catch((error) => {
-          toast.error("Failed to load children categories", error);
-        });
-    } else if (listCate.length > 0) {
-      setRows(listCate); // Hiển thị danh sách cha khi không có parent
+    const savedBreadcrumbItems = localStorage.getItem("breadcrumbItems");
+
+    if (savedBreadcrumbItems) {
+      setBreadcrumbItems(JSON.parse(savedBreadcrumbItems));
     }
-  }, [parentId, fetchChildren, listCate]);
 
-  useEffect(() => {
-    setRows(
-      listCate?.map((category) => ({
-        _id: category._id,
-        name: category.name,
-        img: category.img,
-      }))
-    );
+    if (JSON.stringify(listCate) !== JSON.stringify(prevListCate.current)) {
+      setRows(
+        listCate?.map((category) => ({
+          _id: category._id,
+          name: category.name,
+          img: category.img,
+          level: category?.level,
+        }))
+      );
+      setLvl(listCate[0]?.level);
+      prevListCate.current = listCate; // Cập nhật tham chiếu
+    }
   }, [listCate]);
 
+  useEffect(() => {
+    if (breadcrumbItems.length > 0) {
+      localStorage.setItem("breadcrumbItems", JSON.stringify(breadcrumbItems));
+    }
+  }, [breadcrumbItems]);
+
   const handleMoreClick = (row) => {
-    setCategoryHistory((prevHistory) => [...prevHistory, parentId]); // Lưu lại danh mục cha hiện tại
-    setParentId(row._id); // Thay đổi parent, useEffect sẽ xử lý việc gọi API
+    setParentId(row._id);
+    setBreadcrumbItems((prev) => {
+      if (!prev.some((item) => item.id === row._id)) {
+        return [...prev, { name: row.name, id: row._id }];
+      }
+      return prev;
+    });
+    navigate(`/layout/cate?parent=${row._id}`);
+  };
+
+  const handleBreadcrumbClick = (id, index) => {
+    setBreadcrumbItems((prev) => prev.slice(0, index + 1));
+    setParentId(id);
+    navigate(`/layout/cate?parent=${id}`);
   };
 
   const handleCloseDialog = () => {
@@ -126,21 +139,6 @@ function CateDashBoard() {
     setSelectedRow(firstRow);
     setIsCreating(true);
     setAnchorEl(event.currentTarget);
-  };
-
-  const handleBackClick = async () => {
-    setIsLoadingBack(true);
-    const lastParent = categoryHistory.pop();
-    setParentId(lastParent);
-    setCategoryHistory([...categoryHistory]);
-
-    try {
-      await fetchChildren();
-    } catch (error) {
-      toast.info("Here are the first list!!!!", error);
-    } finally {
-      setIsLoadingBack(false);
-    }
   };
 
   const handleImageChange = (event) => {
@@ -175,13 +173,11 @@ function CateDashBoard() {
   const handleSubmitCreate = async () => {
     try {
       const formData = formRef.current.getFormData();
-
       let imageUrl = null;
       if (selectedImage) {
         const formData = new FormData();
         formData.append("image", selectedImage);
         const uploadResult = await uploadCategoryImage(formData).unwrap();
-
         imageUrl = uploadResult.image;
       }
       formData.img = imageUrl;
@@ -189,8 +185,8 @@ function CateDashBoard() {
         toast.error("Category name is required");
         return;
       }
-      formData.parent = parent;
-      formData.level = categoryHistory?.length + 1;
+      formData.parent = parentId;
+      formData.level = lvl;
 
       const newCate = await createNew(formData);
 
@@ -244,6 +240,13 @@ function CateDashBoard() {
     }
   };
 
+  const handleBreadcrumbReset = () => {
+    setBreadcrumbItems([]);
+    setParentId(null);
+    localStorage.removeItem("breadcrumbItems"); // Xóa breadcrumbs khỏi localStorage
+    navigate("/layout/cate");
+  };
+
   if (categoryLoading) return <div>Loading...</div>;
   if (categoryError) return <div>Error loading categories</div>;
 
@@ -261,31 +264,34 @@ function CateDashBoard() {
         </Box>
       </Box>
 
-      <Button>
-        <Link to={`/layout/cate/?parent=${parentId}`}>asdfghjk</Link>
-      </Button>
-
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "flex-end",
-          mb: 1,
-        }}
-      >
-        <Button
-          sx={{
-            maxWidth: 150,
-            minWidth: 150,
-            opacity: categoryHistory.length > 0 ? 1 : 0,
-            pointerEvents: categoryHistory.length > 0 ? "auto" : "none",
-            color: theme.palette.text.secondary,
-          }}
-          startIcon={<ChevronLeftIcon />}
-          variant="outlined"
-          onClick={handleBackClick} // Quay lại danh mục cha trước đó
-        >
-          {isLoadingBack ? "Loading..." : "BACK"}
-        </Button>
+      <Box my={1}>
+        <Breadcrumbs>
+          <Typography
+            onClick={handleBreadcrumbReset}
+            sx={{
+              cursor: "pointer",
+              fontStyle: "italic",
+              textDecoration: "underline",
+              color: theme.palette.text.primary,
+            }}
+          >
+            All Category
+          </Typography>
+          {breadcrumbItems.map((item, index) => (
+            <Typography
+              key={item.id}
+              onClick={() => handleBreadcrumbClick(item.id, index)}
+              sx={{
+                cursor: "pointer",
+                fontStyle: "italic",
+                textDecoration: "underline",
+                color: theme.palette.text.primary,
+              }}
+            >
+              {item.name}
+            </Typography>
+          ))}
+        </Breadcrumbs>
       </Box>
 
       <Box>
@@ -293,16 +299,14 @@ function CateDashBoard() {
           {categoryLoading ? (
             <CircularProgress />
           ) : (
-            <GenericTable
+            <MemoizedGenericTable
               name="List Category"
               create={true}
               rows={rows}
               headCells={headCells}
               handleUpdateClick={handleUpdateClick}
               handleCreateClick={handleCreateClick}
-              handleMoreClick={
-                categoryHistory.length >= 2 ? undefined : handleMoreClick
-              }
+              handleMoreClick={lvl <= 2 ? handleMoreClick : undefined}
               selected={selected}
               setSelected={setSelected}
               onDeleteConfirm={handleDeleteConfirm}
@@ -310,7 +314,8 @@ function CateDashBoard() {
             />
           )}
         </Box>
-        <PopoverPaper
+
+        <MemoizedPopoverPaper
           item={selectedRow}
           open={Boolean(anchorEl)}
           anchorEl={anchorEl}
@@ -338,6 +343,7 @@ function CateDashBoard() {
             >
               {imagePreview || selectedRow?.img ? (
                 <img
+                  loading="lazy"
                   src={
                     imagePreview
                       ? imagePreview
@@ -369,7 +375,7 @@ function CateDashBoard() {
             item={selectedRow || { _id: "", name: "" }}
             onChange={handleFormChange}
           />
-        </PopoverPaper>
+        </MemoizedPopoverPaper>
       </Box>
     </Box>
   );

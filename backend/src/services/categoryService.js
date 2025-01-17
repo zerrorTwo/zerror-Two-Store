@@ -52,9 +52,13 @@ const getAllCategoriesParent = async (req, res) => {
   try {
     const parent = req.query.parent;
     if (parent === "null" || !parent)
-      return await CategoryModel.find({ parent: null });
+      return await CategoryModel.find({ parent: null })
+        .select("_id name img level")
+        .lean();
 
-    const categories = await CategoryModel.find({ parent: parent });
+    const categories = await CategoryModel.find({ parent: parent })
+      .select("_id name img level")
+      .lean();
     return categories;
   } catch (error) {
     throw error;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, memo } from "react"; // Import React.memo
 import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import Paper from "@mui/material/Paper";
@@ -15,7 +15,9 @@ const Item = styled(Paper)(({ theme }) => ({
   color: theme.palette.text.primary,
 }));
 
-export default function LayoutAdmin() {
+const MemoizedNavAdminItem = memo(NavAdminItem); // Wrap NavAdminItem with memo
+
+function LayoutAdmin() {
   const theme = useTheme();
   const [selectedItem, setSelectedItem] = useState("/");
 
@@ -61,7 +63,7 @@ export default function LayoutAdmin() {
                   variant="middle"
                   sx={{ bgcolor: theme.palette.text.primary }}
                 />
-                <NavAdminItem
+                <MemoizedNavAdminItem
                   to="/layout"
                   icon={<HomeIcon />}
                   text="Home"
@@ -72,7 +74,7 @@ export default function LayoutAdmin() {
                   variant="middle"
                   sx={{ bgcolor: theme.palette.text.primary }}
                 />
-                <NavAdminItem
+                <MemoizedNavAdminItem
                   to="/layout"
                   icon={<HomeIcon />}
                   text="Dashboard"
@@ -83,7 +85,7 @@ export default function LayoutAdmin() {
                   variant="middle"
                   sx={{ bgcolor: theme.palette.text.primary }}
                 />
-                <NavAdminItem
+                <MemoizedNavAdminItem
                   to="/layout"
                   icon={<HomeIcon />}
                   text="Settings"
@@ -107,3 +109,5 @@ export default function LayoutAdmin() {
     </Box>
   );
 }
+
+export default LayoutAdmin;
