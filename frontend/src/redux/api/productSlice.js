@@ -1,5 +1,5 @@
 import { apiSlice } from "./apiSlice";
-import { PRIMITIVE_URL, PRODUCT_URL, UPLOAD_URL } from "../constants";
+import { PRODUCT_URL, UPLOAD_URL } from "../constants";
 
 export const productApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -11,6 +11,16 @@ export const productApiSlice = apiSlice.injectEndpoints({
       providesTags: ["Product"],
       keepUnusedDataFor: 5,
     }),
+
+    getPageProduct: builder.query({
+      query: ({ page = 1, limit = 10 }) => ({
+        url: `${PRODUCT_URL}?page=${page}&limit=${limit}`,
+        method: "GET",
+      }),
+      providesTags: ["Product"],
+      keepUnusedDataFor: 5,
+    }),
+
     createNewProduct: builder.mutation({
       query: ({ data }) => ({
         url: `${PRODUCT_URL}/`,
@@ -61,20 +71,12 @@ export const productApiSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Product"],
     }),
-
-    getProductImage: builder.query({
-      query: (imagePath) => ({
-        url: `${PRIMITIVE_URL}${imagePath}`, // BASE_URL là URL của server backend
-        method: "GET",
-        responseType: "blob", // Nếu muốn nhận tệp hình ảnh dưới dạng blob
-      }),
-    }),
   }),
 });
 
 export const {
   useGetAllProductQuery,
-  useLazyGetProductImageQuery,
+  useGetPageProductQuery,
   useUploadProductImageMutation,
   useUpdateProductMutation,
   useDeleteAllProductMutation,

@@ -5,7 +5,7 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getAllCategory: builder.query({
       query: () => ({
-        url: `${BASE_URL}/category`,
+        url: `${BASE_URL}/category/all`,
         method: "GET",
       }),
       providesTags: ["Category"],
@@ -31,8 +31,8 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
     }),
 
     getAllCategories: builder.query({
-      query: (parent) => ({
-        url: `${BASE_URL}/category/?parent=${parent}`,
+      query: ({ parent, page, limit }) => ({
+        url: `${BASE_URL}/category/?parent=${parent}&page=${page}&limit=${limit}`,
         method: "GET",
       }),
       providesTags: ["Category"],

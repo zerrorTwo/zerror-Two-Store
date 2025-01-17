@@ -1,30 +1,39 @@
 import {
   useDeleteAllProductMutation,
-  useGetAllProductQuery,
-} from "../../redux/api/productSlice.js"; // Adjust the import path as needed
-import { useGetAllCategoryQuery } from "../../redux/api/categorySlice.js"; // Adjust the import path as needed
-import GenericTable from "../../components/GenericTable"; // Adjust the import path as needed
+  useGetPageProductQuery,
+} from "../../redux/api/productSlice.js"; // Sử dụng getPageProduct
+import { useGetAllCategoryQuery } from "../../redux/api/categorySlice.js";
+import GenericTable from "../../components/GenericTable";
 import { useState, useCallback } from "react";
-import FullScreenDialogCom from "../../components/FullScreenDialogCom"; // Adjust the import path as needed
+import FullScreenDialogCom from "../../components/FullScreenDialogCom";
 import { toast } from "react-toastify";
 
 const ProductDashboard = () => {
-  // Fetch dữ liệu chỉ một lần khi component được mount
-  const { data: rows = [], error, isLoading } = useGetAllProductQuery();
+  const [page, setPage] = useState(1); // Trang hiện tại
+  const [rowsPerPage, setRowsPerPage] = useState(10); // Số sản phẩm mỗi trang
+
+  // Fetch dữ liệu sản phẩm với phân trang
+  const {
+    data: { products: rows = [], totalPages } = {},
+    error,
+    isLoading,
+  } = useGetPageProductQuery({ page, limit: rowsPerPage });
+
   const {
     data: listCate = [],
     error: categoryError,
     isLoading: categoryLoading,
-  } = useGetAllCategoryQuery(); // Fetch categories
+  } = useGetAllCategoryQuery();
+
   const processedRows = rows.map((row) => ({
     ...row,
-    type: row.type?.name || "Unknown", // Lấy name từ type
+    type: row.type?.name || "Unknown",
   }));
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [isCreate, setIsCreate] = useState(false);
-  const [selected, setSelected] = useState([]); // Move selected state here
+  const [selected, setSelected] = useState([]);
   const [deleteProduct, { isLoading: isDeleteLoading }] =
     useDeleteAllProductMutation();
 
@@ -61,14 +70,7 @@ const ProductDashboard = () => {
   };
 
   const headCells = [
-    // { id: "_id", numeric: true, disablePadding: false, label: "ID" },
     { id: "name", numeric: false, disablePadding: false, label: "Name" },
-    // {
-    //   id: "description",
-    //   numeric: false,
-    //   disablePadding: false,
-    //   label: "Description",
-    // },
     { id: "price", numeric: true, disablePadding: false, label: "Price" },
     { id: "quantity", numeric: true, disablePadding: false, label: "Quantity" },
     { id: "type", numeric: false, disablePadding: false, label: "Type" },
@@ -90,13 +92,22 @@ const ProductDashboard = () => {
         setSelected={setSelected}
         onDeleteConfirm={handleDeleteConfirm}
         isDeleteLoading={isDeleteLoading}
+        page={page - 1} // Chuyển đổi từ 1-based sang 0-based
+        rowsPerPage={rowsPerPage}
+        totalPages={totalPages}
+        onPageChange={(_, newPage) => setPage(newPage + 1)} // Chuyển đổi từ 0-based sang 1-based
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(parseInt(event.target.value, 10));
+          setPage(1); // Reset về trang đầu khi thay đổi số dòng
+        }}
       />
+
       <FullScreenDialogCom
         create={isCreate}
         open={dialogOpen}
         handleClose={handleCloseDialog}
         row={selectedRow}
-        listCate={listCate} // Pass categories to FullScreenDialogCom
+        listCate={listCate}
       />
     </>
   );

@@ -34,7 +34,30 @@ const updateCurrentUserProfile = async (req, res) => {
 };
 
 const getAllUsers = async (req, res) => {
-  return await UserModel.find({});
+  try {
+    const page = parseInt(req.query.page) || 1; // Mặc định là trang 1
+    const limit = parseInt(req.query.limit) || 10; // Mặc định là 10 sản phẩm mỗi trang
+
+    // Tính số sản phẩm cần skip
+    const skip = (page - 1) * limit;
+
+    // Lấy danh sách sản phẩm từ database với phân trang
+    const users = await UserModel.find({}).skip(skip).limit(limit);
+
+    // Tính tổng số sản phẩm
+    const totalUsers = await UserModel.countDocuments({});
+
+    // Tạo response với dữ liệu phân trang
+    return {
+      page,
+      limit,
+      totalPages: Math.ceil(totalUsers / limit),
+      totalUsers,
+      users,
+    };
+  } catch (error) {
+    throw error;
+  }
 };
 
 const getUserById = async (req, res) => {

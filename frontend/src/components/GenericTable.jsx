@@ -21,24 +21,20 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import { useTheme } from "@mui/material/styles";
 import { PRIMITIVE_URL } from "../redux/constants";
 
+// Sorting functions remain the same
 const descendingComparator = (a, b, orderBy) => {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
+  if (b[orderBy] < a[orderBy]) return -1;
+  if (b[orderBy] > a[orderBy]) return 1;
   return 0;
 };
 
-const getComparator = (order, orderBy) => {
-  return order === "desc"
+const getComparator = (order, orderBy) =>
+  order === "desc"
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
-};
 
 const GenericTable = ({
-  name = "List User",
+  name,
   create,
   rows,
   headCells,
@@ -49,16 +45,20 @@ const GenericTable = ({
   setSelected,
   onDeleteConfirm,
   isDeleteLoading,
+  page,
+  rowsPerPage,
+  totalPages,
+  onPageChange,
+  onRowsPerPageChange,
 }) => {
-  const rowsPerPage = 10;
   const height = 38;
   const theme = useTheme();
 
   const [order, setOrder] = useState("asc");
   const [orderBy, setOrderBy] = useState(headCells[0].id);
-  const [page, setPage] = useState(0);
   const [openDialog, setOpenDialog] = useState(false);
 
+  // Event handlers remain the same
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
@@ -67,8 +67,7 @@ const GenericTable = ({
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelected = rows.map((n) => n._id);
-      setSelected(newSelected);
+      setSelected(rows.map((n) => n._id));
       return;
     }
     setSelected([]);
@@ -76,45 +75,26 @@ const GenericTable = ({
 
   const handleClick = (event, id) => {
     const selectedIndex = selected.indexOf(id);
-    let newSelected = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
+    const newSelected =
+      selectedIndex === -1
+        ? [...selected, id]
+        : selected.filter((item) => item !== id);
     setSelected(newSelected);
   };
 
-  const handleChangePage = (event, newPage) => {
-    setPage(newPage);
-  };
-
-  const handleOpenDialog = () => {
-    setOpenDialog(true);
-  };
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false);
-  };
-
-  const emptyRows =
-    page >= 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+  const handleOpenDialog = () => setOpenDialog(true);
+  const handleCloseDialog = () => setOpenDialog(false);
 
   const visibleRows = useMemo(
     () =>
       [...rows]
         .sort(getComparator(order, orderBy))
         .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-    [order, orderBy, page, rows]
+    [order, orderBy, page, rows, rowsPerPage]
   );
+
+  const emptyRows =
+    page >= 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
   return (
     <Box
@@ -129,7 +109,7 @@ const GenericTable = ({
         <GenericTableToolbar
           name={name}
           create={create}
-          numSelected={selected?.length || 0}
+          numSelected={selected.length}
           handleCreateClick={handleCreateClick}
           handleOpenDialog={handleOpenDialog}
           isLoading={isDeleteLoading}
@@ -139,12 +119,12 @@ const GenericTable = ({
             sx={{
               minWidth: 750,
               "& .MuiTableRow-root": {
-                height: `${height}px `,
+                height: `${height}px`,
               },
               "& .MuiTableCell-root": {
-                height: `${height}px `,
+                height: `${height}px`,
                 padding: "0 16px",
-                lineHeight: `${height}px `,
+                lineHeight: `${height}px`,
               },
             }}
             aria-labelledby="tableTitle"
@@ -152,7 +132,7 @@ const GenericTable = ({
           >
             <GenericTableHead
               headCells={headCells}
-              numSelected={selected?.length}
+              numSelected={selected.length}
               order={order}
               orderBy={orderBy}
               onSelectAllClick={handleSelectAllClick}
@@ -161,7 +141,7 @@ const GenericTable = ({
             />
             <TableBody>
               {visibleRows.map((row, index) => {
-                const isItemSelected = selected?.includes(row._id);
+                const isItemSelected = selected.includes(row._id);
                 const labelId = `enhanced-table-checkbox-${index}`;
 
                 return (
@@ -228,30 +208,27 @@ const GenericTable = ({
                         </TableCell>
                       );
                     })}
-                    <TableCell
-                      align="center"
-                      sx={{
-                        color: theme.palette.text.secondary,
-                        "& .MuiButtonBase-root": {
-                          padding: "6px",
-                        },
-                      }}
-                    >
-                      <Box
-                        sx={{
-                          display: "flex",
-                          gap: 1,
-                          justifyContent: "center",
-                          height: "100%",
-                          alignItems: "center",
-                        }}
-                      >
-                        <Tooltip title="Update">
+                    <TableCell align="center">
+                      <Tooltip title="Update">
+                        <IconButton
+                          onClick={(e) => handleUpdateClick(e, row)}
+                          sx={{
+                            "&:hover": {
+                              backgroundColor:
+                                theme.palette.button.hoverBackgroundColor,
+                            },
+                            color: theme.palette.text.secondary,
+                            backgroundColor:
+                              theme.palette.button.backgroundColor,
+                          }}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                      {handleMoreClick && (
+                        <Tooltip title="More">
                           <IconButton
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleUpdateClick(event, row);
-                            }}
+                            onClick={() => handleMoreClick(row)}
                             sx={{
                               "&:hover": {
                                 backgroundColor:
@@ -262,31 +239,10 @@ const GenericTable = ({
                                 theme.palette.button.backgroundColor,
                             }}
                           >
-                            <EditIcon fontSize="small" />
+                            <MoreHorizIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                        {handleMoreClick && (
-                          <Tooltip title="More">
-                            <IconButton
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                handleMoreClick(row); // Truyền đúng row vào hàm
-                              }}
-                              sx={{
-                                "&:hover": {
-                                  backgroundColor:
-                                    theme.palette.button.hoverBackgroundColor,
-                                },
-                                color: theme.palette.text.secondary,
-                                backgroundColor:
-                                  theme.palette.button.backgroundColor,
-                              }}
-                            >
-                              <MoreHorizIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                      </Box>
+                      )}
                     </TableCell>
                   </TableRow>
                 );
@@ -294,36 +250,51 @@ const GenericTable = ({
               {emptyRows > 0 && (
                 <TableRow
                   style={{
-                    height: `${height * emptyRows}px `,
+                    height: `${height * emptyRows}px`,
                   }}
                 >
                   <TableCell colSpan={headCells.length + 2} />
                 </TableRow>
               )}
             </TableBody>
+            <TableBody>
+              <TableRow>
+                <TableCell colSpan={headCells.length + 2}>
+                  <TablePagination
+                    component="div"
+                    count={totalPages * rowsPerPage}
+                    page={page}
+                    rowsPerPage={rowsPerPage}
+                    onPageChange={onPageChange}
+                    onRowsPerPageChange={onRowsPerPageChange}
+                    sx={{
+                      display: "flex",
+                      width: "100%",
+                      border: "none",
+                      "& .MuiToolbar-root": {
+                        display: "flex",
+                        width: "100%",
+                        justifyContent: "space-between",
+                      },
+                      "& .MuiTablePagination-selectLabel": {
+                        display: "none",
+                      },
+                      "& .MuiTablePagination-input": {
+                        display: "none",
+                      },
+                      "& .MuiTablePagination-displayedRows": {
+                        color: theme.palette.text.secondary,
+                      },
+                      "& .MuiButtonBase-root": {
+                        color: `${theme.palette.text.secondary} !important`,
+                      },
+                    }}
+                  />
+                </TableCell>
+              </TableRow>
+            </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          sx={{
-            "& .MuiTablePagination-selectLabel": {
-              display: "none",
-            },
-            "& .MuiTablePagination-input": {
-              display: "none",
-            },
-            "& .MuiTablePagination-displayedRows": {
-              color: theme.palette.text.secondary,
-            },
-            "& .MuiButtonBase-root": {
-              color: `${theme.palette.text.secondary} !important`,
-            },
-          }}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-        />
       </Paper>
       <ConfirmDialog
         open={openDialog}
@@ -332,7 +303,7 @@ const GenericTable = ({
           onDeleteConfirm();
           handleCloseDialog();
         }}
-        itemCount={selected?.length}
+        itemCount={selected.length}
       />
     </Box>
   );
@@ -340,8 +311,8 @@ const GenericTable = ({
 
 GenericTable.propTypes = {
   rows: PropTypes.array.isRequired,
-  name: PropTypes.string.isRequired,
-  create: PropTypes.bool.isRequired,
+  name: PropTypes.string,
+  create: PropTypes.bool,
   headCells: PropTypes.array.isRequired,
   handleUpdateClick: PropTypes.func.isRequired,
   handleCreateClick: PropTypes.func,
@@ -350,6 +321,11 @@ GenericTable.propTypes = {
   setSelected: PropTypes.func.isRequired,
   onDeleteConfirm: PropTypes.func.isRequired,
   isDeleteLoading: PropTypes.bool,
+  page: PropTypes.number.isRequired,
+  rowsPerPage: PropTypes.number.isRequired,
+  totalPages: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired,
+  onRowsPerPageChange: PropTypes.func.isRequired,
 };
 
 export default GenericTable;
