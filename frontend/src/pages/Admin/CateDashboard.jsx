@@ -22,12 +22,15 @@ import FormBase from "../../components/FormBase";
 import PopoverPaper from "../../components/PopoverPaper";
 import ChevronLeftIcon from "@mui/icons-material/ChevronLeft";
 import { PRIMITIVE_URL } from "../../redux/constants";
+import { Link, useSearchParams } from "react-router";
 
 function CateDashBoard() {
   const theme = useTheme();
+  const [searchParams] = useSearchParams();
+  const parent = searchParams.get("parent"); // Lấy giá trị từ query string
 
   const headCells = [
-    { id: "_id", numeric: true, disablePadding: false, label: "ID" },
+    // { id: "_id", numeric: true, disablePadding: false, label: "ID" },
     { id: "name", numeric: false, disablePadding: false, label: "Name" },
     {
       id: "img",
@@ -59,7 +62,7 @@ function CateDashBoard() {
   const [anchorEl, setAnchorEl] = useState(null); // Popover anchor
   const [imagePreview, setImagePreview] = useState(null); // Image preview
   const [selectedImage, setSelectedImage] = useState(null); // Selected image
-  const [parent, setParent] = useState(null); // Parent category ID
+  const [parentId, setParentId] = useState(null); // Parent category ID
   const [rows, setRows] = useState([]); // Rows for table
   const [isLoadingBack, setIsLoadingBack] = useState(false);
 
@@ -67,12 +70,12 @@ function CateDashBoard() {
 
   const [categoryHistory, setCategoryHistory] = useState([]);
 
-  const { refetch: fetchChildren } = useGetChildrenCategoryQuery(parent, {
-    skip: !parent,
+  const { refetch: fetchChildren } = useGetChildrenCategoryQuery(parentId, {
+    skip: !parentId,
   });
 
   useEffect(() => {
-    if (parent) {
+    if (parentId) {
       fetchChildren()
         .then((result) => {
           setRows(result.data); // Cập nhật danh sách con
@@ -83,23 +86,21 @@ function CateDashBoard() {
     } else if (listCate.length > 0) {
       setRows(listCate); // Hiển thị danh sách cha khi không có parent
     }
-  }, [parent, fetchChildren, listCate]);
+  }, [parentId, fetchChildren, listCate]);
 
   useEffect(() => {
-    if (listCate.length > 0) {
-      setRows(
-        listCate.map((category) => ({
-          _id: category._id,
-          name: category.name,
-          img: category.img,
-        }))
-      );
-    }
+    setRows(
+      listCate?.map((category) => ({
+        _id: category._id,
+        name: category.name,
+        img: category.img,
+      }))
+    );
   }, [listCate]);
 
   const handleMoreClick = (row) => {
-    setCategoryHistory((prevHistory) => [...prevHistory, parent]); // Lưu lại danh mục cha hiện tại
-    setParent(row._id); // Thay đổi parent, useEffect sẽ xử lý việc gọi API
+    setCategoryHistory((prevHistory) => [...prevHistory, parentId]); // Lưu lại danh mục cha hiện tại
+    setParentId(row._id); // Thay đổi parent, useEffect sẽ xử lý việc gọi API
   };
 
   const handleCloseDialog = () => {
@@ -130,7 +131,7 @@ function CateDashBoard() {
   const handleBackClick = async () => {
     setIsLoadingBack(true);
     const lastParent = categoryHistory.pop();
-    setParent(lastParent);
+    setParentId(lastParent);
     setCategoryHistory([...categoryHistory]);
 
     try {
@@ -189,6 +190,7 @@ function CateDashBoard() {
         return;
       }
       formData.parent = parent;
+      formData.level = categoryHistory?.length + 1;
 
       const newCate = await createNew(formData);
 
@@ -199,6 +201,7 @@ function CateDashBoard() {
 
       if (newCate) {
         toast.success("Category created successfully");
+        setImagePreview(null);
         handleCloseDialog();
       } else {
         toast.error("Failed to create category");
@@ -258,27 +261,31 @@ function CateDashBoard() {
         </Box>
       </Box>
 
+      <Button>
+        <Link to={`/layout/cate/?parent=${parentId}`}>asdfghjk</Link>
+      </Button>
+
       <Box
         sx={{
           display: "flex",
           justifyContent: "flex-end",
-          my: 2,
+          mb: 1,
         }}
       >
-        {categoryHistory.length > 0 ? (
-          <Button
-            sx={{
-              color: theme.palette.text.secondary,
-            }}
-            startIcon={<ChevronLeftIcon />}
-            variant="outlined"
-            onClick={handleBackClick} // Quay lại danh mục cha trước đó
-          >
-            {isLoadingBack ? <CircularProgress size={25} /> : "BACK"}
-          </Button>
-        ) : (
-          <Box sx={{ width: "100px", height: "36px" }} /> // Phần giữ chỗ
-        )}
+        <Button
+          sx={{
+            maxWidth: 150,
+            minWidth: 150,
+            opacity: categoryHistory.length > 0 ? 1 : 0,
+            pointerEvents: categoryHistory.length > 0 ? "auto" : "none",
+            color: theme.palette.text.secondary,
+          }}
+          startIcon={<ChevronLeftIcon />}
+          variant="outlined"
+          onClick={handleBackClick} // Quay lại danh mục cha trước đó
+        >
+          {isLoadingBack ? "Loading..." : "BACK"}
+        </Button>
       </Box>
 
       <Box>
@@ -294,7 +301,7 @@ function CateDashBoard() {
               handleUpdateClick={handleUpdateClick}
               handleCreateClick={handleCreateClick}
               handleMoreClick={
-                categoryHistory.length >= 2 ? () => {} : handleMoreClick
+                categoryHistory.length >= 2 ? undefined : handleMoreClick
               }
               selected={selected}
               setSelected={setSelected}

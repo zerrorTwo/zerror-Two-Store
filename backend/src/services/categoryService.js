@@ -21,8 +21,28 @@ const getCategoryTree = async (parent = null) => {
 
 const getAllCategories = async (req, res) => {
   try {
-    const categoryTree = await getCategoryTree();
-    return categoryTree;
+    // Lấy tất cả danh mục
+    const allCategories = await CategoryModel.find({}).lean();
+
+    // Tạo bản đồ danh mục để dễ dàng tìm kiếm
+    const categoryMap = {};
+    allCategories.forEach((category) => {
+      categoryMap[category._id] = { ...category, children: [] };
+    });
+
+    // Xây dựng cây danh mục
+    const tree = [];
+    allCategories.forEach((category) => {
+      if (category.parent) {
+        // Nếu danh mục có `parent`, thêm nó vào `children` của cha
+        categoryMap[category.parent]?.children.push(categoryMap[category._id]);
+      } else {
+        // Nếu không có `parent`, đây là danh mục gốc
+        tree.push(categoryMap[category._id]);
+      }
+    });
+
+    return tree; // Trả về cây danh mục
   } catch (error) {
     throw error;
   }
@@ -30,7 +50,11 @@ const getAllCategories = async (req, res) => {
 
 const getAllCategoriesParent = async (req, res) => {
   try {
-    const categories = await CategoryModel.find({ parent: null });
+    const parent = req.query.parent;
+    if (parent === "null" || !parent)
+      return await CategoryModel.find({ parent: null });
+
+    const categories = await CategoryModel.find({ parent: parent });
     return categories;
   } catch (error) {
     throw error;

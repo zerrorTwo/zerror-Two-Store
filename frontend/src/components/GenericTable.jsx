@@ -51,6 +51,7 @@ const GenericTable = ({
   isDeleteLoading,
 }) => {
   const rowsPerPage = 10;
+  const height = 38;
   const theme = useTheme();
 
   const [order, setOrder] = useState("asc");
@@ -105,7 +106,7 @@ const GenericTable = ({
   };
 
   const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+    page >= 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
 
   const visibleRows = useMemo(
     () =>
@@ -138,12 +139,12 @@ const GenericTable = ({
             sx={{
               minWidth: 750,
               "& .MuiTableRow-root": {
-                height: "48px !important",
+                height: `${height}px `,
               },
               "& .MuiTableCell-root": {
-                height: "48px !important",
+                height: `${height}px `,
                 padding: "0 16px",
-                lineHeight: "48px",
+                lineHeight: `${height}px `,
               },
             }}
             aria-labelledby="tableTitle"
@@ -212,7 +213,7 @@ const GenericTable = ({
                                   alt={cellValue}
                                   style={{
                                     width: "auto",
-                                    height: "30px",
+                                    height: `${height}px`,
                                     objectFit: "cover",
                                   }}
                                 />
@@ -260,11 +261,11 @@ const GenericTable = ({
                                 theme.palette.button.backgroundColor,
                             }}
                           >
-                            <EditIcon />
+                            <EditIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                         {handleMoreClick && (
-                          <Tooltip title="Review">
+                          <Tooltip title="More">
                             <IconButton
                               onClick={(event) => {
                                 event.stopPropagation();
@@ -280,7 +281,7 @@ const GenericTable = ({
                                   theme.palette.button.backgroundColor,
                               }}
                             >
-                              <MoreHorizIcon />
+                              <MoreHorizIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
                         )}
@@ -290,7 +291,11 @@ const GenericTable = ({
                 );
               })}
               {emptyRows > 0 && (
-                <TableRow style={{ height: 48 * emptyRows }}>
+                <TableRow
+                  style={{
+                    height: `${height * emptyRows}px `,
+                  }}
+                >
                   <TableCell colSpan={headCells.length + 2} />
                 </TableRow>
               )}
@@ -309,7 +314,7 @@ const GenericTable = ({
               color: theme.palette.text.secondary,
             },
             "& .MuiButtonBase-root": {
-              color: `${theme.palette.text.secondary} !important`,
+              color: "white",
             },
           }}
           component="div"
