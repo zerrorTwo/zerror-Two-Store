@@ -309,10 +309,10 @@ function CateDashBoard() {
               page={page - 1}
               rowsPerPage={rowsPerPage}
               totalPages={totalPages}
-              onPageChange={(_, newPage) => setPage(newPage + 1)}
+              onPageChange={(_, newPage) => setPage(newPage + 1)} // Chuyển đổi từ 0-based sang 1-based
               onRowsPerPageChange={(event) => {
                 setRowsPerPage(parseInt(event.target.value, 10));
-                setPage(1);
+                setPage(1); // Reset về trang đầu khi thay đổi số dòng
               }}
             />
           )}

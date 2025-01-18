@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -85,16 +85,7 @@ const GenericTable = ({
   const handleOpenDialog = () => setOpenDialog(true);
   const handleCloseDialog = () => setOpenDialog(false);
 
-  const visibleRows = useMemo(
-    () =>
-      [...rows]
-        .sort(getComparator(order, orderBy))
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-    [order, orderBy, page, rows, rowsPerPage]
-  );
-
-  const emptyRows =
-    page >= 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
+  const emptyRows = page >= 0 ? rowsPerPage - rows.length : 0;
 
   return (
     <Box
@@ -140,7 +131,7 @@ const GenericTable = ({
               rowCount={rows.length}
             />
             <TableBody>
-              {visibleRows.map((row, index) => {
+              {rows.sort(getComparator(order, orderBy))?.map((row, index) => {
                 const isItemSelected = selected.includes(row._id);
                 const labelId = `enhanced-table-checkbox-${index}`;
 
@@ -250,7 +241,7 @@ const GenericTable = ({
               {emptyRows > 0 && (
                 <TableRow
                   style={{
-                    height: `${height * emptyRows}px`,
+                    height: `${(height + 1.1) * emptyRows}px`,
                   }}
                 >
                   <TableCell colSpan={headCells.length + 2} />

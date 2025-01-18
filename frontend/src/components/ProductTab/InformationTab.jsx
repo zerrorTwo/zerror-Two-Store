@@ -2,8 +2,10 @@ import PropTypes from "prop-types";
 import {
   Box,
   Card,
+  FormControl,
+  InputLabel,
   MenuItem,
-  TextField,
+  Select,
   Typography,
   useTheme,
 } from "@mui/material";
@@ -31,34 +33,39 @@ const InformationTab = ({
           onChange={handleInputChange}
         />
         <Box display="flex" alignItems="center">
-          <TextField
-            sx={{
-              width: 300,
-              mt: 0,
-              "& .MuiInputBase-input": {
-                color: theme.palette.text.blackColor,
-              },
-              "& .MuiInputLabel-root": {
-                color: theme.palette.text.blackColor,
-              },
-            }}
-            select
-            fullWidth={false}
-            margin="normal"
-            name="type"
-            label="Type"
-            value={formData.type}
-            onChange={handleInputChange}
-          >
-            <MenuItem value="">
-              <em>Chose your category</em>
-            </MenuItem>
-            {listCate.map((category) => (
-              <MenuItem key={category._id} value={category.name}>
-                {category.name}
+          <FormControl sx={{ width: 300, mt: 0 }}>
+            <InputLabel
+              sx={{ color: theme.palette.text.blackColor }}
+              id="type-select-label"
+            >
+              Type
+            </InputLabel>
+            <Select
+              labelId="type-select-label"
+              id="type-select"
+              name="type"
+              value={formData.type}
+              onChange={handleInputChange}
+              label="Type"
+              sx={{
+                "& .MuiInputBase-input": {
+                  color: theme.palette.text.blackColor,
+                },
+                "& .MuiInputLabel-root": {
+                  color: theme.palette.text.blackColor,
+                },
+              }}
+            >
+              <MenuItem value="">
+                <em>Chose your category</em>
               </MenuItem>
-            ))}
-          </TextField>
+              {listCate.map((category) => (
+                <MenuItem key={category._id} value={category.name}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </Box>
       </Box>
       <InputBase
