@@ -15,7 +15,7 @@ Router.route("/all").get(getAllCategories);
 
 Router.route("/").get(getPageCategory);
 
-// Router.use(authentication, authorization);
+Router.use(authentication, authorization);
 
 Router.route("/").delete(deleteCategory).post(createCategory);
 

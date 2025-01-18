@@ -5,7 +5,9 @@ import bcyptPassword from "../utils/bcryptPassword.js";
 
 const getCurrentUserProfile = async (req, res) => {
   const userId = req.user;
-  const user = UserModel.findById(userId);
+  const user = UserModel.findById(userId)
+    .select("_id name email password isAdmin")
+    .lean();
   return user;
 };
 
@@ -42,7 +44,11 @@ const getAllUsers = async (req, res) => {
     const skip = (page - 1) * limit;
 
     // Lấy danh sách sản phẩm từ database với phân trang
-    const users = await UserModel.find({}).skip(skip).limit(limit);
+    const users = await UserModel.find({})
+      .select("_id name email password isAdmin")
+      .skip(skip)
+      .limit(limit)
+      .lean();
 
     // Tính tổng số sản phẩm
     const totalUsers = await UserModel.countDocuments({});

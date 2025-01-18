@@ -8,7 +8,7 @@ const baseQuery = fetchBaseQuery({
   credentials: "include",
   prepareHeaders: (headers, { getState }) => {
     const token = getState().auth.token;
-    const userId = getState().auth.userId;
+    const userId = getState().auth.userInfo?._id;
     // console.log(userId, token);
 
     if (token) {

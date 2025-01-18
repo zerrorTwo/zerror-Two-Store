@@ -43,7 +43,9 @@ const updateProduct = async (req, res) => {
     const id = req.params.id;
 
     const data = req.body;
-    const type = CategoryModel.findOne({ name: data.updatedFormData.type });
+    const type = await CategoryModel.findOne({
+      name: data.updatedFormData.type,
+    });
     data.updatedFormData.type = type._id;
 
     const product = await ProductModel.findByIdAndUpdate(

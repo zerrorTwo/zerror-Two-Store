@@ -26,7 +26,7 @@ function LayoutAdmin() {
   };
 
   return (
-    <Box component={"main"} sx={{ flexGrow: 1, my: 5, px: 10 }}>
+    <Box component={"main"} sx={{ flexGrow: 1, my: 2, px: 10 }}>
       <CssBaseline />
       <Grid container spacing={3}>
         <Grid size={2.5}>
@@ -102,7 +102,9 @@ function LayoutAdmin() {
         </Grid>
         <Grid size={9.5}>
           <Item>
-            <Outlet />
+            <Box sx={{ border: "1px solid #555", borderRadius: 1, p: 2 }}>
+              <Outlet />
+            </Box>
           </Item>
         </Grid>
       </Grid>

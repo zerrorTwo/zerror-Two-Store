@@ -246,7 +246,7 @@ function CateDashBoard() {
   if (categoryError) return <div>Error loading categories</div>;
 
   return (
-    <Box sx={{ border: "1px solid #555", borderRadius: 1, p: 2 }}>
+    <>
       <Box display={"flex"} justifyContent={"start"}>
         <Box display={"grid"}>
           <Typography variant="h5">Manager Category</Typography>
@@ -380,7 +380,7 @@ function CateDashBoard() {
           />
         </MemoizedPopoverPaper>
       </Box>
-    </Box>
+    </>
   );
 }
 

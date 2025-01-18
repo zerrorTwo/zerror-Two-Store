@@ -1,25 +1,15 @@
 import PropTypes from "prop-types";
-import {
-  Box,
-  Card,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import { Box, Card, Typography } from "@mui/material";
 import InputBase from "../InputBase";
 import { PRIMITIVE_URL } from "../../redux/constants";
+import CategorySelect from "../CategorySelect";
 
 const InformationTab = ({
+  listCate,
   formData,
   handleInputChange,
   handleFileChange,
-  listCate,
 }) => {
-  const theme = useTheme();
-
   return (
     <Box display="flex" flexDirection="column" gap={2}>
       <Box display="flex" gap={4} alignItems="center">
@@ -32,7 +22,7 @@ const InformationTab = ({
           value={formData.name}
           onChange={handleInputChange}
         />
-        <Box display="flex" alignItems="center">
+        {/* <Box display="flex" alignItems="center">
           <FormControl sx={{ width: 300, mt: 0 }}>
             <InputLabel
               sx={{ color: theme.palette.text.blackColor }}
@@ -66,22 +56,19 @@ const InformationTab = ({
               ))}
             </Select>
           </FormControl>
-        </Box>
+        </Box> */}
+        <CategorySelect
+          listCate={listCate}
+          formData={formData}
+          handleInputChange={handleInputChange}
+        />
       </Box>
-      <InputBase
-        id="description" // Unique id for the description field
-        multiline
-        margin="normal"
-        label="Description"
-        name="description"
-        value={formData.description}
-        onChange={handleInputChange}
-      />
       <Box display="flex" gap={2} sx={{ mt: 2 }}>
         {/* Upload Main Image */}
         <Card
           sx={{
             maxHeight: "160px",
+            textAlign: "center",
             maxWidth: "160px",
             height: "160px",
             width: "160px",
@@ -122,6 +109,7 @@ const InformationTab = ({
         <Card
           sx={{
             maxHeight: "160px",
+            textAlign: "center",
             maxWidth: "160px",
             height: "160px",
             width: "160px",
@@ -162,6 +150,7 @@ const InformationTab = ({
         <Card
           sx={{
             maxHeight: "160px",
+            textAlign: "center",
             maxWidth: "160px",
             height: "160px",
             width: "160px",
@@ -202,6 +191,7 @@ const InformationTab = ({
         <Card
           sx={{
             maxHeight: "160px",
+            textAlign: "center",
             maxWidth: "160px",
             height: "160px",
             width: "160px",
@@ -238,6 +228,16 @@ const InformationTab = ({
           />
         </Card>
       </Box>
+      <InputBase
+        id="description" // Unique id for the description field
+        multiline
+        margin="normal"
+        maxWidth
+        label="Description"
+        name="description"
+        value={formData.description}
+        onChange={handleInputChange}
+      />
     </Box>
   );
 };
