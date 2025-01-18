@@ -276,29 +276,29 @@ function FullScreenDialogCom({
     event.preventDefault();
     try {
       let mainImgUrl = formData.mainImg;
-      if (formData.mainImg && formData.mainImg !== row.mainImg) {
+      if (formData?.mainImg && formData?.mainImg !== row?.mainImg) {
         mainImgUrl = await uploadImage(formData.mainImg);
       } else {
         mainImgUrl = row.mainImg;
       }
 
       const imgUrls = await Promise.all(
-        formData.img.map(async (file, index) => {
-          if (file && file !== row.img[index]) {
+        formData?.img.map(async (file, index) => {
+          if (file && file !== row?.img[index]) {
             return await uploadImage(file);
           } else {
-            return row.img[index];
+            return row?.img[index];
           }
         })
       );
 
       // Construct updatedAttributes dynamically
-      const updatedAttributes = categories.reduce((acc, category) => {
+      const updatedAttributes = categories?.reduce((acc, category) => {
         acc[category.label.toLowerCase()] = category.items;
         return acc;
       }, {});
 
-      const pricing = tableData.map((item) => {
+      const pricing = tableData?.map((item) => {
         const { price, stock, ...rest } = item;
         return {
           ...rest,
@@ -317,6 +317,7 @@ function FullScreenDialogCom({
         img: imgUrls,
       };
 
+      console.log(updatedFormData);
       if (create) {
         try {
           await createProduct({ data: updatedFormData }).unwrap();
