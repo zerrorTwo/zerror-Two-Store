@@ -119,12 +119,10 @@ export default function Layout() {
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
   const isUser = useSelector(selectCurrentUser);
-  // console.log(isUser);
 
   const admin = isUser?.user?.isAdmin || isUser?.isAdmin;
   const dispatch = useDispatch();
   const [logout, { isLoading }] = useLogoutMutation();
-  // console.log(isUser);
 
   const handleDrawerOpen = () => {
     setOpen(true);

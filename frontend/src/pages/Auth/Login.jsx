@@ -43,6 +43,7 @@ function Login() {
     e.preventDefault();
     try {
       const data = await login({ email: gmail, password }).unwrap();
+      console.log(data);
 
       dispatch(setCredentials(data));
       const { user, accessToken } = data;
@@ -63,7 +64,6 @@ function Login() {
           expires,
         })
       );
-      // localStorage.setItem("token", data.accessToken);
       navigate("/");
     } catch (err) {
       toast.error(

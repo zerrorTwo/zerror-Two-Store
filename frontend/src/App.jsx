@@ -22,31 +22,35 @@ function App() {
 
   useEffect(() => {
     const tokenData = JSON.parse(localStorage.getItem("token"));
-    const user = JSON.parse(localStorage.getItem("userInfo"));
+    const userData = JSON.parse(localStorage.getItem("userInfo"));
 
-    if (tokenData && user) {
-      const { token, expires } = tokenData;
+    if (tokenData && userData) {
+      const { token, expires: tokenExpires } = tokenData;
+      const { user, expires: userExpires } = userData;
 
-      if (new Date().getTime() < expires) {
+      if (
+        new Date().getTime() < tokenExpires &&
+        new Date().getTime() < userExpires
+      ) {
         dispatch(setCredentials({ user, accessToken: token }));
       } else {
         localStorage.removeItem("userInfo");
         localStorage.removeItem("token");
       }
     }
-  });
+  }, [dispatch]);
 
   return (
     <Routes>
       <Route path="layout" element={<LayoutAdmin />}>
         <Route path="cate" element={<CateDashBoard />} />
+        <Route path="product" element={<ProductDashboard />} />
       </Route>
       <Route path="/" element={<Layout />}>
         <Route index element={<Home />} />
         <Route path="menu" element={<Menu />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
-        <Route path="product" element={<ProductDashboard />} />
         {/* <Route path="cate" element={<CateDashboard />} /> */}
 
         {/* Need login to access */}

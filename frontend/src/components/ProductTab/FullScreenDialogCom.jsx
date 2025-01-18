@@ -5,17 +5,17 @@ import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import Typography from "@mui/material/Typography";
 import { Box, Button, useTheme, Tabs, Tab, TextField } from "@mui/material";
-import InputBase from "./InputBase";
-import ButtonPrimary from "./ButtonPrimary";
-import InputSets from "./InputSets"; // Import the new component
-import DynamicTable from "./ProductTab/DynamicTable"; // Import DynamicTable component
-import InformationTab from "./ProductTab/InformationTab";
-import TabPanel from "./ProductTab/TabPanel";
+import InputBase from "../InputBase";
+import ButtonPrimary from "../ButtonPrimary";
+import InputSets from "../InputSets"; // Import the new component
+import DynamicTable from "./DynamicTable"; // Import DynamicTable component
+import InformationTab from "./InformationTab";
+import TabPanel from "./TabPanel";
 import {
   useUploadProductImageMutation,
   useCreateNewProductMutation,
   useUpdateProductMutation,
-} from "../redux/api/productSlice";
+} from "../../redux/api/productSlice";
 import { toast } from "react-toastify";
 
 function FullScreenDialogCom({

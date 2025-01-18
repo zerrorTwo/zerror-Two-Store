@@ -131,95 +131,80 @@ const GenericTable = ({
               rowCount={rows.length}
             />
             <TableBody>
-              {rows.sort(getComparator(order, orderBy))?.map((row, index) => {
-                const isItemSelected = selected.includes(row._id);
-                const labelId = `enhanced-table-checkbox-${index}`;
+              {[...rows]
+                ?.sort(getComparator(order, orderBy))
+                ?.map((row, index) => {
+                  const isItemSelected = selected.includes(row._id);
+                  const labelId = `enhanced-table-checkbox-${index}`;
 
-                return (
-                  <TableRow
-                    hover
-                    onClick={(event) => handleClick(event, row._id)}
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    selected={isItemSelected}
-                    key={row._id}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        sx={{
-                          "&.Mui-checked .MuiSvgIcon-root": {
-                            color: theme.palette.text.secondary,
-                          },
-                        }}
-                        color="secondary"
-                        checked={isItemSelected}
-                        inputProps={{
-                          "aria-labelledby": labelId,
-                        }}
-                      />
-                    </TableCell>
-                    {headCells.map((cell, cellIndex) => {
-                      const cellValue = row[cell.id];
-                      return (
-                        <TableCell
-                          key={cellIndex}
-                          align="center"
+                  return (
+                    <TableRow
+                      hover
+                      onClick={(event) => handleClick(event, row._id)}
+                      role="checkbox"
+                      aria-checked={isItemSelected}
+                      tabIndex={-1}
+                      selected={isItemSelected}
+                      key={row._id}
+                    >
+                      <TableCell padding="checkbox">
+                        <Checkbox
                           sx={{
-                            color: theme.palette.text.secondary,
-                          }}
-                        >
-                          {cellValue != null ? (
-                            cell.img ? (
-                              <Box
-                                sx={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  justifyContent: "center",
-                                  height: "100%",
-                                }}
-                              >
-                                <img
-                                  loading="lazy"
-                                  src={`${PRIMITIVE_URL}${cellValue}`}
-                                  alt={cellValue}
-                                  style={{
-                                    width: "auto",
-                                    height: `${height}px`,
-                                    objectFit: "cover",
-                                  }}
-                                />
-                              </Box>
-                            ) : (
-                              String(cellValue)
-                            )
-                          ) : (
-                            "N/A"
-                          )}
-                        </TableCell>
-                      );
-                    })}
-                    <TableCell align="center">
-                      <Tooltip title="Update">
-                        <IconButton
-                          onClick={(e) => handleUpdateClick(e, row)}
-                          sx={{
-                            "&:hover": {
-                              backgroundColor:
-                                theme.palette.button.hoverBackgroundColor,
+                            "&.Mui-checked .MuiSvgIcon-root": {
+                              color: theme.palette.text.secondary,
                             },
-                            color: theme.palette.text.secondary,
-                            backgroundColor:
-                              theme.palette.button.backgroundColor,
                           }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
-                      {handleMoreClick && (
-                        <Tooltip title="More">
+                          color="secondary"
+                          checked={isItemSelected}
+                          inputProps={{
+                            "aria-labelledby": labelId,
+                          }}
+                        />
+                      </TableCell>
+                      {headCells.map((cell, cellIndex) => {
+                        const cellValue = row[cell.id];
+                        return (
+                          <TableCell
+                            key={cellIndex}
+                            align="center"
+                            sx={{
+                              color: theme.palette.text.secondary,
+                            }}
+                          >
+                            {cellValue != null ? (
+                              cell.img ? (
+                                <Box
+                                  sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    height: "100%",
+                                  }}
+                                >
+                                  <img
+                                    loading="lazy"
+                                    src={`${PRIMITIVE_URL}${cellValue}`}
+                                    alt={cellValue}
+                                    style={{
+                                      width: "auto",
+                                      height: `${height}px`,
+                                      objectFit: "cover",
+                                    }}
+                                  />
+                                </Box>
+                              ) : (
+                                String(cellValue)
+                              )
+                            ) : (
+                              "N/A"
+                            )}
+                          </TableCell>
+                        );
+                      })}
+                      <TableCell align="center">
+                        <Tooltip title="Update">
                           <IconButton
-                            onClick={() => handleMoreClick(row)}
+                            onClick={(e) => handleUpdateClick(e, row)}
                             sx={{
                               "&:hover": {
                                 backgroundColor:
@@ -230,14 +215,31 @@ const GenericTable = ({
                                 theme.palette.button.backgroundColor,
                             }}
                           >
-                            <MoreHorizIcon fontSize="small" />
+                            <EditIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                        {handleMoreClick && (
+                          <Tooltip title="More">
+                            <IconButton
+                              onClick={() => handleMoreClick(row)}
+                              sx={{
+                                "&:hover": {
+                                  backgroundColor:
+                                    theme.palette.button.hoverBackgroundColor,
+                                },
+                                color: theme.palette.text.secondary,
+                                backgroundColor:
+                                  theme.palette.button.backgroundColor,
+                              }}
+                            >
+                              <MoreHorizIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               {emptyRows > 0 && (
                 <TableRow
                   style={{
