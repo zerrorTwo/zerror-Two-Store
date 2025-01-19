@@ -13,8 +13,8 @@ export const productApiSlice = apiSlice.injectEndpoints({
     }),
 
     getPageProduct: builder.query({
-      query: ({ page = 1, limit = 10 }) => ({
-        url: `${PRODUCT_URL}?page=${page}&limit=${limit}`,
+      query: ({ page = 1, limit = 10, category = "", search = null }) => ({
+        url: `${PRODUCT_URL}?page=${page}&limit=${limit}&category=${category}&search=${search}`,
         method: "GET",
       }),
       providesTags: ["Product"],

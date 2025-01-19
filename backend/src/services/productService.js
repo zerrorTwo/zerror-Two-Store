@@ -109,17 +109,34 @@ const getPageProducts = async (req, res) => {
     const page = parseInt(req.query.page) || 1; // Mặc định là trang 1
     const limit = parseInt(req.query.limit) || 10; // Mặc định là 10 sản phẩm mỗi trang
 
+    const { category, search } = req.query;
+
+    // Lọc sản phẩm theo category
+    const currentCategory = category
+      ? await CategoryModel.findOne({ slug: category })
+      : null;
+
+    const categoryFilter = currentCategory
+      ? { type: { $in: currentCategory._id.toString() } }
+      : {};
+
+    // Lọc sản phẩm theo từ khóa tìm kiếm
+    const searchFilter = search
+      ? { name: { $regex: search, $options: "i" } }
+      : {};
+
+    const filters = { ...categoryFilter, ...searchFilter };
     // Tính số sản phẩm cần skip
     const skip = (page - 1) * limit;
 
     // Lấy danh sách sản phẩm từ database với phân trang
-    const products = await ProductModel.find({})
+    const products = await ProductModel.find(filters)
       .skip(skip)
       .limit(limit)
       .populate("type", "name"); // Thay thế _id của type bằng name từ CategoryModel
 
     // Tính tổng số sản phẩm
-    const totalProducts = await ProductModel.countDocuments({});
+    const totalProducts = await ProductModel.countDocuments(filters);
 
     // Tạo response với dữ liệu phân trang
     return {
