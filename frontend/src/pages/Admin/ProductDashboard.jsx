@@ -21,12 +21,31 @@ const ProductDashboard = () => {
   const theme = useTheme();
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedRow, setSelectedRow] = useState(null);
+  const [isCreate, setIsCreate] = useState(false);
+  const [selected, setSelected] = useState([]);
+
+  // Input state for user interaction
+  const [inputSearch, setInputSearch] = useState("");
+  const [inputCategory, setInputCategory] = useState("");
+
+  // Search state for API request
+  const [search, setSearch] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const {
     data: { products: rows = [], totalPages } = {},
     error,
     isLoading,
-  } = useGetPageProductQuery({ page, limit: rowsPerPage });
+  } = useGetPageProductQuery({
+    page,
+    limit: rowsPerPage,
+    category: selectedCategory,
+    search: search,
+  });
 
   const {
     data: listCate = [],
@@ -42,14 +61,6 @@ const ProductDashboard = () => {
     type: row.type?.name || "Unknown",
   }));
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedRow, setSelectedRow] = useState(null);
-  const [isCreate, setIsCreate] = useState(false);
-  const [selected, setSelected] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState("");
-  const [search, setSearch] = useState("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
   const handleClickAway = useCallback(() => {
     setIsDropdownOpen(false);
   }, []);
@@ -60,7 +71,7 @@ const ProductDashboard = () => {
   }, []);
 
   const handleCategorySelect = useCallback((category) => {
-    setSelectedCategory(category);
+    setInputCategory(category); // Only update input state
     setIsDropdownOpen(false);
   }, []);
 
@@ -94,8 +105,10 @@ const ProductDashboard = () => {
     }
   };
 
-  const handleSearchChange = (value) => {
-    setSearch(value);
+  const handleSearch = () => {
+    setSearch(inputSearch);
+    setSelectedCategory(inputCategory);
+    setPage(1); // Reset page to 1 when performing a new search
   };
 
   useEffect(() => {
@@ -136,7 +149,7 @@ const ProductDashboard = () => {
       <Box my={2} display={"flex"} justifyContent={"space-between"}>
         <CategoryDropdown
           isOpen={isDropdownOpen}
-          selectedCategory={selectedCategory}
+          selectedCategory={inputCategory}
           categories={listCate}
           theme={theme}
           onToggle={toggleDropdown}
@@ -146,8 +159,8 @@ const ProductDashboard = () => {
 
         <Box display={"flex"} gap={2} alignItems={"center"}>
           <Input
-            value={search}
-            onChange={(e) => handleSearchChange(e.target.value)}
+            value={inputSearch}
+            onChange={(e) => setInputSearch(e.target.value)}
             sx={{
               "&::before": {
                 borderBottom: "1px solid white",
@@ -164,7 +177,7 @@ const ProductDashboard = () => {
             }}
             placeholder="Search name product"
           />
-          <Button variant="contained" color="primary">
+          <Button variant="contained" color="primary" onClick={handleSearch}>
             Search
           </Button>
         </Box>

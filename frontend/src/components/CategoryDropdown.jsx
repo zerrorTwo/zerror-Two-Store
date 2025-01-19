@@ -1,4 +1,3 @@
-// CategoryDropdown.jsx
 import { memo } from "react";
 import PropTypes from "prop-types";
 import { Box, Typography, ClickAwayListener } from "@mui/material";
@@ -14,10 +13,13 @@ const CategoryDropdown = memo(
     onSelect,
     onClickAway,
   }) => {
-    const hoverBgColor = theme?.palette?.action?.hover || "rgba(0, 0, 0, 0.04)";
-    const selectedBgColor =
-      theme?.palette?.action?.selected || "rgba(0, 0, 0, 0.08)";
+    const hoverBgColor = "rgba(184, 179, 179, 0.08)";
+    const selectedBgColor = "rgba(184, 179, 179, 0.08)";
     const defaultBgColor = theme?.palette?.background?.default || "#ffffff";
+
+    const selectedCategoryName =
+      categories.find((cate) => cate.slug === selectedCategory)?.name ||
+      "All category";
 
     return (
       <ClickAwayListener onClickAway={onClickAway}>
@@ -42,9 +44,7 @@ const CategoryDropdown = memo(
               px={2}
               py={1}
             >
-              <Typography variant="body1">
-                {selectedCategory || "Choose Category"}
-              </Typography>
+              <Typography variant="body1">{selectedCategoryName}</Typography>
               <KeyboardArrowDownIcon
                 sx={{
                   transform: isOpen ? "rotate(180deg)" : "rotate(0)",
@@ -71,6 +71,23 @@ const CategoryDropdown = memo(
                 mt: 0.5,
               }}
             >
+              <Box
+                sx={{
+                  px: 2,
+                  py: 1.5,
+                  cursor: "pointer",
+                  transition: "background-color 0.2s",
+                  "&:hover": {
+                    backgroundColor: hoverBgColor,
+                  },
+                  ...(selectedCategory === "" && {
+                    backgroundColor: selectedBgColor,
+                  }),
+                }}
+                onClick={() => onSelect("")}
+              >
+                <Typography variant="body2">{"All category"}</Typography>
+              </Box>
               {categories.map((cate) => (
                 <Box
                   key={cate._id}
@@ -82,11 +99,11 @@ const CategoryDropdown = memo(
                     "&:hover": {
                       backgroundColor: hoverBgColor,
                     },
-                    ...(selectedCategory === cate.name && {
+                    ...(selectedCategory === cate.slug && {
                       backgroundColor: selectedBgColor,
                     }),
                   }}
-                  onClick={() => onSelect(cate.name)}
+                  onClick={() => onSelect(cate.slug)}
                 >
                   <Typography variant="body2">{cate.name}</Typography>
                 </Box>
