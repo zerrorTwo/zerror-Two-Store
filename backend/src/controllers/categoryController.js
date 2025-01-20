@@ -7,6 +7,11 @@ const getAllCategories = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(categories);
 });
 
+const getAllCategoriesTree = asyncHandeler(async (req, res) => {
+  const categories = await categoryService.getAllCategoriesTree(req, res);
+  res.status(StatusCodes.OK).json(categories);
+});
+
 const getPageCategory = asyncHandeler(async (req, res) => {
   const categories = await categoryService.getPageCategory(req, res);
   res.status(StatusCodes.OK).json(categories);
@@ -39,6 +44,7 @@ const searchCategory = asyncHandeler(async (req, res) => {
 
 export {
   getAllCategories,
+  getAllCategoriesTree,
   createCategory,
   updateCategory,
   deleteCategory,

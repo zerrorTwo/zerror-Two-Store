@@ -27,7 +27,7 @@ const InputSets = ({
             alignItems="center"
             justifyContent="space-between"
           >
-            <Typography variant="subtitle1">{category.label}</Typography>
+            <Typography variant="h6">{`Lable: ${category.label}`}</Typography>
             <IconButton
               aria-label="delete category"
               onClick={() => handleDeleteCategory(setIndex)}
@@ -35,30 +35,31 @@ const InputSets = ({
               <DeleteIcon />
             </IconButton>
           </Box>
-          {category.items.map((item, itemIndex) => (
-            <TextField
-              required
-              key={itemIndex}
-              value={item}
-              onChange={(e) =>
-                handleCategoryInputChange(setIndex, itemIndex, e.target.value)
-              }
-              fullWidth
-              margin="normal"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label="delete item"
-                      onClick={() => handleDeleteField(setIndex, itemIndex)}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-          ))}
+          <Box display={"flex"} gap={2}>
+            {category.items.map((item, itemIndex) => (
+              <TextField
+                required
+                key={itemIndex}
+                value={item}
+                onChange={(e) =>
+                  handleCategoryInputChange(setIndex, itemIndex, e.target.value)
+                }
+                margin="normal"
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton
+                        aria-label="delete item"
+                        onClick={() => handleDeleteField(setIndex, itemIndex)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            ))}
+          </Box>
           <Button
             sx={{
               mt: 1,

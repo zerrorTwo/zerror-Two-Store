@@ -192,6 +192,8 @@ const GenericTable = ({
                                     }}
                                   />
                                 </Box>
+                              ) : cell.money ? (
+                                `${new Intl.NumberFormat().format(cellValue)}đ`
                               ) : (
                                 String(cellValue)
                               )

@@ -40,8 +40,8 @@ const DynamicTable = ({ categories, tableData, handleTableChange }) => {
                       p: 0.5,
                     },
                   }}
-                  type="number"
-                  value={row.price}
+                  // type="number"
+                  value={new Intl.NumberFormat().format(row.price)}
                   onChange={(e) =>
                     handleTableChange(rowIndex, "price", e.target.value)
                   }

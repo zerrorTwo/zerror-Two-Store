@@ -6,7 +6,9 @@ import slugify from "slugify";
 import mongoose from "mongoose";
 
 const getCategoryTree = async (parent = null) => {
-  const categories = await CategoryModel.find({ parent }).select("-__v").lean();
+  const categories = await CategoryModel.find({ parent })
+    .select("_id name slug img level")
+    .lean();
   const tree = await Promise.all(
     categories.map(async (category) => {
       const children = await getCategoryTree(category._id); // Lấy danh mục con
