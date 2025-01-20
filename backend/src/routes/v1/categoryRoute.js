@@ -6,12 +6,14 @@ import {
   getChildCategories,
   updateCategory,
   getAllCategories,
+  getAllCategoriesTree,
 } from "../../controllers/categoryController.js";
 import { authentication, authorization } from "../../auth/authUtil.js";
 
 const Router = express.Router();
 
 Router.route("/all").get(getAllCategories);
+Router.route("/tree").get(getAllCategoriesTree);
 
 Router.route("/").get(getPageCategory);
 

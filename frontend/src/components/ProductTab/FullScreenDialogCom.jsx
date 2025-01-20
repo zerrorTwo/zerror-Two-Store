@@ -143,11 +143,26 @@ function FullScreenDialogCom({
   };
 
   const handleTableChange = (index, field, value) => {
-    setTableData((prevData) => {
-      const newData = [...prevData];
-      newData[index][field] = value;
-      return newData;
-    });
+    if (field === "price") {
+      // Remove commas from the value and parse to float
+      const formattedValue = value.replace(/,/g, "");
+      setTableData((prevData) => {
+        const newData = [...prevData];
+        newData[index][field] = formattedValue;
+        return newData;
+      });
+    } else {
+      setTableData((prevData) => {
+        const newData = [...prevData];
+        newData[index][field] = value;
+        return newData;
+      });
+    }
+    // setTableData((prevData) => {
+    //   const newData = [...prevData];
+    //   newData[index][field] = value;
+    //   return newData;
+    // });
   };
 
   const handleChange = (event, newValue) => {
@@ -156,10 +171,20 @@ function FullScreenDialogCom({
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+
+    if (name === "price") {
+      // Remove commas from the value and parse to float
+      const formattedValue = value.replace(/,/g, "");
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: formattedValue,
+      }));
+    } else {
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value,
+      }));
+    }
   };
 
   const handleFileChange = (event) => {
@@ -183,10 +208,16 @@ function FullScreenDialogCom({
   };
 
   const handleAddField = (setIndex) => {
+    // Kiểm tra nếu ít nhất một item trống trong category hiện tại
+    if (categories[setIndex].items.some((item) => item.trim() === "")) {
+      toast.error("All items must have a value before adding a new field");
+      return; // Không cho phép thêm field mới nếu có field trống
+    }
+
     setCategories((prevCategories) => {
       const newCategories = [...prevCategories]; // Create a copy of the categories array
       const updatedItems = [...newCategories[setIndex].items]; // Create a copy of the items array
-      updatedItems.push("");
+      updatedItems.push(""); // Thêm một field trống vào danh sách items
       newCategories[setIndex].items = updatedItems;
       return newCategories;
     });
@@ -210,10 +241,11 @@ function FullScreenDialogCom({
 
   const handleAddSet = () => {
     if (
-      newCategoryName.trim() === "" ||
-      newCategoryItems.every((item) => item.trim() === "")
+      newCategoryName.trim() === "" || // Kiểm tra xem tên category có trống không
+      newCategoryItems.every((item) => item.trim() === "") // Kiểm tra xem tất cả các items có trống không
     ) {
-      return;
+      toast.error("Category name and items cannot be empty");
+      return; // Không cho phép thêm category nếu có trường trống
     }
 
     const filteredItems = newCategoryItems.filter((item) => item.trim() !== "");
@@ -249,6 +281,11 @@ function FullScreenDialogCom({
   };
 
   const addNewItemField = () => {
+    if (newCategoryItems.some((item) => item.trim() === "")) {
+      toast.error("All fields must be filled before adding a new item.");
+      return; // Nếu có item trống, không cho phép thêm item mới
+    }
+
     setNewCategoryItems((prevItems) => [...prevItems, ""]);
   };
 
@@ -257,12 +294,10 @@ function FullScreenDialogCom({
       const newCategories = [...prevCategories];
       newCategories[setIndex].items[itemIndex] = value;
 
-      // Check if the updated category has at least one non-empty item
       const hasNonEmptyItem = newCategories[setIndex].items.some(
         (item) => item.trim() !== ""
       );
 
-      // Regenerate the table data only if the category has at least one non-empty item
       if (hasNonEmptyItem) {
         generateTableData(newCategories, initialPricing);
       } else {
@@ -430,11 +465,11 @@ function FullScreenDialogCom({
               <Box display={"flex"} gap={2} mb={2}>
                 <InputBase
                   id="price"
-                  type="number"
+                  // type="number"
                   margin="normal"
                   label="Price default"
                   name="price"
-                  value={formData.price}
+                  value={new Intl.NumberFormat().format(formData.price)}
                   onChange={handleInputChange}
                 />
                 <InputBase
@@ -455,39 +490,11 @@ function FullScreenDialogCom({
                 handleDeleteField={handleDeleteField} // Pass the delete function
                 handleDeleteCategory={handleDeleteCategory} // Pass the delete category function
               />
-              <TextField
-                sx={{
-                  borderRadius: 1,
-                  "& .MuiInputLabel-root": {
-                    color: theme.palette.text.primary,
-                    "&.Mui-focused": {
-                      color: theme.palette.text.primary,
-                    },
-                  },
-                  "& .MuiInputBase-input": {
-                    color: theme.palette.text.blackColor,
-                  },
-                  "& .MuiOutlinedInput-root": {
-                    "& fieldset": {
-                      borderColor: theme.palette.text.primary,
-                    },
-                    "&:hover fieldset": {
-                      borderColor: theme.palette.text.primary,
-                    },
-                    "&.Mui-focused fieldset": {
-                      borderColor: theme.palette.text.primary,
-                    },
-                  },
-                }}
-                label="New Category Name"
-                value={newCategoryName}
-                onChange={(e) => setNewCategoryName(e.target.value)}
-                fullWidth
-                margin="normal"
-              />
-              {newCategoryItems.map((item, index) => (
+              <Box display={"flex"} gap={2} mb={2}>
                 <TextField
+                  variant="standard"
                   sx={{
+                    maxWidth: 200,
                     borderRadius: 1,
                     "& .MuiInputLabel-root": {
                       color: theme.palette.text.primary,
@@ -510,14 +517,45 @@ function FullScreenDialogCom({
                       },
                     },
                   }}
-                  key={index}
-                  label="New field"
-                  value={item}
-                  onChange={(e) => handleNewItemChange(index, e.target.value)}
-                  fullWidth
+                  label="New Category Name"
+                  value={newCategoryName}
+                  onChange={(e) => setNewCategoryName(e.target.value)}
                   margin="normal"
                 />
-              ))}
+                {newCategoryItems.map((item, index) => (
+                  <TextField
+                    sx={{
+                      maxWidth: 200,
+                      borderRadius: 1,
+                      "& .MuiInputLabel-root": {
+                        color: theme.palette.text.primary,
+                        "&.Mui-focused": {
+                          color: theme.palette.text.primary,
+                        },
+                      },
+                      "& .MuiInputBase-input": {
+                        color: theme.palette.text.blackColor,
+                      },
+                      "& .MuiOutlinedInput-root": {
+                        "& fieldset": {
+                          borderColor: theme.palette.text.primary,
+                        },
+                        "&:hover fieldset": {
+                          borderColor: theme.palette.text.primary,
+                        },
+                        "&.Mui-focused fieldset": {
+                          borderColor: theme.palette.text.primary,
+                        },
+                      },
+                    }}
+                    key={index}
+                    label="New field"
+                    value={item}
+                    onChange={(e) => handleNewItemChange(index, e.target.value)}
+                    margin="normal"
+                  />
+                ))}
+              </Box>
               <Box display={"flex"} gap={2} my={2}>
                 <Button variant="outlined" onClick={addNewItemField}>
                   Add New Item

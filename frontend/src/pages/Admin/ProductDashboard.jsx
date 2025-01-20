@@ -2,7 +2,7 @@ import {
   useDeleteAllProductMutation,
   useGetPageProductQuery,
 } from "../../redux/api/productSlice.js";
-import { useGetAllCategoryQuery } from "../../redux/api/categorySlice.js";
+import { useGetAllCategoryTreeQuery } from "../../redux/api/categorySlice.js";
 import GenericTable from "../../components/GenericTable";
 import { useState, useCallback, useEffect } from "react";
 import FullScreenDialogCom from "../../components/ProductTab/FullScreenDialogCom.jsx";
@@ -15,7 +15,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import CategoryDropdown from "../../components/CategoryDropdown.jsx";
+import CategoryDropdown2 from "../../components/CategoryDropdown2.jsx";
 
 const ProductDashboard = () => {
   const theme = useTheme();
@@ -25,16 +25,32 @@ const ProductDashboard = () => {
   const [selectedRow, setSelectedRow] = useState(null);
   const [isCreate, setIsCreate] = useState(false);
   const [selected, setSelected] = useState([]);
-
-  // Input state for user interaction
   const [inputSearch, setInputSearch] = useState("");
   const [inputCategory, setInputCategory] = useState("");
-
-  // Search state for API request
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const headCells = [
+    { id: "name", numeric: false, disablePadding: false, label: "Name" },
+    {
+      id: "img",
+      numeric: false,
+      img: true,
+      disablePadding: false,
+      label: "Img",
+    },
+    {
+      id: "price",
+      money: true,
+      numeric: true,
+      disablePadding: false,
+      label: "Price",
+    },
+    { id: "quantity", numeric: true, disablePadding: false, label: "Quantity" },
+    { id: "type", numeric: false, disablePadding: false, label: "Type" },
+  ];
 
   const {
     data: { products: rows = [], totalPages } = {},
@@ -51,7 +67,7 @@ const ProductDashboard = () => {
     data: listCate = [],
     error: categoryError,
     isLoading: categoryLoading,
-  } = useGetAllCategoryQuery();
+  } = useGetAllCategoryTreeQuery();
 
   const [deleteProduct, { isLoading: isDeleteLoading }] =
     useDeleteAllProductMutation();
@@ -72,6 +88,7 @@ const ProductDashboard = () => {
 
   const handleCategorySelect = useCallback((category) => {
     setInputCategory(category); // Only update input state
+    // setSelectedCategory(category);
     setIsDropdownOpen(false);
   }, []);
 
@@ -122,13 +139,6 @@ const ProductDashboard = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const headCells = [
-    { id: "name", numeric: false, disablePadding: false, label: "Name" },
-    { id: "price", numeric: true, disablePadding: false, label: "Price" },
-    { id: "quantity", numeric: true, disablePadding: false, label: "Quantity" },
-    { id: "type", numeric: false, disablePadding: false, label: "Type" },
-  ];
-
   if (isLoading || categoryLoading) return <div>Loading...</div>;
   if (error || categoryError) return <div>Error loading data</div>;
 
@@ -147,7 +157,7 @@ const ProductDashboard = () => {
       </Box>
 
       <Box my={2} display={"flex"} justifyContent={"space-between"}>
-        <CategoryDropdown
+        <CategoryDropdown2
           isOpen={isDropdownOpen}
           selectedCategory={inputCategory}
           categories={listCate}
