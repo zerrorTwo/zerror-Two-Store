@@ -36,8 +36,6 @@ const CategoryDropdown2 = memo(
     const selectedCategoryName =
       findCategoryBySlug(categories, selectedCategory)?.name || "All category";
 
-    console.log(selectedCategoryName);
-
     const handleCategoryHover = useCallback((categoryId) => {
       setHoveredCategory(categoryId);
     }, []);

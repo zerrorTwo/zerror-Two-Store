@@ -18,6 +18,8 @@ import GenericTableHead from "./GenericTableHead";
 import GenericTableToolbar from "./GenericTableToolbar";
 import ConfirmDialog from "./ConfirmDialog";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ClearIcon from "@mui/icons-material/Clear";
 import { useTheme } from "@mui/material/styles";
 import { PRIMITIVE_URL } from "../redux/constants";
 
@@ -194,6 +196,22 @@ const GenericTable = ({
                                 </Box>
                               ) : cell.money ? (
                                 `${new Intl.NumberFormat().format(cellValue)}đ`
+                              ) : cell.boolean ? (
+                                cellValue ? (
+                                  <CheckCircleIcon
+                                    fontSize="medium"
+                                    sx={{
+                                      fill: "green",
+                                    }}
+                                  />
+                                ) : (
+                                  <ClearIcon
+                                    fontSize="medium"
+                                    sx={{
+                                      fill: "red",
+                                    }}
+                                  />
+                                )
                               ) : (
                                 String(cellValue)
                               )
