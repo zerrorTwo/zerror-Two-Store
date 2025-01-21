@@ -2,7 +2,10 @@ import {
   useDeleteAllProductMutation,
   useGetPageProductQuery,
 } from "../../redux/api/productSlice.js";
-import { useGetAllCategoryTreeQuery } from "../../redux/api/categorySlice.js";
+import {
+  useGetAllCategoryQuery,
+  useGetAllCategoryTreeQuery,
+} from "../../redux/api/categorySlice.js";
 import GenericTable from "../../components/GenericTable";
 import { useState, useCallback, useEffect } from "react";
 import FullScreenDialogCom from "../../components/ProductTab/FullScreenDialogCom.jsx";
@@ -33,10 +36,9 @@ const ProductDashboard = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const headCells = [
-    { id: "name", numeric: false, disablePadding: false, label: "Name" },
+    { id: "name", disablePadding: false, label: "Name" },
     {
       id: "img",
-      numeric: false,
       img: true,
       disablePadding: false,
       label: "Img",
@@ -44,12 +46,21 @@ const ProductDashboard = () => {
     {
       id: "price",
       money: true,
-      numeric: true,
       disablePadding: false,
       label: "Price",
     },
     { id: "quantity", numeric: true, disablePadding: false, label: "Quantity" },
-    { id: "type", numeric: false, disablePadding: false, label: "Type" },
+    {
+      id: "type",
+      disablePadding: false,
+      label: "Type",
+    },
+    {
+      id: "status",
+      boolean: true,
+      disablePadding: false,
+      label: "Status",
+    },
   ];
 
   const {
@@ -68,6 +79,8 @@ const ProductDashboard = () => {
     error: categoryError,
     isLoading: categoryLoading,
   } = useGetAllCategoryTreeQuery();
+
+  const { data: listCateDefault = [] } = useGetAllCategoryQuery();
 
   const [deleteProduct, { isLoading: isDeleteLoading }] =
     useDeleteAllProductMutation();
@@ -219,7 +232,7 @@ const ProductDashboard = () => {
         open={dialogOpen}
         handleClose={handleCloseDialog}
         row={selectedRow}
-        listCate={listCate}
+        listCate={listCateDefault}
       />
     </>
   );

@@ -40,6 +40,7 @@ function FullScreenDialogCom({
   });
 
   const [categories, setCategories] = useState([]);
+  const [status, setStatus] = useState(false);
   const [tableData, setTableData] = useState([]);
   const [initialPricing, setInitialPricing] = useState([]);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -65,6 +66,8 @@ function FullScreenDialogCom({
         img: row.img || [],
         attributes: attributesStr || "{}",
       });
+
+      setStatus(row.status);
 
       const attributes = JSON.parse(attributesStr || "{}");
 
@@ -352,6 +355,8 @@ function FullScreenDialogCom({
         img: imgUrls,
       };
 
+      updatedFormData.status = status;
+
       console.log(updatedFormData);
       if (create) {
         try {
@@ -453,6 +458,8 @@ function FullScreenDialogCom({
         </Tabs>
         <TabPanel value={value} index={0}>
           <InformationTab
+            status={status}
+            setStatus={setStatus}
             listCate={listCate}
             formData={formData}
             handleInputChange={handleInputChange}

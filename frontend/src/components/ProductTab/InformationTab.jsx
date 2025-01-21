@@ -1,15 +1,33 @@
 import PropTypes from "prop-types";
-import { Box, Card, Typography } from "@mui/material";
+import {
+  Box,
+  Card,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+  Typography,
+  useTheme,
+} from "@mui/material";
 import InputBase from "../InputBase";
 import { PRIMITIVE_URL } from "../../redux/constants";
 import CategorySelect from "../CategorySelect";
 
 const InformationTab = ({
+  status,
+  setStatus,
   listCate,
   formData,
   handleInputChange,
   handleFileChange,
 }) => {
+  const theme = useTheme();
+  const handleChange = (event) => {
+    const value = event.target.value;
+    setStatus(value === "true");
+  };
+
   return (
     <Box display="flex" flexDirection="column" gap={2}>
       <Box display="flex" gap={4} alignItems="center">
@@ -62,6 +80,35 @@ const InformationTab = ({
           formData={formData}
           handleInputChange={handleInputChange}
         />
+        <FormControl>
+          <FormLabel
+            sx={{ color: theme.palette.text.primary }}
+            id="demo-radio-buttons-group-label"
+          >
+            Gender
+          </FormLabel>
+          <RadioGroup
+            row
+            aria-labelledby="demo-radio-buttons-group-label"
+            defaultValue="female"
+            name="radio-buttons-group"
+            value={status}
+            onChange={handleChange}
+          >
+            <FormControlLabel
+              sx={{ color: theme.palette.text.primary }}
+              value="true"
+              control={<Radio />}
+              label="Active"
+            />
+            <FormControlLabel
+              sx={{ color: theme.palette.text.primary }}
+              value="false"
+              control={<Radio />}
+              label="Disable"
+            />
+          </RadioGroup>
+        </FormControl>
       </Box>
       <Box display="flex" gap={2} sx={{ mt: 2 }}>
         {/* Upload Main Image */}
@@ -244,6 +291,8 @@ const InformationTab = ({
 
 InformationTab.propTypes = {
   formData: PropTypes.object.isRequired,
+  status: PropTypes.bool.isRequired,
+  setStatus: PropTypes.func.isRequired,
   listCate: PropTypes.array.isRequired,
   handleInputChange: PropTypes.func.isRequired,
   handleFileChange: PropTypes.func.isRequired,
