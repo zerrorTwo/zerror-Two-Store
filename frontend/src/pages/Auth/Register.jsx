@@ -74,69 +74,132 @@ function Register() {
   const handleCofirmPwdInput = (e) => setConfirmPassword(e.target.value);
 
   return (
-    <Container maxWidth="xs">
-      <Paper elevation={10} sx={{ marginTop: 8, padding: 2 }}>
-        <Avatar
-          sx={{
-            mx: "auto",
-            bgcolor: theme.palette.primary.main,
-            textAlign: "center",
-            mb: 1,
-            "& .MuiSvgIcon-root": {
-              color: "white",
-            },
-          }}
-        ></Avatar>
-        <Typography component="h1" variant="h5" sx={{ textAlign: "center" }}>
-          Sign Up
-        </Typography>
-        <Box onSubmit={handleSubmit} component="form" noValidate sx={{ mt: 1 }}>
-          <TextField
-            onChange={handleUserNameInput}
-            placeholder="Enter your username"
-            fullWidth
-            required
-            autoFocus
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            onChange={handleGmailInput}
-            placeholder="Enter your gmail"
-            fullWidth
-            required
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            onChange={handlePwdInput}
-            sx={{ mb: 2 }}
-            placeholder="Enter password"
-            fullWidth
-            required
-            type="password"
-          />
-          <TextField
-            onChange={handleCofirmPwdInput}
-            placeholder="Enter comfirm password"
-            fullWidth
-            required
-            type="password"
-            sx={{ mb: 2 }}
-          />
-          <Button type="submit" variant="contained" fullWidth sx={{ mt: 1 }}>
-            {isLoading ? (
-              <CircularProgress color="inherit" size={25} />
-            ) : (
-              "Sign Up"
-            )}
-          </Button>
-        </Box>
-        <Grid container justifyContent="space-between" sx={{ mt: 1 }}>
-          <Grid item>
-            <Link to="/login">Have account? SignIn</Link>
+    <Box
+      sx={{
+        backgroundImage: `url("/Assets/background_login.webp")`,
+        backgroundSize: "cover", // Ensures the image covers the entire area
+        backgroundPosition: "center", // Centers the image
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh", // Ensures it takes the full viewport height
+        bgcolor: theme.palette.secondary.main,
+      }}
+    >
+      <Container maxWidth="xs">
+        <Paper elevation={10} sx={{ padding: 2 }}>
+          <Avatar
+            sx={{
+              bgcolor: theme.palette.common.black,
+              mx: "auto",
+              textAlign: "center",
+              mb: 1,
+              "& .MuiSvgIcon-root": {
+                color: "white",
+              },
+            }}
+          ></Avatar>
+          <Typography
+            component="h1"
+            variant="h5"
+            sx={{
+              fontWeight: "bold",
+              textAlign: "center",
+            }}
+          >
+            SignUp
+          </Typography>
+          <Box
+            onSubmit={handleSubmit}
+            component="form"
+            noValidate
+            sx={{
+              mt: 1,
+              "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                {
+                  borderColor: theme.palette.text.primary,
+                },
+            }}
+          >
+            <TextField
+              onChange={handleUserNameInput}
+              placeholder="Enter your username"
+              fullWidth
+              required
+              autoFocus
+              sx={{
+                mb: 2,
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: theme.palette.text.primary,
+                  },
+              }}
+            />
+            <TextField
+              onChange={handleGmailInput}
+              placeholder="Enter your gmail"
+              fullWidth
+              required
+              sx={{
+                mb: 2,
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: theme.palette.text.primary,
+                  },
+              }}
+            />
+            <TextField
+              onChange={handlePwdInput}
+              sx={{
+                mb: 2,
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: theme.palette.text.primary,
+                  },
+              }}
+              placeholder="Enter password"
+              fullWidth
+              required
+              type="password"
+            />
+            <TextField
+              onChange={handleCofirmPwdInput}
+              placeholder="Enter comfirm password"
+              fullWidth
+              required
+              type="password"
+              sx={{
+                mb: 2,
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: theme.palette.text.primary,
+                  },
+              }}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{
+                mt: 1,
+                bgcolor: theme.palette.secondary.main,
+                color: theme.palette.common.white,
+              }}
+            >
+              {isLoading ? (
+                <CircularProgress color="inherit" size={25} />
+              ) : (
+                "Sign Up"
+              )}
+            </Button>
+          </Box>
+          <Grid container justifyContent="space-between" sx={{ mt: 1 }}>
+            <Grid item>
+              <Link to="/login">Have account? SignIn</Link>
+            </Grid>
           </Grid>
-        </Grid>
 
-        {/* <Divider sx={{ my: 2 }}>Or</Divider>
+          {/* <Divider sx={{ my: 2 }}>Or</Divider>
 
         <Grid container justifyContent="space-evenly" sx={{ mt: 2 }}>
           <ButtonWithIcon text="Google" icon="/Assets/google.png" link="/" />
@@ -146,8 +209,9 @@ function Register() {
             link="/"
           />
         </Grid> */}
-      </Paper>
-    </Container>
+        </Paper>
+      </Container>
+    </Box>
   );
 }
 

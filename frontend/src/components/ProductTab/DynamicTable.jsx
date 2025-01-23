@@ -7,6 +7,7 @@ import {
   TableHead,
   TableRow,
   TextField,
+  Typography,
 } from "@mui/material";
 
 const DynamicTable = ({ categories, tableData, handleTableChange }) => {
@@ -46,6 +47,13 @@ const DynamicTable = ({ categories, tableData, handleTableChange }) => {
                     handleTableChange(rowIndex, "price", e.target.value)
                   }
                 />
+                <Typography
+                  component={"div"}
+                  sx={{ display: "inline-block", marginX: 1, marginTop: 1 }}
+                  variant="body1"
+                >
+                  đ
+                </Typography>
               </TableCell>
               <TableCell>
                 <TextField

@@ -30,7 +30,7 @@ const productSchema = new mongoose.Schema(
       required: true,
       ref: "Category",
     },
-    attributes: { type: Schema.Types.Mixed, required: false },
+    variations: { type: Schema.Types.Mixed, required: false },
     reviews: [reviewSchema],
     rating: { type: Number, required: true, default: 0 },
     numReviews: { type: Number, required: true, default: 0 },
