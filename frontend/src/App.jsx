@@ -2,7 +2,6 @@ import { useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { setCredentials } from "./redux/features/auth/authSlice";
 import { Routes, Route } from "react-router-dom";
-import Layout from "./pages/Layout";
 import Home from "./pages/Home";
 import Menu from "./pages/Menu";
 import Cart from "./pages/Cart";
@@ -16,6 +15,7 @@ import CateDashBoard from "./pages/Admin/CateDashBoard";
 import ProductDashboard from "./pages/Admin/ProductDashboard";
 import LayoutAdmin from "./pages/Admin/LayoutAdmin";
 import CategoryDashBoard from "./pages/Admin/CategoryDashBoard";
+import LayoutNew from "./pages/LayoutNew";
 
 function App() {
   const dispatch = useDispatch();
@@ -42,16 +42,20 @@ function App() {
 
   return (
     <Routes>
-      <Route path="layout" element={<LayoutAdmin />}>
-        <Route path="cate" element={<CateDashBoard />} />
-        <Route path="product" element={<ProductDashboard />} />
+      <Route path="login" element={<Login />} />
+      <Route path="register" element={<Register />} />
+      <Route element={<RequireAuth />}>
+        <Route element={<AdminAuth />}>
+          <Route path="admin" element={<LayoutAdmin />}>
+            <Route path="cate" element={<CateDashBoard />} />
+            <Route path="product" element={<ProductDashboard />} />
+          </Route>
+        </Route>
       </Route>
-      <Route path="/" element={<Layout />}>
+
+      <Route path="/" element={<LayoutNew />}>
         <Route index element={<Home />} />
         <Route path="menu" element={<Menu />} />
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
-        {/* <Route path="cate" element={<CateDashboard />} /> */}
 
         {/* Need login to access */}
         <Route element={<RequireAuth />}>

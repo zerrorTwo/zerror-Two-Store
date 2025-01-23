@@ -4,9 +4,8 @@ import ApiError from "../utils/ApiError.js";
 import ProductModel from "../models/productModel.js";
 import CategoryModel from "../models/categoryModel.js";
 
-const createProduct = async (req, res) => {
+const createProduct = async (data) => {
   try {
-    const data = req.body;
     const existingProduct = await ProductModel.findOne({ name: data.name });
 
     if (existingProduct) {
@@ -26,7 +25,12 @@ const createProduct = async (req, res) => {
     }
     data.thumb = slugify(data.name);
     data.type = type._id;
-    // console.log(data);
+    if (data.variations && data.variations.pricing) {
+      data.variations.pricing = data.variations.pricing.map((pricing) => ({
+        ...pricing,
+        sold: 0,
+      }));
+    }
 
     const newProduct = await ProductModel.create(data);
     return newProduct;
@@ -38,11 +42,8 @@ const createProduct = async (req, res) => {
   }
 };
 
-const updateProduct = async (req, res) => {
+const updateProduct = async (id, data) => {
   try {
-    const id = req.params.id;
-
-    const data = req.body;
     const type = await CategoryModel.findOne({
       name: data.updatedFormData.type,
     });
@@ -64,9 +65,8 @@ const updateProduct = async (req, res) => {
   }
 };
 
-const deleteProduct = async (req, res) => {
+const deleteProduct = async (id) => {
   try {
-    const { id } = req.params;
     const products = await ProductModel.deleteOne({ _id: id });
     if (!products) {
       throw new ApiError(StatusCodes.NOT_FOUND, `Fail to delete`);
@@ -76,7 +76,7 @@ const deleteProduct = async (req, res) => {
   }
 };
 
-const deleteManyProducts = async (req, res) => {
+const deleteManyProducts = async (id) => {
   const products = req.body;
   if (!products) {
     throw new ApiError(StatusCodes.NOT_FOUND, "products not found");
@@ -104,13 +104,8 @@ const getAllProducts = async (req, res) => {
   }
 };
 
-const getPageProducts = async (req, res) => {
+const getPageProducts = async (page, limit, category, search) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Mặc định là trang 1
-    const limit = parseInt(req.query.limit) || 10; // Mặc định là 10 sản phẩm mỗi trang
-
-    const { category, search } = req.query;
-
     // Lọc sản phẩm theo category
     const currentCategory = category
       ? await CategoryModel.findOne({ slug: category })
@@ -130,10 +125,102 @@ const getPageProducts = async (req, res) => {
     const skip = (page - 1) * limit;
 
     // Lấy danh sách sản phẩm từ database với phân trang
-    const products = await ProductModel.find(filters)
-      .skip(skip)
-      .limit(limit)
-      .populate("type", "name"); // Thay thế _id của type bằng name từ CategoryModel
+    const products = await ProductModel.aggregate([
+      // Giai đoạn 1: Áp dụng bộ lọc (filters)
+      { $match: filters },
+
+      // Giai đoạn 2: Phân trang (skip và limit)
+      { $skip: skip },
+      { $limit: limit },
+
+      // Giai đoạn 3: Tách từng phần tử trong variations.pricing
+      {
+        $unwind: {
+          path: "$variations.pricing",
+          preserveNullAndEmptyArrays: true, // Giữ lại sản phẩm không có variations
+        },
+      },
+
+      // Giai đoạn 4: Tính toán giá trị nhỏ nhất và tổng quantity
+      {
+        $group: {
+          _id: "$_id", // Nhóm theo sản phẩm
+          name: { $first: "$name" },
+          price: { $first: "$price" },
+          thumb: { $first: "$thumb" },
+          mainImg: { $first: "$mainImg" },
+          img: { $first: "$img" },
+          price: { $first: "$price" },
+          quantity: { $first: "$quantity" },
+          sold: { $first: "$sold" },
+          variations: { $first: "$variations" },
+          minPrice: {
+            $min: {
+              $cond: [
+                { $ifNull: ["$variations.pricing.price", false] },
+                "$variations.pricing.price",
+                "$price",
+              ],
+            },
+          },
+          totalQuantity: {
+            $sum: {
+              $cond: [
+                { $ifNull: ["$variations.pricing.quantity", false] },
+                "$variations.pricing.quantity",
+                "$quantity",
+              ],
+            },
+          },
+          totalSold: {
+            $sum: {
+              $cond: [
+                { $ifNull: ["$variations.pricing.sold", 0] },
+                "$variations.pricing.sold",
+                "$sold",
+              ],
+            },
+          },
+          type: { $first: "$type" },
+          status: { $first: "$status" },
+        },
+      },
+
+      // Giai đoạn 5: Liên kết với bảng Category
+      {
+        $lookup: {
+          from: "categories",
+          localField: "type",
+          foreignField: "_id",
+          as: "type",
+        },
+      },
+      {
+        $unwind: {
+          path: "$type",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      // Giai đoạn 6: Chọn các trường cần thiết
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          thumb: 1,
+          mainImg: 1,
+          img: 1,
+          price: 1,
+          quantity: 1,
+          variations: 1,
+          totalSold: 1,
+          minPrice: 1,
+          totalQuantity: 1,
+          type: "$type.name", // Thay _id của Category bằng name
+          status: 1,
+        },
+      },
+    ]);
 
     // Tính tổng số sản phẩm
     const totalProducts = await ProductModel.countDocuments(filters);

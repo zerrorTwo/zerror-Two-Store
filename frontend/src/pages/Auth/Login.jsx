@@ -76,84 +76,133 @@ function Login() {
   const handlePwdInput = (e) => setPassword(e.target.value);
 
   return (
-    <Container maxWidth="xs">
-      <Paper elevation={10} sx={{ marginTop: 8, padding: 2 }}>
-        <Avatar
-          sx={{
-            mx: "auto",
-            bgcolor: theme.palette.primary.main,
-            textAlign: "center",
-            mb: 1,
-            "& .MuiSvgIcon-root": {
-              color: "white",
-            },
-          }}
-        ></Avatar>
-        <Typography component="h1" variant="h5" sx={{ textAlign: "center" }}>
-          Sign In
-        </Typography>
-        <Box onSubmit={handleSubmit} component="form" noValidate sx={{ mt: 1 }}>
-          <TextField
-            autoComplete="email"
-            placeholder="Enter your gmail"
-            onChange={handleGmailInput}
-            fullWidth
-            required
-            autoFocus
-            sx={{ mb: 2 }}
+    <Box
+      sx={{
+        backgroundImage: `url("/Assets/background_login.webp")`,
+        backgroundSize: "cover", // Ensures the image covers the entire area
+        backgroundPosition: "center", // Centers the image
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh", // Ensures it takes the full viewport height
+        bgcolor: theme.palette.secondary.main,
+      }}
+    >
+      <Container maxWidth="xs">
+        <Paper elevation={10} sx={{ padding: 2 }}>
+          <Avatar
+            sx={{
+              bgcolor: theme.palette.common.black,
+              mx: "auto",
+              textAlign: "center",
+              mb: 1,
+              "& .MuiSvgIcon-root": {
+                color: "white",
+              },
+            }}
           />
-          <TextField
-            placeholder="Enter password"
-            fullWidth
-            required
-            type="password"
-            onChange={handlePwdInput}
-          />
-          <FormControlLabel
-            control={
-              <Checkbox
-                sx={{
-                  "& .MuiSvgIcon-root": { color: theme.palette.primary.main },
-                }}
-                value="remember"
-                color="primary"
-              />
-            }
-            label="Remember me"
-          />
-          <Button type="submit" variant="contained" fullWidth sx={{ mt: 1 }}>
-            {isLoading ? (
-              <CircularProgress color="inherit" size={25} />
-            ) : (
-              "Login"
-            )}
-          </Button>
-        </Box>
-        <Grid container justifyContent="space-between" sx={{ mt: 2 }}>
-          <Grid item>
-            <Link to="/forgot">Forgot password?</Link>
+          <Typography
+            component="h1"
+            variant="h5"
+            sx={{
+              fontWeight: "bold",
+              textAlign: "center",
+            }}
+          >
+            Sign In
+          </Typography>
+          <Box
+            onSubmit={handleSubmit}
+            component="form"
+            noValidate
+            sx={{ mt: 1 }}
+          >
+            <TextField
+              autoComplete="email"
+              placeholder="Enter your gmail"
+              onChange={handleGmailInput}
+              fullWidth
+              required
+              autoFocus
+              sx={{
+                mb: 2,
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: theme.palette.text.primary,
+                  },
+              }}
+            />
+            <TextField
+              sx={{
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: theme.palette.text.primary,
+                  },
+              }}
+              placeholder="Enter password"
+              fullWidth
+              required
+              type="password"
+              onChange={handlePwdInput}
+            />
+            <FormControlLabel
+              control={
+                <Checkbox
+                  id="remember"
+                  sx={{
+                    "& .MuiSvgIcon-root": {
+                      color: theme.palette.common.black,
+                    },
+                  }}
+                  value="remember"
+                  color="primary"
+                />
+              }
+              label="Remember me"
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              fullWidth
+              sx={{
+                mt: 1,
+                bgcolor: theme.palette.secondary.main,
+                color: theme.palette.common.white,
+              }}
+            >
+              {isLoading ? (
+                <CircularProgress color="inherit" size={25} />
+              ) : (
+                "Login"
+              )}
+            </Button>
+          </Box>
+          <Grid container justifyContent="space-between" sx={{ mt: 2 }}>
+            <Grid item>
+              <Link to="/forgot">Forgot password?</Link>
+            </Grid>
+            <Grid item>
+              <Link to="/register">Sign Up</Link>
+            </Grid>
           </Grid>
-          <Grid item>
-            <Link to="/register">Sign Up</Link>
+
+          <Divider sx={{ my: 2 }}>Or</Divider>
+
+          <Grid container justifyContent="space-evenly" sx={{ mt: 2 }}>
+            <ButtonWithIcon
+              text="Google"
+              icon="/Assets/google.png"
+              link={`${BASE_URL}/auth/google/login`}
+            />
+            <ButtonWithIcon
+              text="Facebook"
+              icon="/Assets/facebook.png"
+              link={`${BASE_URL}/auth/facebook/login`}
+            />
           </Grid>
-        </Grid>
-
-        <Divider sx={{ my: 2 }}>Or</Divider>
-
-        <Grid container justifyContent="space-evenly" sx={{ mt: 2 }}>
-          <ButtonWithIcon
-            text="Google"
-            icon="/Assets/google.png"
-            link={`${BASE_URL}/auth/google/login`}
-          />
-          <ButtonWithIcon
-            text="Facebook"
-            icon="/Assets/facebook.png"
-            link={`${BASE_URL}/auth/facebook/login`}
-          />
-        </Grid>
-      </Paper>
-    </Container>
+        </Paper>
+      </Container>
+    </Box>
   );
 }
 

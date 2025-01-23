@@ -3,10 +3,10 @@ import { createTheme } from "@mui/material/styles";
 const theme = createTheme({
   palette: {
     primary: {
-      main: "#282830", // Màu chính (ví dụ: màu đen)
+      main: "#FFF", // Màu chính (ví dụ: màu đen)
     },
     secondary: {
-      main: "#48445c", // Màu phụ (tùy chỉnh theo ý muốn)
+      main: "#C94A00", // Màu phụ (tùy chỉnh theo ý muốn)
     },
     background: {
       default: "#1A1A1D", // Màu nền mặc định

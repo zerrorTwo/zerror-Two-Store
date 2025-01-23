@@ -36,7 +36,7 @@ function FullScreenDialogCom({
     thumb: null,
     mainImg: null,
     img: [],
-    attributes: "{}",
+    variations: "{}",
   });
 
   const [categories, setCategories] = useState([]);
@@ -51,10 +51,10 @@ function FullScreenDialogCom({
 
   useEffect(() => {
     if (row) {
-      const attributesStr =
-        typeof row.attributes === "object"
-          ? JSON.stringify(row.attributes)
-          : row.attributes;
+      const variationsStr =
+        typeof row.variations === "object"
+          ? JSON.stringify(row.variations)
+          : row.variations;
       setFormData({
         name: row.name || "",
         description: row.description || "",
@@ -64,26 +64,26 @@ function FullScreenDialogCom({
         thumb: row.thumb || null,
         mainImg: row.mainImg || null,
         img: row.img || [],
-        attributes: attributesStr || "{}",
+        variations: variationsStr || "{}",
       });
 
       setStatus(row.status);
 
-      const attributes = JSON.parse(attributesStr || "{}");
+      const variations = JSON.parse(variationsStr || "{}");
 
-      const attributeEntries = Object.entries(attributes);
-      const filteredAttributes = Object.fromEntries(
-        attributeEntries.slice(0, -1)
+      const variationsEntries = Object.entries(variations);
+      const filteredVariations = Object.fromEntries(
+        variationsEntries.slice(0, -1)
       );
 
-      const dynamicCategories = Object.keys(filteredAttributes).map((key) => ({
+      const dynamicCategories = Object.keys(filteredVariations).map((key) => ({
         label: key.charAt(0).toUpperCase() + key.slice(1),
-        items: filteredAttributes[key] || [],
+        items: filteredVariations[key] || [],
       }));
 
       setCategories(dynamicCategories);
-      setInitialPricing(attributes.pricing || []);
-      generateTableData(dynamicCategories, attributes.pricing);
+      setInitialPricing(variations.pricing || []);
+      generateTableData(dynamicCategories, variations.pricing);
     } else {
       setFormData({
         name: "",
@@ -94,7 +94,7 @@ function FullScreenDialogCom({
         thumb: null,
         mainImg: null,
         img: [],
-        attributes: "{}",
+        variations: "{}",
       });
       setCategories([]);
       setTableData([]);
@@ -330,8 +330,7 @@ function FullScreenDialogCom({
         })
       );
 
-      // Construct updatedAttributes dynamically
-      const updatedAttributes = categories?.reduce((acc, category) => {
+      const updatedVariations = categories?.reduce((acc, category) => {
         acc[category.label.toLowerCase()] = category.items;
         return acc;
       }, {});
@@ -347,8 +346,8 @@ function FullScreenDialogCom({
 
       const updatedFormData = {
         ...formData,
-        attributes: {
-          ...updatedAttributes,
+        variations: {
+          ...updatedVariations,
           pricing: pricing,
         },
         mainImg: mainImgUrl,
@@ -453,7 +452,7 @@ function FullScreenDialogCom({
                 color: theme.palette.text.primary, // Màu khi hover
               },
             }}
-            label="Attributes"
+            label="Variations"
           />
         </Tabs>
         <TabPanel value={value} index={0}>
@@ -469,16 +468,21 @@ function FullScreenDialogCom({
         <TabPanel value={value} index={1}>
           <Box>
             <Box sx={{ mt: 3 }}>
-              <Box display={"flex"} gap={2} mb={2}>
-                <InputBase
-                  id="price"
-                  // type="number"
-                  margin="normal"
-                  label="Price default"
-                  name="price"
-                  value={new Intl.NumberFormat().format(formData.price)}
-                  onChange={handleInputChange}
-                />
+              <Box display={"flex"} gap={4} mb={2}>
+                <Box display={"flex"} alignItems={"center"} gap={1}>
+                  <InputBase
+                    id="price"
+                    // type="number"
+                    margin="normal"
+                    label="Price default"
+                    name="price"
+                    value={new Intl.NumberFormat().format(formData.price)}
+                    onChange={handleInputChange}
+                  />
+                  <Typography display={"inline-block"} variant="h5">
+                    đ
+                  </Typography>
+                </Box>
                 <InputBase
                   id="quantity"
                   type="number"
@@ -489,7 +493,7 @@ function FullScreenDialogCom({
                   onChange={handleInputChange}
                 />
               </Box>
-              <Typography variant="h6">Attributes</Typography>
+              <Typography variant="h6">Variations</Typography>
               <InputSets
                 categories={categories}
                 handleAddField={handleAddField}
@@ -567,7 +571,7 @@ function FullScreenDialogCom({
                 <Button variant="outlined" onClick={addNewItemField}>
                   Add New Item
                 </Button>
-                <ButtonPrimary text="More attributes" onClick={handleAddSet} />
+                <ButtonPrimary text="More variations" onClick={handleAddSet} />
               </Box>
             </Box>
 

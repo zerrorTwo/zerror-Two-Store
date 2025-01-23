@@ -4,17 +4,23 @@ import asyncHandeler from "../middlewares/asyncHandler.js";
 import { productService } from "../services/productService.js";
 
 const createProduct = asyncHandeler(async (req, res) => {
-  const product = await productService.createProduct(req, res);
+  const data = req.body;
+  const product = await productService.createProduct(data);
   res.status(StatusCodes.CREATED).json(product);
 });
 
 const updateProduct = asyncHandeler(async (req, res) => {
-  const product = await productService.updateProduct(req, res);
+  const id = req.params.id;
+
+  const data = req.body;
+  const product = await productService.updateProduct(id, data);
   res.status(StatusCodes.CREATED).json(product);
 });
 
 const deleteManyProducts = asyncHandeler(async (req, res) => {
-  const products = await productService.deleteManyProducts(req, res);
+  const { id } = req.params;
+
+  const products = await productService.deleteManyProducts(id);
   res.status(StatusCodes.CREATED).json(products);
 });
 
@@ -24,7 +30,16 @@ const getAllProducts = asyncHandeler(async (req, res) => {
 });
 
 const getPageProducts = asyncHandeler(async (req, res) => {
-  const products = await productService.getPageProducts(req, res);
+  const page = parseInt(req.query.page) || 1; // Mặc định là trang 1
+  const limit = parseInt(req.query.limit) || 10; // Mặc định là 10 sản phẩm mỗi trang
+
+  const { category, search } = req.query;
+  const products = await productService.getPageProducts(
+    page,
+    limit,
+    category,
+    search
+  );
   res.status(StatusCodes.CREATED).json(products);
 });
 
