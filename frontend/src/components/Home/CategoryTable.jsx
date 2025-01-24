@@ -1,5 +1,6 @@
 import { Box, CardMedia, Typography, useTheme } from "@mui/material";
 import ImageList from "@mui/material/ImageList";
+import MenuIcon from "@mui/icons-material/Menu";
 import ImageListItem from "@mui/material/ImageListItem";
 import { Link } from "react-router-dom";
 
@@ -7,13 +8,16 @@ export default function CategoryTable() {
   const theme = useTheme();
   return (
     <>
-      <Box>
+      <Box display={"flex"} gap={1} alignItems={"center"}>
+        <MenuIcon />
         <Typography variant="h5">List category</Typography>
         {/* Add your own code here */}
       </Box>
       {/* <Paper elevation={5} sx={{ bgcolor: "transparent" }}> */}
       <ImageList
         sx={{
+          py: 1,
+          px: 0.5,
           width: "100%",
           overflow: "hidden", // Prevent overflow
           maxHeight: "500px", // Set a max height for the list
@@ -21,9 +25,9 @@ export default function CategoryTable() {
         cols={8}
         rowHeight={100}
       >
-        {itemData.map((item) => (
+        {itemData.map((item, index) => (
           <ImageListItem
-            key={item.img}
+            key={index}
             sx={{
               display: "flex",
               justifyContent: "center",
@@ -52,7 +56,7 @@ export default function CategoryTable() {
                   borderRadius: "8px",
                   transition: "transform 0.3s, box-shadow 0.3s",
                   "&:hover": {
-                    transform: "scale(1.05)", // Optionally add scaling effect on hover
+                    // transform: "scale(1.05)", // Optionally add scaling effect on hover
                     boxShadow: "0 4px 12px rgba(0,0,0,0.2)", // Apply box-shadow on hover
                   },
                 }}

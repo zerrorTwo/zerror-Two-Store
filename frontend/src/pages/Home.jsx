@@ -1,6 +1,7 @@
 import { Box, Container } from "@mui/material";
 import Carousel from "../components/Carousel/Carousel";
 import CategoryTable from "../components/Home/CategoryTable";
+import FlashSale from "../components/Carousel/FlashSale";
 function Home() {
   const data = [
     "http://huanghanzhilian-test.oss-cn-beijing.aliyuncs.com/shop/upload/image/sliders/hUX6oL-lCKOKPYbZ5j4rx.webp",
@@ -26,7 +27,9 @@ function Home() {
         </Box>
 
         {/* Box content */}
-        <Box></Box>
+        <Box my={2}>
+          <FlashSale />
+        </Box>
       </Container>
     </Box>
   );
