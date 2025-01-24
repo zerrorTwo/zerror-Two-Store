@@ -163,7 +163,7 @@ export default function HeaderLayout() {
     <Box sx={{ flexGrow: 1 }} position="static">
       <AppBar sx={{ py: 1 }}>
         <Container>
-          <Toolbar>
+          <Toolbar sx={{ px: "0 !important" }}>
             <CardMedia
               component="img"
               image="../../public/Assets/logo.png"
