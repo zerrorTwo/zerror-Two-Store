@@ -1,4 +1,10 @@
-import { Box, CardMedia, Typography, useTheme } from "@mui/material";
+import {
+  Box,
+  CardMedia,
+  Typography,
+  useMediaQuery,
+  useTheme,
+} from "@mui/material";
 import ImageList from "@mui/material/ImageList";
 import MenuIcon from "@mui/icons-material/Menu";
 import ImageListItem from "@mui/material/ImageListItem";
@@ -6,12 +12,12 @@ import { Link } from "react-router-dom";
 
 export default function CategoryTable() {
   const theme = useTheme();
+  const isSmallScreen = useMediaQuery("(max-width:320px)");
   return (
     <>
       <Box display={"flex"} gap={1} alignItems={"center"}>
         <MenuIcon />
         <Typography variant="h5">List category</Typography>
-        {/* Add your own code here */}
       </Box>
       {/* <Paper elevation={5} sx={{ bgcolor: "transparent" }}> */}
       <ImageList
@@ -20,9 +26,9 @@ export default function CategoryTable() {
           px: 0.5,
           width: "100%",
           overflow: "hidden", // Prevent overflow
-          maxHeight: "500px", // Set a max height for the list
+          maxHeight: { xs: "200px", sm: "500px" }, // Set a max height for the list
         }}
-        cols={8}
+        cols={isSmallScreen ? 2 : 8}
         rowHeight={100}
       >
         {itemData.map((item, index) => (

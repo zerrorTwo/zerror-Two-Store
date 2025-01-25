@@ -147,7 +147,7 @@ function FlashSale() {
       <Divider sx={{ my: 1 }} />
 
       {/* Box carousel */}
-      <Box overflow={"hidden"} px={0.5} py={1} position={"relative"}>
+      <Box overflow={"visible"} position={"relative"}>
         <Swiper
           navigation={{
             prevEl: ".swiper-button-prev-flashsale",
@@ -159,11 +159,14 @@ function FlashSale() {
           }}
           modules={[Navigation, Autoplay]}
           slidesPerView={6}
-          spaceBetween={10}
+          spaceBetween={12.5}
           style={{
             width: "100%",
             height: "100%",
-            overflow: "visible",
+            overflow: "hidden",
+            paddingBottom: "10px",
+            paddingLeft: "4px",
+            paddingRight: "4px",
           }}
         >
           {data.map((item, index) => (
@@ -175,27 +178,45 @@ function FlashSale() {
         <IconButton
           className="swiper-button-prev-flashsale"
           sx={{
+            bgcolor: "common.white",
             zIndex: 1000,
             position: "absolute",
             top: "50%",
-            left: "10px",
+            left: "-10px",
             transform: "translateY(-50%)",
+            "&:hover": {
+              bgcolor: "common.white",
+              scale: 1.4,
+            },
+            width: "30px",
+            height: "30px",
+            transition: "all .1s cubic-bezier(.4,0,.6,1)",
+            boxShadow: "0 1px 12px 0 rgba(0,0,0,.12)",
           }}
         >
-          <ArrowBackIosIcon />
+          <ArrowBackIosIcon sx={{ fontSize: "14px" }} />
         </IconButton>
 
         <IconButton
           className="swiper-button-next-flashsale"
           sx={{
+            bgcolor: "common.white",
             zIndex: 1000,
             position: "absolute",
             top: "50%",
-            right: "10px",
+            right: "-10px",
             transform: "translateY(-50%)",
+            "&:hover": {
+              bgcolor: "common.white",
+              scale: 1.4,
+            },
+            width: "30px",
+            height: "30px",
+            transition: "all .1s cubic-bezier(.4,0,.6,1)",
+            boxShadow: "0 1px 12px 0 rgba(0,0,0,.12)",
           }}
         >
-          <ArrowForwardIosIcon />
+          <ArrowForwardIosIcon sx={{ fontSize: "14px" }} />
         </IconButton>
       </Box>
     </Box>
