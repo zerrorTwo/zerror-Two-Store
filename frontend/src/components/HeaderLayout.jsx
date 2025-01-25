@@ -15,6 +15,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import { CardMedia, Container } from "@mui/material";
 import { useState } from "react";
+import { Link } from "react-router";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -164,41 +165,63 @@ export default function HeaderLayout() {
       <AppBar sx={{ py: 1 }}>
         <Container>
           <Toolbar sx={{ px: "0 !important" }}>
-            <CardMedia
-              component="img"
-              image="../../public/Assets/logo.png"
-              alt="Logo"
-              sx={{
-                height: { xs: "30px", md: "50px" },
-                width: "auto",
-                mr: 1,
-              }}
-            />
-            <Typography
-              variant="h6"
-              noWrap
-              component="div"
-              sx={{
-                display: {
-                  xs: "none",
-                  sm: "block",
-                  marginLeft: 2,
-                  color: theme.palette.secondary.main,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                },
+            <Link
+              to="/"
+              style={{
+                textDecoration: "none", // Remove underline from Link
+                color: theme.palette.secondary.main, // Set color text to primary color
+                display: "flex",
+                alignItems: "center",
               }}
             >
-              SHOPPING
-            </Typography>
+              <CardMedia
+                component="img"
+                image="../../public/Assets/logo.png"
+                alt="Logo"
+                sx={{
+                  height: { xs: "30px", md: "50px" },
+                  width: "auto",
+                  mr: 1,
+                }}
+              />
+              <Typography
+                variant="h6"
+                noWrap
+                component="div"
+                sx={{
+                  display: {
+                    xs: "none",
+                    sm: "block",
+                    marginLeft: 2,
+                    color: theme.palette.secondary.main,
+                    fontWeight: "bold",
+                    fontStyle: "italic",
+                  },
+                }}
+              >
+                SHOPPING
+              </Typography>
+            </Link>
             <Search
               id="Search"
-              sx={{ width: { xs: "80% !important", sm: "60% !important" } }}
+              sx={{
+                width: { xs: "80% !important", sm: "60% !important" },
+              }}
             >
-              <SearchIconWrapper id="Search" onClick={handleSearchAppBar}>
+              <SearchIconWrapper
+                sx={{ zIndex: 10000 }}
+                id="Search"
+                onClick={handleSearchAppBar}
+              >
                 <SearchIcon id="Search" />
               </SearchIconWrapper>
               <StyledInputBase
+                sx={{
+                  width: "100%",
+                  "& .MuiInputBase-input": {
+                    width: "85%",
+                  },
+                }}
                 id="Search"
                 placeholder="Search…"
                 inputProps={{ "aria-label": "search" }}
