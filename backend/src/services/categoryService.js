@@ -50,7 +50,7 @@ const getAllCategoriesTree = async (req, res) => {
   }
 };
 
-const getAllCategories = async (req, res) => {
+const getAllCategories = async () => {
   try {
     return await CategoryModel.find({})
       .select("_id name slug img level")
@@ -60,12 +60,8 @@ const getAllCategories = async (req, res) => {
   }
 };
 
-const getPageCategory = async (req, res) => {
+const getPageCategory = async (parent, page, limit) => {
   try {
-    const parent = req.query.parent;
-    const page = parseInt(req.query.page) || 1; // Default to page 1
-    const limit = parseInt(req.query.limit) || 10; // Default to 10 items per page
-
     // Calculate the number of items to skip
     const skip = (page - 1) * limit;
 
@@ -108,9 +104,8 @@ const getPageCategory = async (req, res) => {
   }
 };
 
-const getChildCategories = async (req, res) => {
+const getChildCategories = async (id) => {
   try {
-    const { id } = req.params;
     const parentCategory = await CategoryModel.findById(id).lean();
     const childCategories = await CategoryModel.find({
       _id: { $in: parentCategory.children },
@@ -121,9 +116,7 @@ const getChildCategories = async (req, res) => {
   }
 };
 
-const createCategory = async (req, res) => {
-  const data = req.body;
-
+const createCategory = async (data) => {
   data.name = data.name.trim().toUpperCase();
 
   if (!data) {
@@ -155,10 +148,7 @@ const createCategory = async (req, res) => {
   return category;
 };
 
-const updateCategory = async (req, res) => {
-  const { id } = req.params;
-  const data = req.body;
-
+const updateCategory = async (id, data) => {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid category ID");
   }
@@ -191,8 +181,8 @@ const updateCategory = async (req, res) => {
   return category;
 };
 
-const deleteCategory = async (req, res) => {
-  const categories = req.body; // Nhận mảng _id từ body request
+const deleteCategory = async (category) => {
+  // Nhận mảng _id từ body request
 
   if (!categories || categories.length === 0) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Categories not found");
@@ -260,6 +250,14 @@ const searchCategory = async (req, res) => {
   }
 };
 
+const getCommonCategories = async () => {
+  try {
+    return await CategoryModel.find({ parent: null });
+  } catch (error) {
+    throw new Error(`Error find categories: ${error.message}`);
+  }
+};
+
 export const categoryService = {
   getAllCategories,
   createCategory,
@@ -269,4 +267,5 @@ export const categoryService = {
   getPageCategory,
   getChildCategories,
   getAllCategoriesTree,
+  getCommonCategories,
 };

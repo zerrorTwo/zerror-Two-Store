@@ -1,172 +1,188 @@
 import {
   Box,
   CardMedia,
+  IconButton,
   Typography,
-  useMediaQuery,
   useTheme,
 } from "@mui/material";
-import ImageList from "@mui/material/ImageList";
 import MenuIcon from "@mui/icons-material/Menu";
-import ImageListItem from "@mui/material/ImageListItem";
 import { Link } from "react-router-dom";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Grid, Pagination, Navigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/grid";
+import "swiper/css/pagination";
+import "swiper/css/navigation";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import PropTypes from "prop-types";
+import { PRIMITIVE_URL } from "../../redux/constants";
 
-export default function CategoryTable() {
+export default function CategoryTable({ itemData, isLoading }) {
   const theme = useTheme();
-  const isSmallScreen = useMediaQuery("(max-width:320px)");
+
   return (
     <>
-      <Box display={"flex"} gap={1} alignItems={"center"}>
+      <Box display={"flex"} gap={1} alignItems={"center"} mb={1}>
         <MenuIcon />
         <Typography variant="h5">List category</Typography>
       </Box>
-      {/* <Paper elevation={5} sx={{ bgcolor: "transparent" }}> */}
-      <ImageList
-        sx={{
-          py: 1,
-          px: 0.5,
-          width: "100%",
-          overflow: "hidden", // Prevent overflow
-          maxHeight: { xs: "200px", sm: "500px" }, // Set a max height for the list
-        }}
-        cols={isSmallScreen ? 2 : 8}
-        rowHeight={100}
-      >
-        {itemData.map((item, index) => (
-          <ImageListItem
-            key={index}
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              overflow: "visible", // Ensure the box-shadow is not clipped
-              padding: "5px", // Optional: Padding between items
-            }}
-          >
-            <Link
-              to="/"
-              style={{
-                textDecoration: "none", // Remove underline from Link
-                width: "100%",
-                height: "100%",
-                color: theme.palette.text.primary,
+
+      <Box overflow={"visible"} position={"relative"}>
+        <Swiper
+          slidesPerView={10}
+          spaceBetween={12.5}
+          slidesPerGroup={10}
+          grid={{
+            rows: 2,
+            fill: "row",
+          }}
+          navigation={{
+            prevEl: ".swiper-button-prev-category",
+            nextEl: ".swiper-button-next-category",
+          }}
+          modules={[Grid, Pagination, Navigation]}
+          style={{
+            width: "100%",
+            paddingLeft: "4px",
+            paddingRight: "4px",
+            paddingBottom: "8px",
+            overflow: "hidden",
+          }}
+        >
+          {isLoading ? (
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
               }}
             >
-              <Box
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  display: "flex",
-                  flexDirection: "column",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  borderRadius: "8px",
-                  transition: "transform 0.3s, box-shadow 0.3s",
-                  "&:hover": {
-                    // transform: "scale(1.05)", // Optionally add scaling effect on hover
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.2)", // Apply box-shadow on hover
-                  },
-                }}
-              >
-                <CardMedia
-                  component="img"
-                  image={`${item.img}?w=164&h=164&fit=crop&auto=format`}
+              <Typography variant="h6">Empty</Typography>
+            </Box>
+          ) : (
+            itemData.map((item, index) => (
+              <SwiperSlide key={index}>
+                <Box
                   sx={{
-                    mt: 1,
-                    borderRadius: "8px",
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    maxWidth: "50px", // Ensure uniform image size
-                    maxHeight: "50px",
-                  }}
-                />
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontSize: "0.875rem",
-                    color: theme.palette.text.primary,
-                    textAlign: "center",
-                    textOverflow: "ellipsis",
-                    overflow: "hidden",
-                    width: "100%",
-                    wordBreak: "break-word", // Allow text to break onto the next line
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    overflow: "visible",
+                    padding: "5px",
+                    height: "110px",
                   }}
                 >
-                  {item.title}
-                </Typography>
-              </Box>
-            </Link>
-          </ImageListItem>
-        ))}
-      </ImageList>
-      {/* </Paper> */}
+                  <Link
+                    to={item.slug}
+                    style={{
+                      display: "block",
+                      textDecoration: "none",
+                      width: "100%",
+                      height: "100%",
+                      color: theme.palette.text.primary,
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: "100%",
+                        height: "100%",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        alignItems: "center",
+                        borderRadius: "8px",
+                        transition: "transform 0.3s, box-shadow 0.3s",
+                        "&:hover": {
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.2)",
+                        },
+                      }}
+                    >
+                      <CardMedia
+                        component="img"
+                        image={`${PRIMITIVE_URL}${item.img}`}
+                        sx={{
+                          mt: 1,
+                          borderRadius: "8px",
+                          width: "100%",
+                          height: "100%",
+                          objectFit: "cover",
+                          maxWidth: "50px",
+                          maxHeight: "50px",
+                        }}
+                      />
+                      <Typography
+                        variant="body1"
+                        sx={{
+                          fontSize: "0.875rem",
+                          color: theme.palette.text.primary,
+                          textAlign: "center",
+                          textOverflow: "ellipsis",
+                          overflow: "hidden",
+                          width: "100%",
+                          wordBreak: "break-word",
+                        }}
+                      >
+                        {item.name}
+                      </Typography>
+                    </Box>
+                  </Link>
+                </Box>
+              </SwiperSlide>
+            ))
+          )}
+        </Swiper>
+
+        {/* Navigation Buttons */}
+        <IconButton
+          className="swiper-button-prev-category"
+          sx={{
+            bgcolor: "common.white",
+            zIndex: 1000,
+            position: "absolute",
+            top: "50%",
+            left: "-10px",
+            transform: "translateY(-50%)",
+            "&:hover": {
+              bgcolor: "common.white",
+              scale: 1.4,
+            },
+            width: "30px",
+            height: "30px",
+            transition: "all .1s cubic-bezier(.4,0,.6,1)",
+            boxShadow: "0 1px 12px 0 rgba(0,0,0,.12)",
+          }}
+        >
+          <ArrowBackIosIcon sx={{ fontSize: "14px" }} />
+        </IconButton>
+
+        <IconButton
+          className="swiper-button-next-category"
+          sx={{
+            bgcolor: "common.white",
+            zIndex: 1000,
+            position: "absolute",
+            top: "50%",
+            right: "-10px",
+            transform: "translateY(-50%)",
+            "&:hover": {
+              bgcolor: "common.white",
+              scale: 1.4,
+            },
+            width: "30px",
+            height: "30px",
+            transition: "all .1s cubic-bezier(.4,0,.6,1)",
+            boxShadow: "0 1px 12px 0 rgba(0,0,0,.12)",
+          }}
+        >
+          <ArrowForwardIosIcon sx={{ fontSize: "14px" }} />
+        </IconButton>
+      </Box>
     </>
   );
 }
 
-const itemData = [
-  {
-    img: "https://images.unsplash.com/photo-1551963831-b3b1ca40c98e",
-    title: "Breakfast sdhsdjsdsdjs",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d",
-    title: "Mach dien va linh kien",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1522770179533-24471fcdba45",
-    title: "Camera",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1444418776041-9c7e33cc5a9c",
-    title: "Coffee",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1533827432537-70133748f5c8",
-    title: "Hats",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1558642452-9d2a7deb7f62",
-    title: "Honey",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1516802273409-68526ee1bdd6",
-    title: "Basketball",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1518756131217-31eb79b20e8f",
-    title: "Fern",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1597645587822-e99fa5d45d25",
-    title: "Mushrooms",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1567306301408-9b74779a11af",
-    title: "Tomato basil",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1471357674240-e1a485acb3e1",
-    title: "Sea star",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1589118949245-7d38baf380d6",
-    title: "Bike",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1551782450-a2132b4ba21d",
-    title: "Mach dien va linh kien",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1522770179533-24471fcdba45",
-    title: "Camera",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1444418776041-9c7e33cc5a9c",
-    title: "Coffee",
-  },
-  {
-    img: "https://images.unsplash.com/photo-1533827432537-70133748f5c8",
-    title: "Hats",
-  },
-];
+CategoryTable.propTypes = {
+  itemData: PropTypes.arrayOf(PropTypes.object).isRequired,
+  isLoading: PropTypes.bool,
+};

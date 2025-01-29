@@ -12,6 +12,15 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
 
+    getCommonCategory: builder.query({
+      query: () => ({
+        url: `${BASE_URL}/category/common`,
+        method: "GET",
+      }),
+      providesTags: ["Category"],
+      keepUnusedDataFor: 5,
+    }),
+
     getAllCategoryTree: builder.query({
       query: () => ({
         url: `${BASE_URL}/category/tree`,
@@ -95,6 +104,7 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
 
 export const {
   useGetAllCategoryQuery,
+  useGetCommonCategoryQuery,
   useGetAllCategoryTreeQuery,
   useGetAllCategoriesParentQuery,
   useGetChildrenCategoryQuery,

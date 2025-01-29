@@ -7,6 +7,7 @@ import {
   updateCategory,
   getAllCategories,
   getAllCategoriesTree,
+  getCommonCategories,
 } from "../../controllers/categoryController.js";
 import { authentication, authorization } from "../../auth/authUtil.js";
 
@@ -16,6 +17,7 @@ Router.route("/all").get(getAllCategories);
 Router.route("/tree").get(getAllCategoriesTree);
 
 Router.route("/").get(getPageCategory);
+Router.route("/common").get(getCommonCategories);
 
 // Router.use(authentication, authorization);
 
