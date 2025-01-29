@@ -160,11 +160,12 @@ function FlashSale() {
           modules={[Navigation, Autoplay]}
           slidesPerView={6}
           spaceBetween={12.5}
+          slidesPerGroup={6} // Chuyển qua 1 trang (10 cột mỗi lần)
           style={{
             width: "100%",
             height: "100%",
             overflow: "hidden",
-            paddingBottom: "10px",
+            paddingBottom: "16px",
             paddingLeft: "4px",
             paddingRight: "4px",
           }}
@@ -204,7 +205,7 @@ function FlashSale() {
             zIndex: 1000,
             position: "absolute",
             top: "50%",
-            right: "-10px",
+            right: "-20px",
             transform: "translateY(-50%)",
             "&:hover": {
               bgcolor: "common.white",
