@@ -16,6 +16,7 @@ import ProductDashboard from "./pages/Admin/ProductDashboard";
 import LayoutAdmin from "./pages/Admin/LayoutAdmin";
 import CategoryDashBoard from "./pages/Admin/CategoryDashBoard";
 import LayoutNew from "./pages/LayoutNew";
+import SearchLayout from "./pages/SearchLayout";
 
 function App() {
   const dispatch = useDispatch();
@@ -56,6 +57,7 @@ function App() {
       <Route path="/" element={<LayoutNew />}>
         <Route index element={<Home />} />
         <Route path="menu" element={<Menu />} />
+        <Route path="hihi" element={<SearchLayout />} />
 
         {/* Need login to access */}
         <Route element={<RequireAuth />}>
