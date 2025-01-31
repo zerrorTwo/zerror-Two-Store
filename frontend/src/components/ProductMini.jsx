@@ -3,7 +3,6 @@ import {
   Card,
   CardContent,
   CardMedia,
-  Grid2,
   Rating,
   Typography,
   useTheme,
@@ -14,7 +13,7 @@ import { Link } from "react-router-dom";
 function ProductMini({ img }) {
   const theme = useTheme();
   return (
-    <Grid2 size={2}>
+    <Box>
       <Card
         sx={{
           maxWidth: 192,
@@ -102,7 +101,7 @@ function ProductMini({ img }) {
           </CardContent>
         </Link>
       </Card>
-    </Grid2>
+    </Box>
   );
 }
 
