@@ -16,6 +16,7 @@ import MoreIcon from "@mui/icons-material/MoreVert";
 import { CardMedia, Container } from "@mui/material";
 import { useState } from "react";
 import { Link } from "react-router";
+import CartPopover from "./Cart/CartPopover";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -62,7 +63,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 export default function HeaderLayout() {
   const theme = useTheme();
-  const a = "123";
+  const a = undefined;
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
   const [searchText, setSearchText] = useState("");
@@ -70,6 +71,15 @@ export default function HeaderLayout() {
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
+  const [cartPopoverVisible, setCartPopoverVisible] = useState(false);
+
+  const handlePopoverOpen = () => {
+    setCartPopoverVisible(true);
+  };
+
+  const handlePopoverClose = () => {
+    setCartPopoverVisible(false);
+  };
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -100,10 +110,11 @@ export default function HeaderLayout() {
   const menuId = "primary-search-account-menu";
   const renderMenu = (
     <Menu
+      sx={{ top: "50px !important" }}
       anchorEl={anchorEl}
       anchorOrigin={{
-        vertical: "top",
-        horizontal: "left",
+        vertical: "bottom",
+        horizontal: "right",
       }}
       id={menuId}
       keepMounted
@@ -234,15 +245,27 @@ export default function HeaderLayout() {
             <Box
               sx={{ display: { xs: "none", md: "flex" }, alignItems: "center" }}
             >
-              <IconButton
-                size="large"
-                aria-label="show 4 new mails"
-                color="inherit"
-              >
-                <Badge badgeContent={4} color="error">
-                  <ShoppingCartIcon />
-                </Badge>
-              </IconButton>
+              <Box sx={{ position: "relative" }}>
+                <IconButton
+                  size="large"
+                  aria-label="show 4 new mails"
+                  color="inherit"
+                  onMouseEnter={handlePopoverOpen}
+                  onMouseLeave={handlePopoverClose}
+                >
+                  <Badge badgeContent={4} color="error">
+                    <ShoppingCartIcon />
+                  </Badge>
+                </IconButton>
+
+                {cartPopoverVisible && (
+                  <CartPopover
+                    onMouseEnter={handlePopoverOpen}
+                    onMouseLeave={handlePopoverClose}
+                  />
+                )}
+              </Box>
+
               {a ? (
                 <Box
                   mx={1}
