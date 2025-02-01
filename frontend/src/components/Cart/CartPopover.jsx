@@ -46,7 +46,7 @@ function CartPopover({ onMouseEnter, onMouseLeave }) {
                 color: "white",
                 bgcolor: "secondary.main",
               }}
-              to={"/"}
+              to={"/cart"}
             >
               View My Shopping Cart
             </Link>

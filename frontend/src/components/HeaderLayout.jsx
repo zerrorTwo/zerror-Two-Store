@@ -15,7 +15,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import MoreIcon from "@mui/icons-material/MoreVert";
 import { CardMedia, Container } from "@mui/material";
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import CartPopover from "./Cart/CartPopover";
 
 const Search = styled("div")(({ theme }) => ({
@@ -63,10 +63,15 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 export default function HeaderLayout() {
   const theme = useTheme();
+  const navigate = useNavigate();
   const a = undefined;
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
   const [searchText, setSearchText] = useState("");
+
+  const handleCartClick = () => {
+    navigate("/cart");
+  };
 
   const isMenuOpen = Boolean(anchorEl);
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
@@ -247,6 +252,7 @@ export default function HeaderLayout() {
             >
               <Box sx={{ position: "relative" }}>
                 <IconButton
+                  onClick={() => handleCartClick()}
                   size="large"
                   aria-label="show 4 new mails"
                   color="inherit"
