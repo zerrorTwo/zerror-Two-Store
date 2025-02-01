@@ -14,8 +14,9 @@ const theme = createTheme({
     },
     text: {
       primary: "#999", // Màu chữ chính
-      secondary: "#FFF", // Màu chữ phụ
+      secondary: "#000", // Màu chữ phụ
       blackColor: "#000", // Màu
+      hover: "#F5F5F5", // Màu
     },
     button: {
       backgroundColor: "#EE4899", // Màu nền của nút
