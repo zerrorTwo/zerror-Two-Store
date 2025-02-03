@@ -51,7 +51,7 @@ function Footer() {
               <Box display={"flex"}>
                 <CardMedia
                   component="img"
-                  image="../../public/Assets/logo.png"
+                  image="/Assets/logo.png"
                   alt="Logo"
                   sx={{
                     height: { xs: "30px", md: "30px" },
@@ -116,7 +116,7 @@ function Footer() {
             <Box display={"flex"} alignItems={"center"}>
               <CardMedia
                 component="img"
-                image="../../public/Assets/delivery.png"
+                image="/Assets/delivery.png"
                 alt="Box"
                 sx={{
                   height: { xs: "30px", md: "30px" },
@@ -135,7 +135,7 @@ function Footer() {
             <Box display={"flex"} alignItems={"center"}>
               <CardMedia
                 component="img"
-                image="../../public/Assets/24-hours-support.png"
+                image="/Assets/24-hours-support.png"
                 alt="Box"
                 sx={{
                   height: { xs: "30px", md: "30px" },
@@ -154,7 +154,7 @@ function Footer() {
             <Box display={"flex"} alignItems={"center"}>
               <CardMedia
                 component="img"
-                image="../../public/Assets/payment-method.png"
+                image="/Assets/payment-method.png"
                 alt="Box"
                 sx={{
                   height: { xs: "30px", md: "30px" },
@@ -173,7 +173,7 @@ function Footer() {
             <Box display={"flex"} alignItems={"center"}>
               <CardMedia
                 component="img"
-                image="../../public/Assets/exchange.png"
+                image="/Assets/exchange.png"
                 alt="Box"
                 sx={{
                   height: { xs: "30px", md: "30px" },
@@ -192,7 +192,7 @@ function Footer() {
             <Box display={"flex"} alignItems={"center"}>
               <CardMedia
                 component="img"
-                image="../../public/Assets/warranty.png"
+                image="/Assets/warranty.png"
                 alt="Box"
                 sx={{
                   height: { xs: "30px", md: "30px" },

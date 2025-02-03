@@ -1,28 +1,15 @@
 import { Link } from "react-router-dom";
 import Checkbox from "@mui/material/Checkbox";
-import {
-  Box,
-  Button,
-  ButtonGroup,
-  CardMedia,
-  Grid2,
-  Typography,
-} from "@mui/material";
+import { Box, CardMedia, Grid2, Typography } from "@mui/material";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { useState } from "react";
+import QuantityGroup from "../QuantityGroup";
 
 // import PropTypes from "prop-types";
 
 function CartDetailItem() {
   const [quantity, setQuantity] = useState(1);
-  const handleDecreaseQuantity = () => {
-    if (quantity > 1) {
-      setQuantity(quantity - 1);
-    }
-  };
-  const handleIncreaseQuantity = () => {
-    setQuantity(quantity + 1);
-  };
+
   return (
     <Grid2 container sx={{ alignItems: "center" }}>
       <Grid2 size={6}>
@@ -140,48 +127,7 @@ function CartDetailItem() {
           </Grid2>
           <Grid2 size={3}>
             <Box sx={{ justifyContent: "center" }}>
-              <ButtonGroup size="small" aria-label="Small button group">
-                <Button
-                  onClick={() => handleDecreaseQuantity()}
-                  key="one"
-                  sx={{
-                    color: "text.primary", // Màu chữ
-                    borderColor: "text.primary", // Màu viền
-                    // "&:hover": {
-                    //   backgroundColor: "rgba(255, 0, 0, 0.1)", // Màu nền khi hover
-                    // },
-                  }}
-                >
-                  -
-                </Button>
-                <input
-                  type="tel"
-                  key="two"
-                  style={{
-                    width: "45px",
-                    textAlign: "center",
-                    color: "text.primary", // Màu chữ trong input
-                  }}
-                  value={quantity}
-                  onInput={(e) =>
-                    setQuantity(e.target.value.replace(/[^0-9]/g, ""))
-                  } // Chỉ cho phép nhập số
-                />
-
-                <Button
-                  onClick={() => handleIncreaseQuantity()}
-                  key="three"
-                  sx={{
-                    color: "text.primary", // Màu chữ
-                    borderColor: "text.primary", // Màu viền
-                    // "&:hover": {
-                    //   backgroundColor: "rgba(255, 0, 0, 0.1)", // Màu nền khi hover
-                    // },
-                  }}
-                >
-                  +
-                </Button>
-              </ButtonGroup>
+              <QuantityGroup quantity={quantity} setQuantity={setQuantity} />
             </Box>
           </Grid2>
           <Grid2 size={3} textAlign={"center"}>
