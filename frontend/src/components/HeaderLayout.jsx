@@ -192,7 +192,7 @@ export default function HeaderLayout() {
             >
               <CardMedia
                 component="img"
-                image="../../public/Assets/logo.png"
+                image="/Assets/logo.png"
                 alt="Logo"
                 sx={{
                   height: { xs: "30px", md: "50px" },
