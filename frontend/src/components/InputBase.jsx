@@ -13,13 +13,14 @@ function InputBase({
   required = false,
   multiline = false,
   maxWidth = false,
+  height, // Default height
 }) {
   const theme = useTheme();
 
   return (
     <FormControl sx={{ width: maxWidth ? "100%" : "350px" }}>
       <TextField
-        id={id} // Use the passed id prop here
+        id={id}
         sx={{
           width: maxWidth ? "100%" : "350px",
           borderRadius: 1,
@@ -31,6 +32,9 @@ function InputBase({
           },
           "& .MuiInputBase-input": {
             color: theme.palette.text.blackColor,
+            height: height, // Set custom height
+            padding: "8px 12px", // Ensure padding doesn't collapse
+            boxSizing: "border-box",
           },
           "& .MuiOutlinedInput-root": {
             "& fieldset": {
@@ -63,22 +67,18 @@ function InputBase({
 }
 
 InputBase.propTypes = {
-  id: PropTypes.string, // Add id prop as required
+  id: PropTypes.string,
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
   label: PropTypes.string.isRequired,
-  inputRef: PropTypes.oneOfType([
-    PropTypes.func,
-    PropTypes.shape({ current: PropTypes.instanceOf(Element) }),
-  ]),
   helperText: PropTypes.string,
   type: PropTypes.string,
-  autoFocus: PropTypes.bool,
   disabled: PropTypes.bool,
   name: PropTypes.string,
   required: PropTypes.bool,
   multiline: PropTypes.bool,
   maxWidth: PropTypes.bool,
+  height: PropTypes.string,
 };
 
 export default InputBase;
