@@ -181,7 +181,7 @@ const updateCategory = async (id, data) => {
   return category;
 };
 
-const deleteCategory = async (category) => {
+const deleteCategory = async (categories) => {
   // Nhận mảng _id từ body request
 
   if (!categories || categories.length === 0) {

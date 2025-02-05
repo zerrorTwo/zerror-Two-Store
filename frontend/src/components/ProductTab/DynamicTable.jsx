@@ -11,6 +11,7 @@ import {
 } from "@mui/material";
 
 const DynamicTable = ({ categories, tableData, handleTableChange }) => {
+  // console.log(tableData);
   return (
     <TableContainer>
       <Table>

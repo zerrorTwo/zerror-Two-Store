@@ -109,13 +109,13 @@ function CateDashBoard() {
       }
       return prev;
     });
-    navigate(`/layout/cate?parent=${row._id}`);
+    navigate(`/admin/cate?parent=${row._id}`);
   };
 
   const handleBreadcrumbClick = (id, index) => {
     setBreadcrumbItems((prev) => prev.slice(0, index + 1));
     setParentId(id);
-    navigate(`/layout/cate?parent=${id}`);
+    navigate(`/admin/cate?parent=${id}`);
   };
 
   const handleCloseDialog = () => {
@@ -199,6 +199,7 @@ function CateDashBoard() {
       }
 
       toast.success("Category created successfully");
+      formData.img = null;
       setImagePreview(null);
       handleCloseDialog();
     } catch (error) {
@@ -239,7 +240,7 @@ function CateDashBoard() {
     setBreadcrumbItems([]);
     setParentId(null);
     localStorage.removeItem("breadcrumbItems"); // Xóa breadcrumbs khỏi localStorage
-    navigate("/layout/cate");
+    navigate("/admin/cate");
   };
 
   if (categoryLoading) return <div>Loading...</div>;

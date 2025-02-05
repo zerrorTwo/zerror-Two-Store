@@ -76,12 +76,12 @@ const deleteProduct = async (id) => {
   }
 };
 
-const deleteManyProducts = async (id) => {
-  const products = req.body;
-  if (!products) {
+const deleteManyProducts = async (_id) => {
+  if (!_id) {
     throw new ApiError(StatusCodes.NOT_FOUND, "products not found");
   }
-  const respone = await ProductModel.deleteMany(products);
+
+  const respone = await ProductModel.deleteMany({ _id: _id });
 
   if (!respone) {
     throw new ApiError(
@@ -146,6 +146,7 @@ const getPageProducts = async (page, limit, category, search) => {
         $group: {
           _id: "$_id", // Nhóm theo sản phẩm
           name: { $first: "$name" },
+          description: { $first: "$description" },
           price: { $first: "$price" },
           thumb: { $first: "$thumb" },
           mainImg: { $first: "$mainImg" },
@@ -207,6 +208,7 @@ const getPageProducts = async (page, limit, category, search) => {
         $project: {
           _id: 1,
           name: 1,
+          description: 1,
           thumb: 1,
           mainImg: 1,
           img: 1,

@@ -181,6 +181,7 @@ const GenericTable = ({
                                     alignItems: "center",
                                     justifyContent: "center",
                                     height: "100%",
+                                    maxWidth: "100px",
                                   }}
                                 >
                                   <img
@@ -213,7 +214,16 @@ const GenericTable = ({
                                   />
                                 )
                               ) : (
-                                String(cellValue)
+                                <Box
+                                  sx={{
+                                    maxWidth: "100px",
+                                    whiteSpace: "nowrap",
+                                    overflow: "hidden",
+                                    textOverflow: "ellipsis",
+                                  }}
+                                >
+                                  {String(cellValue)}
+                                </Box>
                               )
                             ) : (
                               "N/A"

@@ -8,7 +8,6 @@ import {
   Radio,
   RadioGroup,
   Typography,
-  useTheme,
 } from "@mui/material";
 import InputBase from "../InputBase";
 import { PRIMITIVE_URL } from "../../redux/constants";
@@ -22,7 +21,6 @@ const InformationTab = ({
   handleInputChange,
   handleFileChange,
 }) => {
-  const theme = useTheme();
   const handleChange = (event) => {
     const value = event.target.value;
     setStatus(value === "true");
@@ -81,31 +79,37 @@ const InformationTab = ({
           handleInputChange={handleInputChange}
         />
         <FormControl>
-          <FormLabel
-            sx={{ color: theme.palette.text.primary }}
-            id="demo-radio-buttons-group-label"
-          >
-            Gender
-          </FormLabel>
-          <RadioGroup
-            row
-            aria-labelledby="demo-radio-buttons-group-label"
-            defaultValue="female"
-            name="radio-buttons-group"
-            value={status}
-            onChange={handleChange}
-          >
+          <FormLabel sx={{ color: "black !important" }}>Publish</FormLabel>
+          <RadioGroup row value={status} onChange={handleChange}>
             <FormControlLabel
-              sx={{ color: theme.palette.text.primary }}
               value="true"
-              control={<Radio />}
+              control={
+                <Radio
+                  sx={{
+                    color: "black",
+                    "&.Mui-checked": {
+                      color: "black",
+                    },
+                  }}
+                />
+              }
               label="Active"
+              sx={{ color: "black" }}
             />
             <FormControlLabel
-              sx={{ color: theme.palette.text.primary }}
               value="false"
-              control={<Radio />}
+              control={
+                <Radio
+                  sx={{
+                    color: "black",
+                    "&.Mui-checked": {
+                      color: "black",
+                    },
+                  }}
+                />
+              }
               label="Disable"
+              sx={{ color: "black" }}
             />
           </RadioGroup>
         </FormControl>
