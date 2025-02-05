@@ -112,7 +112,7 @@ const CategoryDropdown2 = memo(
               color: theme?.palette?.text?.primary || "#000",
               cursor: "pointer",
               "&:hover": {
-                borderColor: theme?.palette?.primary?.main || "#1976d2",
+                borderColor: theme?.palette?.text?.primary || "#1976d2",
               },
             }}
           >
@@ -138,6 +138,7 @@ const CategoryDropdown2 = memo(
               {/* Main dropdown box */}
               <Box
                 sx={{
+                  maxHeight: "300px",
                   position: "absolute",
                   top: "100%",
                   left: 0,

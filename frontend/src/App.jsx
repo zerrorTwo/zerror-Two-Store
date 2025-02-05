@@ -18,6 +18,7 @@ import CategoryDashBoard from "./pages/Admin/CategoryDashBoard";
 import LayoutNew from "./pages/LayoutNew";
 import SearchLayout from "./pages/SearchLayout";
 import ProductDetail from "./pages/ProductDetailPage/ProductDetail";
+import CreateProduct from "./pages/Admin/CreateProduct/CreateProduct";
 
 function App() {
   const dispatch = useDispatch();
@@ -51,6 +52,7 @@ function App() {
           <Route path="admin" element={<LayoutAdmin />}>
             <Route path="cate" element={<CateDashBoard />} />
             <Route path="product" element={<ProductDashboard />} />
+            <Route path="create-product" element={<CreateProduct />} />
           </Route>
         </Route>
       </Route>
