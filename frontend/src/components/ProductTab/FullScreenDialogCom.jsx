@@ -81,6 +81,8 @@ function FullScreenDialogCom({
         items: filteredVariations[key] || [],
       }));
 
+      console.log(variationsEntries);
+
       setCategories(dynamicCategories);
       setInitialPricing(variations.pricing || []);
       generateTableData(dynamicCategories, variations.pricing);
@@ -129,12 +131,15 @@ function FullScreenDialogCom({
     };
     combine(0, {});
 
-    const data = combinations.map((combination) => {
-      const matchingPricing = initialPricing.find((pricing) =>
-        Object.keys(combination).every(
-          (key) => combination[key] === pricing[key]
-        )
-      );
+    const data = combinations?.map((combination) => {
+      const matchingPricing = Array.isArray(initialPricing)
+        ? initialPricing.find((pricing) =>
+            Object.keys(combination).every(
+              (key) => combination[key] === pricing[key]
+            )
+          )
+        : null;
+
       return {
         ...combination,
         price: matchingPricing ? matchingPricing.price : "",
@@ -361,6 +366,9 @@ function FullScreenDialogCom({
         try {
           await createProduct({ data: updatedFormData }).unwrap();
           toast.success("Product created successfully");
+
+          // Clear formData after successful creation
+          handleResetFormData(); // Call reset function
         } catch (error) {
           toast.error(error?.message || error?.data?.message);
         }
@@ -382,6 +390,19 @@ function FullScreenDialogCom({
     } catch (error) {
       console.error("Failed to submit product", error);
     }
+  };
+
+  // Function to clear formData and other states
+  const handleResetFormData = () => {
+    // Reset formData and other states as needed
+    setFormData({
+      mainImg: "",
+      img: [],
+      // ... other fields if needed
+    });
+    setTableData([]);
+    setCategories([]);
+    setStatus(""); // Reset status if needed
   };
 
   const uploadImage = async (imageFile) => {
@@ -568,7 +589,11 @@ function FullScreenDialogCom({
                 ))}
               </Box>
               <Box display={"flex"} gap={2} my={2}>
-                <Button variant="outlined" onClick={addNewItemField}>
+                <Button
+                  variant="outlined"
+                  onClick={addNewItemField}
+                  sx={{ color: "InfoText", borderColor: "text.primary" }}
+                >
                   Add New Item
                 </Button>
                 <ButtonPrimary text="More variations" onClick={handleAddSet} />
@@ -595,14 +620,42 @@ function FullScreenDialogCom({
           boxShadow: "0 -1px 5px rgba(0,0,0,0.1)",
         }}
       >
-        <Button onClick={handleClose}>Cancel</Button>
-        {value === 0 && <Button onClick={handleNext}>Next</Button>}
-        {value === 1 && <Button onClick={handleBack}>Back</Button>}
+        <Button
+          sx={{
+            color: "black",
+          }}
+          onClick={handleClose}
+        >
+          Cancel
+        </Button>
+        {value === 0 && (
+          <Button
+            sx={{
+              color: "black",
+            }}
+            onClick={handleNext}
+          >
+            Next
+          </Button>
+        )}
+        {value === 1 && (
+          <Button
+            sx={{
+              color: "black",
+            }}
+            onClick={handleBack}
+          >
+            Back
+          </Button>
+        )}
         {create ? (
           <Button
             onClick={handleSubmit}
             variant="contained"
             disabled={!isFormValid()}
+            sx={{
+              color: "black",
+            }}
           >
             Submit
           </Button>

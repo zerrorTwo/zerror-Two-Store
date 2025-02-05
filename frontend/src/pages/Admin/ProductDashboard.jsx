@@ -38,7 +38,7 @@ const ProductDashboard = () => {
   const headCells = [
     { id: "name", disablePadding: false, label: "Name" },
     {
-      id: "img",
+      id: "mainImg",
       img: true,
       disablePadding: false,
       label: "Img",
@@ -87,7 +87,7 @@ const ProductDashboard = () => {
 
   const processedRows = rows.map((row) => ({
     ...row,
-    type: row.type?.name || "Unknown",
+    type: row.type || "Unknown",
   }));
 
   const handleClickAway = useCallback(() => {
@@ -186,16 +186,16 @@ const ProductDashboard = () => {
             onChange={(e) => setInputSearch(e.target.value)}
             sx={{
               "&::before": {
-                borderBottom: "1px solid white",
+                borderBottom: "1px solid black",
               },
               "&:hover:not(.Mui-disabled):before": {
-                borderBottom: "2px solid white",
+                borderBottom: "2px solid black",
               },
               "&::after": {
-                borderBottom: "2px solid white",
+                borderBottom: "2px solid black",
               },
               "&.Mui-focused::after": {
-                borderBottom: "2px solid white",
+                borderBottom: "2px solid black",
               },
             }}
             placeholder="Search name product"

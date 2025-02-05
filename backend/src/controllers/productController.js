@@ -18,9 +18,8 @@ const updateProduct = asyncHandeler(async (req, res) => {
 });
 
 const deleteManyProducts = asyncHandeler(async (req, res) => {
-  const { id } = req.params;
-
-  const products = await productService.deleteManyProducts(id);
+  const { _id } = req.body;
+  const products = await productService.deleteManyProducts(_id);
   res.status(StatusCodes.CREATED).json(products);
 });
 

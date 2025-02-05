@@ -22,7 +22,6 @@ const categorySchema = new mongoose.Schema({
   img: {
     type: String,
     trim: true,
-    required: true,
   },
   level: {
     type: Number,

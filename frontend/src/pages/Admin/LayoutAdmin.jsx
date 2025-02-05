@@ -26,7 +26,11 @@ function LayoutAdmin() {
   };
 
   return (
-    <Box component={"main"} sx={{ flexGrow: 1, my: 2, px: 10 }}>
+    <Box
+      component={"main"}
+      sx={{ flexGrow: 1, py: 2, px: 10, height: "100vh", width: "100%" }}
+      bgcolor={"white"}
+    >
       <CssBaseline />
       <Grid container spacing={3}>
         <Grid size={2.5}>

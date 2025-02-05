@@ -34,6 +34,12 @@ function CategorySelect({ listCate, formData, handleInputChange }) {
             "& .MuiInputLabel-root": {
               color: theme.palette.text.blackColor,
             },
+            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+              borderColor: "black",
+            },
+            "&.Mui-focused": {
+              color: "black",
+            },
           }}
         >
           <MenuItem value="">
