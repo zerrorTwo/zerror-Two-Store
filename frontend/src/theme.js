@@ -9,7 +9,7 @@ const theme = createTheme({
       main: "#C94A00", // Màu phụ (tùy chỉnh theo ý muốn)
     },
     background: {
-      default: "#FFFF", // Màu nền mặc định
+      default: "#1A1A1D", // Màu nền mặc định
       paper: "#f4f4f4", // Màu nền của các thành phần như Card, Paper
     },
     text: {
