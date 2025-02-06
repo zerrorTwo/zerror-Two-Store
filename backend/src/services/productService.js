@@ -15,7 +15,7 @@ const createProduct = async (data) => {
       );
     }
 
-    const type = await CategoryModel.findOne({ name: data.type });
+    const type = await CategoryModel.findOne({ slug: data.category });
 
     if (!type) {
       throw new ApiError(
@@ -23,7 +23,7 @@ const createProduct = async (data) => {
         `Category ${data.type} not found`
       );
     }
-    data.thumb = slugify(data.name);
+    data.slug = slugify(data.name);
     data.type = type._id;
     if (data.variations && data.variations.pricing) {
       data.variations.pricing = data.variations.pricing.map((pricing) => ({
@@ -44,18 +44,17 @@ const createProduct = async (data) => {
 
 const updateProduct = async (id, data) => {
   try {
-    const type = await CategoryModel.findOne({
-      name: data.updatedFormData.type,
-    });
-    data.updatedFormData.type = type._id;
+    data = data.updatedFormData;
 
-    const product = await ProductModel.findByIdAndUpdate(
-      id,
-      data.updatedFormData,
-      {
-        new: true,
-      }
-    );
+    const type = await CategoryModel.findOne({
+      slug: data.type,
+    });
+    data.type = type._id;
+
+    const product = await ProductModel.findByIdAndUpdate(id, data, {
+      new: true,
+    });
+
     return product;
   } catch (error) {
     throw new ApiError(
@@ -92,6 +91,44 @@ const deleteManyProducts = async (_id) => {
   return { message: `Products deleted successfully` };
 };
 
+const getProductBySlug = async (slug) => {
+  try {
+    const product = await ProductModel.findOne({ slug: slug })
+      .populate({
+        path: "type",
+        select: "slug",
+      })
+      .lean();
+
+    if (product && product.type) {
+      product.type = product.type.slug;
+    }
+
+    return product;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getProductById = async (id) => {
+  try {
+    const product = await ProductModel.findById(id)
+      .populate({
+        path: "type",
+        select: "slug",
+      })
+      .lean();
+
+    if (product && product.type) {
+      product.type = product.type.slug;
+    }
+
+    return product;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const getAllProducts = async (req, res) => {
   try {
     const products = await ProductModel.find({})
@@ -99,7 +136,6 @@ const getAllProducts = async (req, res) => {
       .exec(); // Thực hiện truy vấn
     return products;
   } catch (error) {
-    console.error(error);
     return res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -112,7 +148,7 @@ const getPageProducts = async (page, limit, category, search) => {
       : null;
 
     const categoryFilter = currentCategory
-      ? { type: { $in: currentCategory._id.toString() } }
+      ? { type: { $in: [currentCategory._id] } } // Ensure it's an array
       : {};
 
     // Lọc sản phẩm theo từ khóa tìm kiếm
@@ -148,7 +184,7 @@ const getPageProducts = async (page, limit, category, search) => {
           name: { $first: "$name" },
           description: { $first: "$description" },
           price: { $first: "$price" },
-          thumb: { $first: "$thumb" },
+          slug: { $first: "$slug" },
           mainImg: { $first: "$mainImg" },
           img: { $first: "$img" },
           price: { $first: "$price" },
@@ -209,7 +245,7 @@ const getPageProducts = async (page, limit, category, search) => {
           _id: 1,
           name: 1,
           description: 1,
-          thumb: 1,
+          slug: 1,
           mainImg: 1,
           img: 1,
           price: 1,
@@ -253,4 +289,6 @@ export const productService = {
   getPageProducts,
   deleteManyProducts,
   getProductsByCategory,
+  getProductBySlug,
+  getProductById,
 };

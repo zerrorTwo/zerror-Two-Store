@@ -17,12 +17,12 @@ const reviewSchema = mongoose.Schema(
 const productSchema = new mongoose.Schema(
   {
     name: { type: String, unique: true, required: true },
-    thumb: { type: String, required: true },
+    slug: { type: String, required: true },
     mainImg: { type: String, required: true },
     img: { type: Array },
     description: { type: String },
     price: { type: Number, required: true },
-    quantity: { type: Number, required: true },
+    stock: { type: Number, required: true },
     sold: { type: Number, required: true, default: 0 },
     status: { type: Boolean, required: true, default: true },
     type: {

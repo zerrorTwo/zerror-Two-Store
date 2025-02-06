@@ -6,22 +6,20 @@ import {
   Typography,
   IconButton,
   InputAdornment,
-  useTheme,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 
 const InputSets = ({
-  categories,
+  variations,
   handleAddField,
   handleCategoryInputChange,
   handleDeleteField,
   handleDeleteCategory,
 }) => {
-  const theme = useTheme();
   return (
     <Box>
-      {categories.map((category, setIndex) => (
-        <Box key={category.label} mb={2}>
+      {variations.map((category, setIndex) => (
+        <Box key={category.label}>
           <Box
             display="flex"
             alignItems="center"
@@ -63,10 +61,10 @@ const InputSets = ({
           <Button
             sx={{
               mt: 1,
-              backgroundColor: theme.palette.primary.main,
-              color: theme.palette.primary.contrastText,
+              backgroundColor: "secondary.main",
+              color: "primary.contrastText",
               "&:hover": {
-                backgroundColor: theme.palette.primary.dark,
+                backgroundColor: "primary.dark",
               },
             }}
             onClick={() => handleAddField(setIndex)}
@@ -80,7 +78,7 @@ const InputSets = ({
 };
 
 InputSets.propTypes = {
-  categories: PropTypes.arrayOf(
+  variations: PropTypes.arrayOf(
     PropTypes.shape({
       label: PropTypes.string.isRequired,
       items: PropTypes.arrayOf(PropTypes.string).isRequired,

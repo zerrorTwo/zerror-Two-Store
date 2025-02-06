@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 
 const DynamicTable = ({ categories, tableData, handleTableChange }) => {
-  // console.log(tableData);
   return (
     <TableContainer>
       <Table>
@@ -37,13 +36,31 @@ const DynamicTable = ({ categories, tableData, handleTableChange }) => {
               <TableCell>
                 <TextField
                   sx={{
-                    height: "30px",
+                    "& .MuiInputLabel-root": {
+                      color: "text.primary",
+                      "&.Mui-focused": {
+                        color: "text.primary",
+                      },
+                    },
                     "& .MuiInputBase-input": {
                       p: 0.5,
+                      color: "text.blackColor",
                     },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: "text.primary",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "text.primary",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "text.primary",
+                      },
+                    },
+                    height: "30px",
                   }}
                   // type="number"
-                  value={new Intl.NumberFormat().format(row.price)}
+                  value={new Intl.NumberFormat().format(Math.max(0, row.price))}
                   onChange={(e) =>
                     handleTableChange(rowIndex, "price", e.target.value)
                   }
@@ -59,13 +76,31 @@ const DynamicTable = ({ categories, tableData, handleTableChange }) => {
               <TableCell>
                 <TextField
                   sx={{
-                    height: "30px",
+                    "& .MuiInputLabel-root": {
+                      color: "text.primary",
+                      "&.Mui-focused": {
+                        color: "text.primary",
+                      },
+                    },
                     "& .MuiInputBase-input": {
                       p: 0.5,
+                      color: "text.blackColor",
                     },
+                    "& .MuiOutlinedInput-root": {
+                      "& fieldset": {
+                        borderColor: "text.primary",
+                      },
+                      "&:hover fieldset": {
+                        borderColor: "text.primary",
+                      },
+                      "&.Mui-focused fieldset": {
+                        borderColor: "text.primary",
+                      },
+                    },
+                    height: "30px",
                   }}
-                  type="number"
-                  value={row.stock}
+                  // type="number"
+                  value={new Intl.NumberFormat().format(Math.max(0, row.stock))}
                   onChange={(e) =>
                     handleTableChange(rowIndex, "stock", e.target.value)
                   }

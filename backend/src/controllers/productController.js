@@ -11,7 +11,6 @@ const createProduct = asyncHandeler(async (req, res) => {
 
 const updateProduct = asyncHandeler(async (req, res) => {
   const id = req.params.id;
-
   const data = req.body;
   const product = await productService.updateProduct(id, data);
   res.status(StatusCodes.CREATED).json(product);
@@ -21,6 +20,18 @@ const deleteManyProducts = asyncHandeler(async (req, res) => {
   const { _id } = req.body;
   const products = await productService.deleteManyProducts(_id);
   res.status(StatusCodes.CREATED).json(products);
+});
+
+const getProductBySlug = asyncHandeler(async (req, res) => {
+  const slug = req.params.slug;
+  const product = await productService.getProductBySlug(slug);
+  res.status(StatusCodes.CREATED).json(product);
+});
+
+const getProductById = asyncHandeler(async (req, res) => {
+  const id = req.params.id;
+  const product = await productService.getProductById(id);
+  res.status(StatusCodes.CREATED).json(product);
 });
 
 const getAllProducts = asyncHandeler(async (req, res) => {
@@ -48,4 +59,6 @@ export {
   deleteManyProducts,
   getAllProducts,
   getPageProducts,
+  getProductBySlug,
+  getProductById,
 };

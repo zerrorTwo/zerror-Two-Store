@@ -6,20 +6,8 @@ import InputSets from "../../../components/InputSets";
 import DynamicTable from "../../../components/ProductTab/DynamicTable";
 import ButtonPrimary from "../../../components/ButtonPrimary";
 
-function VariationTab({ row = null }) {
+function VariationTab({ formData, setFormData, onNext, onPre }) {
   const theme = useTheme();
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    quantity: "",
-    type: "",
-    thumb: null,
-    mainImg: null,
-    img: [],
-    variations: "{}",
-  });
-
   const [categories, setCategories] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [initialPricing, setInitialPricing] = useState([]);
@@ -27,25 +15,23 @@ function VariationTab({ row = null }) {
   const [newCategoryItems, setNewCategoryItems] = useState([""]);
 
   useEffect(() => {
-    if (row) {
+    if (formData && formData.variations) {
       const variationsStr =
-        typeof row.variations === "object"
-          ? JSON.stringify(row.variations)
-          : row.variations;
-      setFormData({
-        name: row.name || "",
-        description: row.description || "",
-        price: row.price?.toString() || "",
-        quantity: row.quantity?.toString() || "",
-        type: row.type || "",
-        thumb: row.thumb || null,
-        mainImg: row.mainImg || null,
-        img: row.img || [],
-        variations: variationsStr || "{}",
+        typeof formData.variations === "object"
+          ? JSON.stringify(formData.variations)
+          : formData.variations;
+
+      setFormData((prevData) => {
+        if (JSON.stringify(prevData) !== JSON.stringify(formData)) {
+          return {
+            ...formData,
+            variations: variationsStr || "{}",
+          };
+        }
+        return prevData;
       });
 
       const variations = JSON.parse(variationsStr || "{}");
-
       const variationsEntries = Object.entries(variations);
       const filteredVariations = Object.fromEntries(
         variationsEntries.slice(0, -1)
@@ -59,25 +45,8 @@ function VariationTab({ row = null }) {
       setCategories(dynamicCategories);
       setInitialPricing(variations.pricing || []);
       generateTableData(dynamicCategories, variations.pricing);
-    } else {
-      setFormData({
-        name: "",
-        description: "",
-        price: "",
-        quantity: "",
-        type: "",
-        thumb: null,
-        mainImg: null,
-        img: [],
-        variations: "{}",
-      });
-      setCategories([]);
-      setTableData([]);
-      setNewCategoryName("");
-      setNewCategoryItems([""]);
-      setInitialPricing([]);
     }
-  }, [row]);
+  }, [formData, setFormData]);
 
   useEffect(() => {
     generateTableData(categories, initialPricing);
@@ -112,48 +81,39 @@ function VariationTab({ row = null }) {
       );
       return {
         ...combination,
-        price: matchingPricing ? matchingPricing.price : "",
-        stock: matchingPricing ? matchingPricing.quantity : "",
+        price: matchingPricing ? matchingPricing.price : 0,
+        stock: matchingPricing ? matchingPricing.stock : 0,
       };
     });
 
-    setTableData(data);
+    setTableData((prevData) => {
+      if (JSON.stringify(prevData) !== JSON.stringify(data)) {
+        return data;
+      }
+      return prevData;
+    });
   };
 
   const handleTableChange = (index, field, value) => {
-    if (field === "price") {
-      // Remove commas from the value and parse to float
-      const formattedValue = value.replace(/,/g, "");
-      setTableData((prevData) => {
-        const newData = [...prevData];
-        newData[index][field] = formattedValue;
-        return newData;
-      });
-    } else {
-      setTableData((prevData) => {
-        const newData = [...prevData];
-        newData[index][field] = value;
-        return newData;
-      });
-    }
-    // setTableData((prevData) => {
-    //   const newData = [...prevData];
-    //   newData[index][field] = value;
-    //   return newData;
-    // });
+    const formattedValue =
+      field === "price" || field === "stock" ? value.replace(/,/g, "") : value;
+    setTableData((prevData) => {
+      const newData = [...prevData];
+      newData[index][field] = formattedValue;
+      return newData;
+    });
   };
 
   const handleAddField = (setIndex) => {
-    // Kiểm tra nếu ít nhất một item trống trong category hiện tại
     if (categories[setIndex].items.some((item) => item.trim() === "")) {
       toast.error("All items must have a value before adding a new field");
-      return; // Không cho phép thêm field mới nếu có field trống
+      return;
     }
 
     setCategories((prevCategories) => {
-      const newCategories = [...prevCategories]; // Create a copy of the categories array
-      const updatedItems = [...newCategories[setIndex].items]; // Create a copy of the items array
-      updatedItems.push(""); // Thêm một field trống vào danh sách items
+      const newCategories = [...prevCategories];
+      const updatedItems = [...newCategories[setIndex].items];
+      updatedItems.push("");
       newCategories[setIndex].items = updatedItems;
       return newCategories;
     });
@@ -177,14 +137,21 @@ function VariationTab({ row = null }) {
 
   const handleAddSet = () => {
     if (
-      newCategoryName.trim() === "" || // Kiểm tra xem tên category có trống không
-      newCategoryItems.every((item) => item.trim() === "") // Kiểm tra xem tất cả các items có trống không
+      newCategoryName.trim() === "" ||
+      newCategoryItems.every((item) => item.trim() === "")
     ) {
       toast.error("Category name and items cannot be empty");
-      return; // Không cho phép thêm category nếu có trường trống
+      return;
     }
 
     const filteredItems = newCategoryItems.filter((item) => item.trim() !== "");
+    const existingCategory = categories.some(
+      (category) => category.label === newCategoryName
+    );
+    if (existingCategory) {
+      toast.error("Category already exists");
+      return;
+    }
 
     setCategories((prevCategories) => [
       ...prevCategories,
@@ -219,7 +186,7 @@ function VariationTab({ row = null }) {
   const addNewItemField = () => {
     if (newCategoryItems.some((item) => item.trim() === "")) {
       toast.error("All fields must be filled before adding a new item.");
-      return; // Nếu có item trống, không cho phép thêm item mới
+      return;
     }
 
     setNewCategoryItems((prevItems) => [...prevItems, ""]);
@@ -243,53 +210,63 @@ function VariationTab({ row = null }) {
     });
   };
 
-  return (
-    <Box display={"flex"} flexDirection={"column"} gap={2}>
-      <InputSets
-        categories={categories}
-        handleAddField={handleAddField}
-        handleCategoryInputChange={handleCategoryInputChange} // Pass the new handle function
-        handleDeleteField={handleDeleteField} // Pass the delete function
-        handleDeleteCategory={handleDeleteCategory} // Pass the delete category function
-      />
+  const isFormValid = () => {
+    return formData.mainImg && formData.img[0];
+  };
 
-      {/* New Category and Fields Inputs */}
-      <Box display={"flex"} gap={2} mb={2}>
-        <TextField
-          variant="standard"
-          sx={{
-            maxWidth: 200,
-            borderRadius: 1,
-            "& .MuiInputLabel-root": {
-              color: theme.palette.text.primary,
-              "&.Mui-focused": {
-                color: theme.palette.text.primary,
-              },
-            },
-            "& .MuiInputBase-input": {
-              color: theme.palette.text.blackColor,
-            },
-            "& .MuiOutlinedInput-root": {
-              "& fieldset": {
-                borderColor: theme.palette.text.primary,
-              },
-              "&:hover fieldset": {
-                borderColor: theme.palette.text.primary,
-              },
-              "&.Mui-focused fieldset": {
-                borderColor: theme.palette.text.primary,
-              },
-            },
-          }}
-          label="New Category Name"
-          value={newCategoryName}
-          onChange={(e) => setNewCategoryName(e.target.value)}
-          margin="normal"
+  const handleNext = () => {
+    const isTableDataValid = tableData.every(
+      (row) => row.price !== "" && row.stock !== ""
+    );
+
+    if (isTableDataValid) {
+      const newVariations = categories.reduce((acc, category) => {
+        acc[category.label.toLowerCase()] = category.items;
+        return acc;
+      }, {});
+
+      const pricing = tableData.map((item) => {
+        const pricingItem = {};
+
+        categories.forEach((category) => {
+          const key = category.label.toLowerCase();
+          pricingItem[key] = item[key] || "";
+        });
+
+        pricingItem.price = item.price;
+        pricingItem.stock = item.stock;
+
+        return pricingItem;
+      });
+
+      setFormData((prevData) => ({
+        ...prevData,
+        variations: JSON.stringify({
+          ...newVariations,
+          pricing,
+        }),
+      }));
+
+      onNext();
+    } else {
+      toast.warning("Please fill in all the required fields in the table.");
+    }
+  };
+
+  return (
+    <Box display={"flex"} flexDirection={"column"} gap={2} sx={{ flexGrow: 1 }}>
+      <Box sx={{ overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}>
+        <InputSets
+          variations={categories}
+          handleAddField={handleAddField}
+          handleCategoryInputChange={handleCategoryInputChange}
+          handleDeleteField={handleDeleteField}
+          handleDeleteCategory={handleDeleteCategory}
         />
 
-        {/* New Fields */}
-        {newCategoryItems.map((item, index) => (
+        <Box display={"flex"} gap={2}>
           <TextField
+            variant="standard"
             sx={{
               maxWidth: 200,
               borderRadius: 1,
@@ -314,45 +291,106 @@ function VariationTab({ row = null }) {
                 },
               },
             }}
-            key={index}
-            label="New field"
-            value={item}
-            onChange={(e) => handleNewItemChange(index, e.target.value)}
+            label="New Variant Name"
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
             margin="normal"
           />
-        ))}
-      </Box>
 
-      {/* Action Buttons */}
-      <Box display={"flex"} gap={2} my={2}>
+          {newCategoryItems.map((item, index) => (
+            <TextField
+              sx={{
+                maxWidth: 200,
+                borderRadius: 1,
+                "& .MuiInputLabel-root": {
+                  color: theme.palette.text.primary,
+                  "&.Mui-focused": {
+                    color: theme.palette.text.primary,
+                  },
+                },
+                "& .MuiInputBase-input": {
+                  color: theme.palette.text.blackColor,
+                },
+                "& .MuiOutlinedInput-root": {
+                  "& fieldset": {
+                    borderColor: theme.palette.text.primary,
+                  },
+                  "&:hover fieldset": {
+                    borderColor: theme.palette.text.primary,
+                  },
+                  "&.Mui-focused fieldset": {
+                    borderColor: theme.palette.text.primary,
+                  },
+                },
+              }}
+              key={index}
+              label="New field"
+              value={item}
+              onChange={(e) => handleNewItemChange(index, e.target.value)}
+              margin="normal"
+            />
+          ))}
+        </Box>
+
+        <Box display={"flex"} gap={2}>
+          <Button
+            sx={{
+              color: "text.primary",
+              borderColor: theme.palette.text.primary,
+            }}
+            variant="outlined"
+            onClick={addNewItemField}
+          >
+            Add New Item
+          </Button>
+          <ButtonPrimary text="More variations" onClick={handleAddSet} />
+        </Box>
+
+        <Typography>Table</Typography>
+        {tableData.length > 0 && (
+          <DynamicTable
+            categories={categories}
+            tableData={tableData}
+            handleTableChange={handleTableChange}
+          />
+        )}
+      </Box>
+      <Box
+        pt={2}
+        marginTop="auto"
+        justifyContent={"flex-end"}
+        display={"flex"}
+        gap={2}
+      >
         <Button
           sx={{
-            color: "text.primary",
-            borderColor: theme.palette.text.primary,
+            color: "white",
+            bgcolor: "secondary.main",
           }}
-          variant="outlined"
-          onClick={addNewItemField}
+          onClick={onPre}
         >
-          Add New Item
+          Pre
         </Button>
-        <ButtonPrimary text="More variations" onClick={handleAddSet} />
+        <Button
+          sx={{
+            color: "white",
+            bgcolor: "secondary.main",
+          }}
+          onClick={handleNext}
+          disabled={!isFormValid()}
+        >
+          Next
+        </Button>
       </Box>
-
-      {/* Table */}
-      <Typography>Table</Typography>
-      {tableData.length > 0 && (
-        <DynamicTable
-          categories={categories}
-          tableData={tableData}
-          handleTableChange={handleTableChange}
-        />
-      )}
     </Box>
   );
 }
 
 VariationTab.propTypes = {
-  row: PropTypes.object,
+  formData: PropTypes.object.isRequired,
+  setFormData: PropTypes.func.isRequired,
+  onNext: PropTypes.func.isRequired,
+  onPre: PropTypes.func.isRequired,
 };
 
 export default VariationTab;
