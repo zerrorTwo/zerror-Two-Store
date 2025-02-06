@@ -12,6 +12,24 @@ export const productApiSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
 
+    getProductBySlug: builder.query({
+      query: (slug) => ({
+        url: `${PRODUCT_URL}/${slug}`,
+        method: "GET",
+      }),
+      providesTags: ["Product"],
+      keepUnusedDataFor: 5,
+    }),
+
+    getProductById: builder.query({
+      query: (_id) => ({
+        url: `${PRODUCT_URL}/${_id}`,
+        method: "GET",
+      }),
+      providesTags: ["Product"],
+      keepUnusedDataFor: 5,
+    }),
+
     getPageProduct: builder.query({
       query: ({ page = 1, limit = 10, category = "", search = null }) => ({
         url: `${PRODUCT_URL}?page=${page}&limit=${limit}&category=${category}&search=${search}`,
@@ -31,8 +49,8 @@ export const productApiSlice = apiSlice.injectEndpoints({
     }),
 
     updateProduct: builder.mutation({
-      query: ({ id, ...body }) => ({
-        url: `${PRODUCT_URL}/${id}`,
+      query: ({ _id, ...body }) => ({
+        url: `${PRODUCT_URL}/${_id}`,
         method: "PUT",
         body,
       }),
@@ -81,4 +99,6 @@ export const {
   useUpdateProductMutation,
   useDeleteAllProductMutation,
   useCreateNewProductMutation,
+  useLazyGetProductBySlugQuery,
+  useLazyGetProductByIdQuery,
 } = productApiSlice;

@@ -2,13 +2,9 @@ import {
   useDeleteAllProductMutation,
   useGetPageProductQuery,
 } from "../../redux/api/productSlice.js";
-import {
-  useGetAllCategoryQuery,
-  useGetAllCategoryTreeQuery,
-} from "../../redux/api/categorySlice.js";
+import { useGetAllCategoryTreeQuery } from "../../redux/api/categorySlice.js";
 import GenericTable from "../../components/GenericTable";
 import { useState, useCallback, useEffect } from "react";
-import FullScreenDialogCom from "../../components/ProductTab/FullScreenDialogCom.jsx";
 import { toast } from "react-toastify";
 import {
   Box,
@@ -19,14 +15,13 @@ import {
   useTheme,
 } from "@mui/material";
 import CategoryDropdown2 from "../../components/CategoryDropdown2.jsx";
+import { useNavigate } from "react-router";
 
 const ProductDashboard = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedRow, setSelectedRow] = useState(null);
-  const [isCreate, setIsCreate] = useState(false);
   const [selected, setSelected] = useState([]);
   const [inputSearch, setInputSearch] = useState("");
   const [inputCategory, setInputCategory] = useState("");
@@ -80,8 +75,6 @@ const ProductDashboard = () => {
     isLoading: categoryLoading,
   } = useGetAllCategoryTreeQuery();
 
-  const { data: listCateDefault = [] } = useGetAllCategoryQuery();
-
   const [deleteProduct, { isLoading: isDeleteLoading }] =
     useDeleteAllProductMutation();
 
@@ -105,24 +98,10 @@ const ProductDashboard = () => {
     setIsDropdownOpen(false);
   }, []);
 
-  const handleUpdateClick = useCallback((event, row) => {
+  const handleUpdateClick = (event, row) => {
     event.stopPropagation();
-    setSelectedRow(row);
-    setIsCreate(false);
-    setDialogOpen(true);
-  }, []);
-
-  const handleCreateClick = useCallback((event) => {
-    event.stopPropagation();
-    setSelectedRow(null);
-    setIsCreate(true);
-    setDialogOpen(true);
-  }, []);
-
-  const handleCloseDialog = useCallback(() => {
-    setDialogOpen(false);
-    setSelectedRow(null);
-  }, []);
+    navigate(`/admin/update-product/${row._id}`);
+  };
 
   const handleDeleteConfirm = async () => {
     try {
@@ -136,7 +115,7 @@ const ProductDashboard = () => {
   };
 
   const handleSearch = () => {
-    setSearch(inputSearch);
+    setSearch(inputSearch || "");
     setSelectedCategory(inputCategory);
     setPage(1); // Reset page to 1 when performing a new search
   };
@@ -211,8 +190,7 @@ const ProductDashboard = () => {
         create={true}
         rows={processedRows}
         headCells={headCells}
-        handleUpdateClick={handleUpdateClick}
-        handleCreateClick={handleCreateClick}
+        handleUpdateClick={handleUpdateClick} // Pass the updated function
         selected={selected}
         setSelected={setSelected}
         onDeleteConfirm={handleDeleteConfirm}
@@ -225,14 +203,6 @@ const ProductDashboard = () => {
           setRowsPerPage(parseInt(event.target.value, 10));
           setPage(1);
         }}
-      />
-
-      <FullScreenDialogCom
-        create={isCreate}
-        open={dialogOpen}
-        handleClose={handleCloseDialog}
-        row={selectedRow}
-        listCate={listCateDefault}
       />
     </>
   );

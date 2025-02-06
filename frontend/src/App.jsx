@@ -53,6 +53,7 @@ function App() {
             <Route path="cate" element={<CateDashBoard />} />
             <Route path="product" element={<ProductDashboard />} />
             <Route path="create-product" element={<CreateProduct />} />
+            <Route path="update-product/:id" element={<CreateProduct />} />
           </Route>
         </Route>
       </Route>
