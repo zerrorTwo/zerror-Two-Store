@@ -181,7 +181,7 @@ const GenericTable = ({
                                     alignItems: "center",
                                     justifyContent: "center",
                                     height: "100%",
-                                    maxWidth: "100px",
+                                    maxWidth: "80px",
                                   }}
                                 >
                                   <img
@@ -192,6 +192,11 @@ const GenericTable = ({
                                       width: "auto",
                                       height: `${height}px`,
                                       objectFit: "cover",
+                                      maxWidth: "80px",
+                                      minWidth: "80px",
+                                      whiteSpace: "nowrap",
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
                                     }}
                                   />
                                 </Box>
@@ -216,7 +221,7 @@ const GenericTable = ({
                               ) : (
                                 <Box
                                   sx={{
-                                    maxWidth: "100px",
+                                    maxWidth: "200px",
                                     whiteSpace: "nowrap",
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",

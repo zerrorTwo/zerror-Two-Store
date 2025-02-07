@@ -21,6 +21,7 @@ import FormBase from "../../components/FormBase";
 import PopoverPaper from "../../components/PopoverPaper";
 import { PRIMITIVE_URL } from "../../redux/constants";
 import { useNavigate, useSearchParams } from "react-router";
+import { isEqual } from "lodash";
 
 // Wrap GenericTable and PopoverPaper with memo
 const MemoizedGenericTable = memo(GenericTable);
@@ -75,13 +76,14 @@ function CateDashBoard() {
   const prevListCate = useRef(listCate);
 
   useEffect(() => {
+    setSelected([]);
     const savedBreadcrumbItems = localStorage.getItem("breadcrumbItems");
 
     if (savedBreadcrumbItems) {
       setBreadcrumbItems(JSON.parse(savedBreadcrumbItems));
     }
 
-    if (JSON.stringify(listCate) !== JSON.stringify(prevListCate.current)) {
+    if (!isEqual(listCate, prevListCate.current)) {
       setRows(
         listCate?.map((category) => ({
           _id: category._id,
@@ -91,7 +93,7 @@ function CateDashBoard() {
         }))
       );
       setLvl(listCate[0]?.level);
-      prevListCate.current = listCate; // Cập nhật tham chiếu
+      prevListCate.current = listCate;
     }
   }, [listCate]);
 
@@ -102,6 +104,9 @@ function CateDashBoard() {
   }, [breadcrumbItems]);
 
   const handleMoreClick = (row) => {
+    setRows([]);
+    setSelected([]);
+    setPage(1);
     setParentId(row._id);
     setBreadcrumbItems((prev) => {
       if (!prev.some((item) => item.id === row._id)) {
@@ -111,6 +116,22 @@ function CateDashBoard() {
     });
     navigate(`/admin/cate?parent=${row._id}`);
   };
+
+  useEffect(() => {
+    if (categoryLoading) {
+      setRows([]);
+    }
+    if (listCate) {
+      setRows(
+        listCate?.map((category) => ({
+          _id: category._id,
+          name: category.name,
+          img: category.img,
+          level: category?.level,
+        }))
+      );
+    }
+  }, [listCate, categoryLoading]);
 
   const handleBreadcrumbClick = (id, index) => {
     setBreadcrumbItems((prev) => prev.slice(0, index + 1));
@@ -312,8 +333,8 @@ function CateDashBoard() {
               totalPages={totalPages}
               onPageChange={(_, newPage) => setPage(newPage + 1)} // Chuyển đổi từ 0-based sang 1-based
               onRowsPerPageChange={(event) => {
+                setPage(1);
                 setRowsPerPage(parseInt(event.target.value, 10));
-                setPage(1); // Reset về trang đầu khi thay đổi số dòng
               }}
             />
           )}

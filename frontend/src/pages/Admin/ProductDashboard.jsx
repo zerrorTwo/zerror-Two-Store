@@ -44,7 +44,7 @@ const ProductDashboard = () => {
       disablePadding: false,
       label: "Price",
     },
-    { id: "quantity", numeric: true, disablePadding: false, label: "Quantity" },
+    { id: "stock", numeric: true, disablePadding: false, label: "Stock" },
     {
       id: "type",
       disablePadding: false,

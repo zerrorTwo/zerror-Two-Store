@@ -188,7 +188,7 @@ const getPageProducts = async (page, limit, category, search) => {
           mainImg: { $first: "$mainImg" },
           img: { $first: "$img" },
           price: { $first: "$price" },
-          quantity: { $first: "$quantity" },
+          stock: { $first: "$stock" },
           sold: { $first: "$sold" },
           variations: { $first: "$variations" },
           minPrice: {
@@ -200,12 +200,12 @@ const getPageProducts = async (page, limit, category, search) => {
               ],
             },
           },
-          totalQuantity: {
+          totalStock: {
             $sum: {
               $cond: [
-                { $ifNull: ["$variations.pricing.quantity", false] },
-                "$variations.pricing.quantity",
-                "$quantity",
+                { $ifNull: ["$variations.pricing.stock", false] },
+                "$variations.pricing.stock",
+                "$stock",
               ],
             },
           },
@@ -249,11 +249,11 @@ const getPageProducts = async (page, limit, category, search) => {
           mainImg: 1,
           img: 1,
           price: 1,
-          quantity: 1,
+          stock: 1,
           variations: 1,
           totalSold: 1,
           minPrice: 1,
-          totalQuantity: 1,
+          totalStock: 1,
           type: "$type.name", // Thay _id của Category bằng name
           status: 1,
         },

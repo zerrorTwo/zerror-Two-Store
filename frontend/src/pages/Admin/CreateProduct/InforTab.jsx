@@ -119,6 +119,7 @@ function InforTab({ formData, setFormData, onNext }) {
 
         <Box display={"flex"} alignItems={"center"} gap={2}>
           <InputBase
+            maxHeight="380px"
             height="60px"
             multiline={true}
             maxWidth
