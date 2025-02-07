@@ -30,8 +30,17 @@ export const productApiSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
 
+    getTopSold: builder.query({
+      query: () => ({
+        url: `${PRODUCT_URL}/top`,
+        method: "GET",
+      }),
+      providesTags: ["Product"],
+      keepUnusedDataFor: 5,
+    }),
+
     getPageProduct: builder.query({
-      query: ({ page = 1, limit = 10, category = "", search = null }) => ({
+      query: ({ page = 1, limit = 10, category = "", search = "" }) => ({
         url: `${PRODUCT_URL}?page=${page}&limit=${limit}&category=${category}&search=${search}`,
         method: "GET",
       }),
@@ -101,4 +110,5 @@ export const {
   useCreateNewProductMutation,
   useLazyGetProductBySlugQuery,
   useLazyGetProductByIdQuery,
+  useGetTopSoldQuery,
 } = productApiSlice;

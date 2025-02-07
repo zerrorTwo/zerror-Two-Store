@@ -112,7 +112,14 @@ function Footer() {
           <Divider sx={{ my: 3 }} />
 
           {/* footer part 2 */}
-          <Box sx={{ py: 2, display: "flex", justifyContent: "space-around" }}>
+          <Box
+            sx={{
+              py: 2,
+              display: "flex",
+              justifyContent: "space-around",
+              flexWrap: "wrap",
+            }}
+          >
             <Box display={"flex"} alignItems={"center"}>
               <CardMedia
                 component="img"
@@ -217,6 +224,7 @@ function Footer() {
             flexDirection={"row"}
             alignItems={"center"}
             justifyContent={"space-between"}
+            flexWrap={"wrap"}
           >
             <Box>
               <Box display={"flex"} gap={2} alignItems={"center"}>
@@ -286,7 +294,12 @@ function Footer() {
                 </Typography>
               </Box>
             </Box>
-            <Box display={"flex"} gap={2} alignItems={"center"}>
+            <Box
+              display={"flex"}
+              gap={2}
+              alignItems={"center"}
+              flexDirection={{ xs: "column" }}
+            >
               <TextField
                 sx={{
                   width: "300px",
