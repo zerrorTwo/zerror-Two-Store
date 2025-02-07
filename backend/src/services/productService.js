@@ -276,6 +276,82 @@ const getPageProducts = async (page, limit, category, search) => {
   }
 };
 
+const getTopSoldProducts = async () => {
+  try {
+    const products = await ProductModel.aggregate([
+      {
+        $unwind: {
+          path: "$variations.pricing",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          description: { $first: "$description" },
+          price: { $first: "$price" },
+          slug: { $first: "$slug" },
+          mainImg: { $first: "$mainImg" },
+          img: { $first: "$img" },
+          stock: { $first: "$stock" },
+          sold: { $first: "$sold" },
+          variations: { $first: "$variations" },
+          totalSold: {
+            $sum: {
+              $cond: [
+                { $ifNull: ["$variations.pricing.sold", 0] },
+                "$variations.pricing.sold",
+                "$sold",
+              ],
+            },
+          },
+        },
+      },
+
+      { $sort: { totalSold: -1 } },
+
+      { $limit: 20 },
+
+      {
+        $lookup: {
+          from: "categories",
+          localField: "type",
+          foreignField: "_id",
+          as: "type",
+        },
+      },
+      {
+        $unwind: {
+          path: "$type",
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          description: 1,
+          slug: 1,
+          mainImg: 1,
+          img: 1,
+          price: 1,
+          stock: 1,
+          variations: 1,
+          totalSold: 1,
+          type: "$type.name",
+        },
+      },
+    ]);
+
+    return products;
+  } catch (error) {
+    throw error;
+  }
+};
+
 const getProductsByCategory = async (type) => {
   const products = await ProductModel.find({ type });
   return products;
@@ -291,4 +367,5 @@ export const productService = {
   getProductsByCategory,
   getProductBySlug,
   getProductById,
+  getTopSoldProducts,
 };

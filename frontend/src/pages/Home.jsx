@@ -1,9 +1,19 @@
-import { Box, Container, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Container,
+  CircularProgress,
+  AlertTitle,
+  Alert,
+} from "@mui/material";
 import Carousel from "../components/Carousel/Carousel";
 import CategoryTable from "../components/Home/CategoryTable";
 import { useGetCommonCategoryQuery } from "../redux/api/categorySlice";
 import { useInView } from "react-intersection-observer";
 import React, { Suspense } from "react";
+import {
+  useGetPageProductQuery,
+  useGetTopSoldQuery,
+} from "../redux/api/productSlice";
 
 // Lazy-load các component
 const FlashSale = React.lazy(() => import("../components/Carousel/FlashSale"));
@@ -11,6 +21,20 @@ const Banner = React.lazy(() => import("../components/Home/Banner"));
 const Suggest = React.lazy(() => import("../components/Home/Suggest"));
 
 function Home() {
+  const {
+    data: listTopSoldProducts,
+    error: topSoldError,
+    isLoading: topSoldLoading,
+  } = useGetTopSoldQuery();
+  const {
+    data: { products: listProducts = [] } = {},
+    error: listError,
+    isLoading: listLoading,
+  } = useGetPageProductQuery({
+    page: 1,
+    limit: 42,
+  });
+
   const { data: categories = [], isLoading: isLoadingCate } =
     useGetCommonCategoryQuery();
 
@@ -45,9 +69,9 @@ function Home() {
         {/* Box carousel */}
         <Box
           sx={{
-            py: 2,
+            pt: 2,
             width: "100%",
-            height: "300px",
+            height: { xs: "100px", sm: "300px" },
             overflowY: "hidden",
           }}
         >
@@ -58,9 +82,14 @@ function Home() {
         <Box my={5}>
           {/* FlashSale */}
           <Box ref={flashSaleRef}>
-            {flashSaleInView ? (
+            {topSoldError ? (
+              <Alert severity="error">
+                <AlertTitle>Error</AlertTitle>
+                {topSoldError.message || "An unexpected error occurred."}
+              </Alert>
+            ) : flashSaleInView || topSoldLoading ? (
               <Suspense fallback={<CircularProgress />}>
-                <FlashSale />
+                <FlashSale listItem={listTopSoldProducts} />
               </Suspense>
             ) : (
               <CircularProgress />
@@ -80,9 +109,15 @@ function Home() {
 
           {/* Suggest */}
           <Box ref={suggestRef}>
-            {suggestInView ? (
+            {listError ? (
+              <Alert severity="error">
+                <AlertTitle>Error</AlertTitle>
+                {listError.message ||
+                  "An unexpected error occurred while loading suggestions."}
+              </Alert>
+            ) : suggestInView || listLoading ? (
               <Suspense fallback={<CircularProgress />}>
-                <Suggest />
+                <Suggest listProducts={listProducts} />
               </Suspense>
             ) : (
               <CircularProgress />

@@ -50,6 +50,12 @@ const getPageProducts = asyncHandeler(async (req, res) => {
     category,
     search
   );
+
+  res.status(StatusCodes.CREATED).json(products);
+});
+
+const getTopSoldProducts = asyncHandeler(async (req, res) => {
+  const products = await productService.getTopSoldProducts();
   res.status(StatusCodes.CREATED).json(products);
 });
 
@@ -61,4 +67,5 @@ export {
   getPageProducts,
   getProductBySlug,
   getProductById,
+  getTopSoldProducts,
 };

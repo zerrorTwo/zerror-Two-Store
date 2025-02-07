@@ -9,9 +9,11 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
+import { PRIMITIVE_URL } from "../redux/constants";
 
-function ProductMini({ img }) {
+function ProductMini({ item }) {
   const theme = useTheme();
+
   return (
     <Box>
       <Card
@@ -24,7 +26,7 @@ function ProductMini({ img }) {
         }}
       >
         <Link
-          to="/"
+          to={`${item?.slug}`}
           style={{
             textDecoration: "none", // Remove underline from Link
             width: "100%",
@@ -36,11 +38,14 @@ function ProductMini({ img }) {
             component="img"
             sx={{
               width: "100%",
-              height: "100%",
+              height: { xs: "100px", sm: "200px" },
               objectFit: "cover",
             }}
             alt="green iguana"
-            image={img}
+            image={
+              `${PRIMITIVE_URL}${item?.mainImg}` ||
+              "https://down-vn.img.susercontent.com/file/vn-11134258-7ras8-m5ba8iu5zvur17"
+            }
             loading="lazy"
           />
           <CardContent
@@ -61,15 +66,16 @@ function ProductMini({ img }) {
                 textOverflow: "ellipsis", // Hiển thị "..." nếu nội dung bị cắt
               }}
             >
-              Lizards are a group of squamate reptiles, with over 6,000 species,
-              ranging across all continents except Antarctica
+              {item?.name} || Lizards are a group of squamate reptiles, with
+              over 6,000 species, ranging across all continents except
+              Antarctica
             </Typography>
             <Box display={"flex"} alignItems={"center"} gap={2}>
               <Typography
                 variant="h6"
                 sx={{ color: theme.palette.secondary.main }}
               >
-                {new Intl.NumberFormat("en-US").format(1000000)}đ
+                {new Intl.NumberFormat("en-US").format(item?.price || 10000)}đ
               </Typography>
               <Typography
                 variant="caption"
@@ -106,7 +112,7 @@ function ProductMini({ img }) {
 }
 
 ProductMini.propTypes = {
-  img: PropTypes.string.isRequired,
+  item: PropTypes.object,
 };
 
 export default ProductMini;

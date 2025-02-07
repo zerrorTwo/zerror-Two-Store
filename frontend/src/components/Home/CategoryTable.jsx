@@ -33,6 +33,11 @@ export default function CategoryTable({ itemData, isLoading }) {
           slidesPerView={10}
           spaceBetween={12.5}
           slidesPerGroup={10}
+          breakpoints={{
+            0: { slidesPerView: 3, slidesPerGroup: 3 }, // XS (màn hình nhỏ)
+            640: { slidesPerView: 4, slidesPerGroup: 4 }, // Small screen (default config)
+            1024: { slidesPerView: 6, slidesPerGroup: 6 }, // Large screen config
+          }}
           grid={{
             rows: 2,
             fill: "row",
@@ -70,7 +75,7 @@ export default function CategoryTable({ itemData, isLoading }) {
                     alignItems: "center",
                     overflow: "visible",
                     padding: "5px",
-                    height: "110px",
+                    height: { xs: "80px", sm: "110px" },
                   }}
                 >
                   <Link

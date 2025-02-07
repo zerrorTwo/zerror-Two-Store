@@ -1,5 +1,5 @@
 import { Box, Divider, IconButton, Typography, useTheme } from "@mui/material";
-import { useEffect, useState } from "react";
+// import { useEffect, useState } from "react";
 import { Link } from "react-router-dom"; // Correct import from react-router-dom
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { Swiper, SwiperSlide } from "swiper/react"; // Import Swiper and SwiperSlide from swiper/react
@@ -10,58 +10,40 @@ import "swiper/css/autoplay";
 import ProductMini from "../ProductMini";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
+import PropTypes from "prop-types";
 
-function FlashSale() {
+function FlashSale({ listItem }) {
   const theme = useTheme();
-  const targetTime = new Date().getTime() + 3600 * 1000; // 1 hour from now
+  // const targetTime = new Date().getTime() + 3600 * 1000; // 1 hour from now
 
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  // const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
   // Calculate the time left
-  function calculateTimeLeft() {
-    const currentTime = new Date().getTime();
-    const difference = targetTime - currentTime;
+  // function calculateTimeLeft() {
+  //   const currentTime = new Date().getTime();
+  //   const difference = targetTime - currentTime;
 
-    let time = {};
-    if (difference > 0) {
-      time = {
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((difference / (1000 * 60)) % 60),
-        seconds: Math.floor((difference / 1000) % 60),
-      };
-    } else {
-      time = { hours: 0, minutes: 0, seconds: 0 }; // Time's up
-    }
-    return time;
-  }
+  //   let time = {};
+  //   if (difference > 0) {
+  //     time = {
+  //       hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+  //       minutes: Math.floor((difference / (1000 * 60)) % 60),
+  //       seconds: Math.floor((difference / 1000) % 60),
+  //     };
+  //   } else {
+  //     time = { hours: 0, minutes: 0, seconds: 0 };
+  //   }
+  //   return time;
+  // }
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
+  // useEffect(() => {
+  //   const timer = setInterval(() => {
+  //     setTimeLeft(calculateTimeLeft());
+  //   }, 1000);
 
-    return () => clearInterval(timer); // Clean up timer
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const data = [
-    "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-    "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  ];
+  //   return () => clearInterval(timer); // Clean up timer
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
   return (
     <Box>
@@ -103,7 +85,7 @@ function FlashSale() {
                 padding: "0 8px",
               }}
             >
-              {timeLeft.hours?.toString().padStart(2, "0") || "00"}
+              {/* {timeLeft.hours?.toString().padStart(2, "0") || "00"} */}
             </Typography>
             :{/* Hiển thị phút */}
             <Typography
@@ -114,7 +96,7 @@ function FlashSale() {
                 padding: "0 8px",
               }}
             >
-              {timeLeft.minutes?.toString().padStart(2, "0") || "00"}
+              {/* {timeLeft.minutes?.toString().padStart(2, "0") || "00"} */}
             </Typography>
             :{/* Hiển thị giây */}
             <Typography
@@ -125,7 +107,7 @@ function FlashSale() {
                 padding: "0 8px",
               }}
             >
-              {timeLeft.seconds?.toString().padStart(2, "0") || "00"}
+              {/* {timeLeft.seconds?.toString().padStart(2, "0") || "00"} */}
             </Typography>
           </Box>
         </Box>
@@ -147,7 +129,7 @@ function FlashSale() {
       <Divider sx={{ my: 1 }} />
 
       {/* Box carousel */}
-      <Box overflow={"visible"} position={"relative"}>
+      <Box overflow={"visible"} position={"relative"} pr={"12.5px"}>
         <Swiper
           navigation={{
             prevEl: ".swiper-button-prev-flashsale",
@@ -160,19 +142,24 @@ function FlashSale() {
           modules={[Navigation, Autoplay]}
           slidesPerView={6}
           spaceBetween={12.5}
-          slidesPerGroup={6} // Chuyển qua 1 trang (10 cột mỗi lần)
+          slidesPerGroup={6}
+          breakpoints={{
+            0: { slidesPerView: 3, slidesPerGroup: 3 }, // XS (màn hình nhỏ)
+            640: { slidesPerView: 4, slidesPerGroup: 4 }, // Small screen (default config)
+            1024: { slidesPerView: 6, slidesPerGroup: 6 }, // Large screen config
+          }}
           style={{
             width: "100%",
             height: "100%",
             overflow: "hidden",
             paddingBottom: "16px",
             paddingLeft: "4px",
-            paddingRight: "4px",
+            paddingRight: "10px",
           }}
         >
-          {data.map((item, index) => (
+          {listItem?.map((item, index) => (
             <SwiperSlide key={index}>
-              <ProductMini img={item} />
+              <ProductMini item={item} />
             </SwiperSlide>
           ))}
         </Swiper>
@@ -205,7 +192,7 @@ function FlashSale() {
             zIndex: 1000,
             position: "absolute",
             top: "50%",
-            right: "-20px",
+            right: { xs: "-8px", sm: "-8px" },
             transform: "translateY(-50%)",
             "&:hover": {
               bgcolor: "common.white",
@@ -223,5 +210,9 @@ function FlashSale() {
     </Box>
   );
 }
+
+FlashSale.propTypes = {
+  listItem: PropTypes.array.isRequired,
+};
 
 export default FlashSale;
