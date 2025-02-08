@@ -140,54 +140,66 @@ const getAllProducts = async (req, res) => {
   }
 };
 
-const getPageProducts = async (page, limit, category, search) => {
+const getPageProducts = async (page, limit, category, search, sort) => {
   try {
-    // Lọc sản phẩm theo category
+    console.log(category);
     const currentCategory = category
       ? await CategoryModel.findOne({ slug: category })
       : null;
 
     const categoryFilter = currentCategory
-      ? { type: { $in: [currentCategory._id] } } // Ensure it's an array
+      ? { type: { $in: [currentCategory._id] } }
       : {};
 
-    // Lọc sản phẩm theo từ khóa tìm kiếm
     const searchFilter = search
       ? { name: { $regex: search, $options: "i" } }
       : {};
 
     const filters = { ...categoryFilter, ...searchFilter };
-    // Tính số sản phẩm cần skip
+
     const skip = (page - 1) * limit;
 
-    // Lấy danh sách sản phẩm từ database với phân trang
-    const products = await ProductModel.aggregate([
-      // Giai đoạn 1: Áp dụng bộ lọc (filters)
-      { $match: filters },
+    // Tạo đối tượng sort theo yêu cầu
+    let sortStage = {};
 
-      // Giai đoạn 2: Phân trang (skip và limit)
+    switch (sort) {
+      case "sold-desc":
+        sortStage = { totalSold: -1 };
+        break;
+      case "price-asc":
+        sortStage = { minPrice: 1 };
+        break;
+      case "price-desc":
+        sortStage = { minPrice: -1 };
+        break;
+      case "created-desc":
+        sortStage = { createdAt: -1 };
+        break;
+      default:
+        // Nếu không có sort hợp lệ, bỏ qua giai đoạn $sort
+        sortStage = null;
+        break;
+    }
+
+    const productsPipeline = [
+      { $match: filters },
       { $skip: skip },
       { $limit: limit },
-
-      // Giai đoạn 3: Tách từng phần tử trong variations.pricing
       {
         $unwind: {
           path: "$variations.pricing",
-          preserveNullAndEmptyArrays: true, // Giữ lại sản phẩm không có variations
+          preserveNullAndEmptyArrays: true,
         },
       },
-
-      // Giai đoạn 4: Tính toán giá trị nhỏ nhất và tổng quantity
       {
         $group: {
-          _id: "$_id", // Nhóm theo sản phẩm
+          _id: "$_id",
           name: { $first: "$name" },
           description: { $first: "$description" },
           price: { $first: "$price" },
           slug: { $first: "$slug" },
           mainImg: { $first: "$mainImg" },
           img: { $first: "$img" },
-          price: { $first: "$price" },
           stock: { $first: "$stock" },
           sold: { $first: "$sold" },
           variations: { $first: "$variations" },
@@ -218,12 +230,11 @@ const getPageProducts = async (page, limit, category, search) => {
               ],
             },
           },
+          createdAt: { $first: "$createdAt" },
           type: { $first: "$type" },
           status: { $first: "$status" },
         },
       },
-
-      // Giai đoạn 5: Liên kết với bảng Category
       {
         $lookup: {
           from: "categories",
@@ -238,8 +249,6 @@ const getPageProducts = async (page, limit, category, search) => {
           preserveNullAndEmptyArrays: true,
         },
       },
-
-      // Giai đoạn 6: Chọn các trường cần thiết
       {
         $project: {
           _id: 1,
@@ -254,16 +263,22 @@ const getPageProducts = async (page, limit, category, search) => {
           totalSold: 1,
           minPrice: 1,
           totalStock: 1,
-          type: "$type.name", // Thay _id của Category bằng name
+          type: "$type.name",
           status: 1,
+          createdAt: 1,
         },
       },
-    ]);
+    ];
 
-    // Tính tổng số sản phẩm
+    // Thêm giai đoạn $sort nếu sortStage không phải là null
+    if (sortStage) {
+      productsPipeline.push({ $sort: sortStage });
+    }
+
+    const products = await ProductModel.aggregate(productsPipeline);
+
     const totalProducts = await ProductModel.countDocuments(filters);
 
-    // Tạo response với dữ liệu phân trang
     return {
       page,
       limit,
@@ -352,11 +367,6 @@ const getTopSoldProducts = async () => {
   }
 };
 
-const getProductsByCategory = async (type) => {
-  const products = await ProductModel.find({ type });
-  return products;
-};
-
 export const productService = {
   getAllProducts,
   createProduct,
@@ -364,7 +374,6 @@ export const productService = {
   deleteProduct,
   getPageProducts,
   deleteManyProducts,
-  getProductsByCategory,
   getProductBySlug,
   getProductById,
   getTopSoldProducts,

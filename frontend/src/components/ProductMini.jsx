@@ -6,12 +6,13 @@ import {
   Rating,
   Typography,
   useTheme,
+  Skeleton,
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import { PRIMITIVE_URL } from "../redux/constants";
 
-function ProductMini({ item }) {
+function ProductMini({ item, loading = false }) {
   const theme = useTheme();
 
   return (
@@ -26,7 +27,7 @@ function ProductMini({ item }) {
         }}
       >
         <Link
-          to={`${item?.slug}`}
+          to={`/products/${item?.slug}`}
           style={{
             textDecoration: "none", // Remove underline from Link
             width: "100%",
@@ -34,20 +35,29 @@ function ProductMini({ item }) {
             display: "block",
           }}
         >
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: { xs: "100px", sm: "200px" },
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              `${PRIMITIVE_URL}${item?.mainImg}` ||
-              "https://down-vn.img.susercontent.com/file/vn-11134258-7ras8-m5ba8iu5zvur17"
-            }
-            loading="lazy"
-          />
+          {loading ? (
+            <Skeleton
+              variant="rectangular"
+              width="100%"
+              height={200}
+              animation="wave"
+            />
+          ) : (
+            <CardMedia
+              component="img"
+              sx={{
+                width: "100%",
+                height: { xs: "100px", sm: "200px" },
+                objectFit: "cover",
+              }}
+              alt="product image"
+              image={
+                `${PRIMITIVE_URL}${item?.mainImg}` ||
+                "https://down-vn.img.susercontent.com/file/vn-11134258-7ras8-m5ba8iu5zvur17"
+              }
+              loading="lazy"
+            />
+          )}
           <CardContent
             sx={{
               bgcolor: theme.palette.primary.main,
@@ -55,54 +65,73 @@ function ProductMini({ item }) {
               pb: "10px !important",
             }}
           >
-            <Typography
-              variant="body1"
-              sx={{
-                color: "common.black",
-                display: "-webkit-box", // Hiển thị như một box flex
-                WebkitBoxOrient: "vertical", // Cần thiết để lineClamp hoạt động
-                overflow: "hidden", // Ẩn nội dung tràn
-                WebkitLineClamp: 2, // Giới hạn số dòng là 2
-                textOverflow: "ellipsis", // Hiển thị "..." nếu nội dung bị cắt
-              }}
-            >
-              {item?.name} || Lizards are a group of squamate reptiles, with
-              over 6,000 species, ranging across all continents except
-              Antarctica
-            </Typography>
+            {loading ? (
+              <>
+                <Skeleton width="100%" />
+                <Skeleton width="70%" />
+              </>
+            ) : (
+              <Typography
+                variant="body1"
+                sx={{
+                  color: "common.black",
+                  display: "-webkit-box",
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  WebkitLineClamp: 2,
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {item?.name}
+              </Typography>
+            )}
+
             <Box display={"flex"} alignItems={"center"} gap={2}>
-              <Typography
-                variant="h6"
-                sx={{ color: theme.palette.secondary.main }}
-              >
-                {new Intl.NumberFormat("en-US").format(item?.price || 10000)}đ
-              </Typography>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: theme.palette.text.primary,
-                  textDecoration: "line-through",
-                }}
-              >
-                -99%
-              </Typography>
+              {loading ? (
+                <Skeleton width="40%" />
+              ) : (
+                <Typography
+                  variant="h6"
+                  sx={{ color: theme.palette.secondary.main }}
+                >
+                  {new Intl.NumberFormat("en-US").format(item?.price || 10000)}đ
+                </Typography>
+              )}
+              {!loading && (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: theme.palette.text.primary,
+                    textDecoration: "line-through",
+                  }}
+                >
+                  -99%
+                </Typography>
+              )}
             </Box>
+
             <Box display={"flex"} alignItems={"center"} gap={1} mt={0.5}>
-              <Rating
-                size="small"
-                name="read-only"
-                value={5}
-                readOnly
-                sx={{
-                  "& .MuiRating-icon": { fontSize: "15px" }, // Điều chỉnh kích thước icon
-                }}
-              />
-              <Typography
-                variant="caption"
-                sx={{ color: theme.palette.text.primary }}
-              >
-                (100)
-              </Typography>
+              {loading ? (
+                <Skeleton width="30%" />
+              ) : (
+                <>
+                  <Rating
+                    size="small"
+                    name="read-only"
+                    value={5}
+                    readOnly
+                    sx={{
+                      "& .MuiRating-icon": { fontSize: "15px" },
+                    }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{ color: theme.palette.text.primary }}
+                  >
+                    ({item.totalSold})
+                  </Typography>
+                </>
+              )}
             </Box>
           </CardContent>
         </Link>
@@ -113,6 +142,7 @@ function ProductMini({ item }) {
 
 ProductMini.propTypes = {
   item: PropTypes.object,
+  loading: PropTypes.bool,
 };
 
 export default ProductMini;

@@ -40,8 +40,14 @@ export const productApiSlice = apiSlice.injectEndpoints({
     }),
 
     getPageProduct: builder.query({
-      query: ({ page = 1, limit = 10, category = "", search = "" }) => ({
-        url: `${PRODUCT_URL}?page=${page}&limit=${limit}&category=${category}&search=${search}`,
+      query: ({
+        page = 1,
+        limit = 10,
+        category = "",
+        search = "",
+        sort = "",
+      }) => ({
+        url: `${PRODUCT_URL}?page=${page}&limit=${limit}&category=${category}&search=${search}&sort=${sort}`,
         method: "GET",
       }),
       providesTags: ["Product"],
@@ -108,7 +114,7 @@ export const {
   useUpdateProductMutation,
   useDeleteAllProductMutation,
   useCreateNewProductMutation,
-  useLazyGetProductBySlugQuery,
+  useGetProductBySlugQuery,
   useLazyGetProductByIdQuery,
   useGetTopSoldQuery,
 } = productApiSlice;

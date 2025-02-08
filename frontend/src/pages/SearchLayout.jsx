@@ -6,214 +6,47 @@ import {
   Divider,
   Input,
   Rating,
+  Skeleton,
+  Alert,
+  AlertTitle,
 } from "@mui/material";
 import Typography from "@mui/material/Typography";
-// import { Link } from "react-router-dom";
 import MenuIcon from "@mui/icons-material/Menu";
 import Link from "@mui/material/Link";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { useState } from "react";
-import ProductMini from "../components/ProductMini";
-
-const data = [
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/e8e69c1b040cc51bfc480613ef7bcd5c.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/p/16c398947f066ec2729e61465b850e89.jpg_400x400q80.jpg_.avif",
-  "https://img.lazcdn.com/g/ff/kf/S0ba618100979429ba3befebb24eddc71W.jpg_400x400q80.jpg_.avif",
-];
+import { lazy, Suspense, useState } from "react";
+import { useGetPageProductQuery } from "../redux/api/productSlice";
+import { useInView } from "react-intersection-observer";
+import { useParams } from "react-router";
 
 function SearchLayout() {
   const [rating, setRating] = useState(0);
+  const { category } = useParams(); // Lấy giá trị category từ URL
+
+  console.log(category);
+
+  const {
+    data: { products: listProducts = [] } = {},
+    error: listError,
+    isLoading: listLoading,
+  } = useGetPageProductQuery({
+    page: 1,
+    limit: 50,
+    category: category,
+    sort: "sold-desc",
+  });
+
+  const ProductMini = lazy(() => import("../components/ProductMini"));
+
+  const [flashSaleRef, flashSaleInView] = useInView({
+    threshold: 0.5,
+    rootMargin: "0px 0px -100px 0px",
+    triggerOnce: true,
+  });
 
   return (
     <Box>
       <Container>
-        {/* Content */}
         <Box py={2}>
           <Grid2 container spacing={1.5}>
             <Grid2 size={2}>
@@ -234,116 +67,35 @@ function SearchLayout() {
 
                 <Divider sx={{ mt: 1.5 }} />
                 <Box display={"flex"} flexDirection={"column"} gap={2} my={2}>
-                  <Link
-                    sx={{
-                      textDecoration: "none",
-                      color: "text.primary",
-                    }}
-                    href="/"
-                  >
-                    <Typography
+                  {[...Array(5)].map((_, index) => (
+                    <Link
+                      key={index}
                       sx={{
-                        display: "-webkit-box", // Hiển thị như một box flex
-                        WebkitBoxOrient: "vertical", // Cần thiết để lineClamp hoạt động
-                        overflow: "hidden", // Ẩn nội dung tràn
-                        WebkitLineClamp: 1, // Giới hạn số dòng là 2
-                        textOverflow: "ellipsis", // Hiển thị "..." nếu nội dung bị cắt
+                        textDecoration: "none",
+                        color: "text.primary",
                       }}
-                      variant="body2"
+                      href="/"
                     >
-                      Mot chiec xe
-                    </Typography>
-                  </Link>
-                  <Link
-                    sx={{
-                      textDecoration: "none",
-                      color: "text.primary",
-                    }}
-                    href="/"
-                  >
-                    <Typography
-                      sx={{
-                        display: "-webkit-box", // Hiển thị như một box flex
-                        WebkitBoxOrient: "vertical", // Cần thiết để lineClamp hoạt động
-                        overflow: "hidden", // Ẩn nội dung tràn
-                        WebkitLineClamp: 1, // Giới hạn số dòng là 2
-                        textOverflow: "ellipsis", // Hiển thị "..." nếu nội dung bị cắt
-                      }}
-                      variant="body2"
-                    >
-                      Mot chiec xe
-                    </Typography>
-                  </Link>
-                  <Link
-                    sx={{
-                      textDecoration: "none",
-                      color: "text.primary",
-                    }}
-                    href="/"
-                  >
-                    <Typography
-                      sx={{
-                        display: "-webkit-box", // Hiển thị như một box flex
-                        WebkitBoxOrient: "vertical", // Cần thiết để lineClamp hoạt động
-                        overflow: "hidden", // Ẩn nội dung tràn
-                        WebkitLineClamp: 1, // Giới hạn số dòng là 2
-                        textOverflow: "ellipsis", // Hiển thị "..." nếu nội dung bị cắt
-                      }}
-                      variant="body2"
-                    >
-                      Mot chiec xe
-                    </Typography>
-                  </Link>
-                  <Link
-                    sx={{
-                      textDecoration: "none",
-                      color: "text.primary",
-                    }}
-                    href="/"
-                  >
-                    <Typography
-                      sx={{
-                        display: "-webkit-box", // Hiển thị như một box flex
-                        WebkitBoxOrient: "vertical", // Cần thiết để lineClamp hoạt động
-                        overflow: "hidden", // Ẩn nội dung tràn
-                        WebkitLineClamp: 1, // Giới hạn số dòng là 2
-                        textOverflow: "ellipsis", // Hiển thị "..." nếu nội dung bị cắt
-                      }}
-                      variant="body2"
-                    >
-                      Mot chiec xe
-                    </Typography>
-                  </Link>
-                  <Link
-                    sx={{
-                      textDecoration: "none",
-                      color: "text.primary",
-                    }}
-                    href="/"
-                  >
-                    <Typography
-                      sx={{
-                        display: "-webkit-box", // Hiển thị như một box flex
-                        WebkitBoxOrient: "vertical", // Cần thiết để lineClamp hoạt động
-                        overflow: "hidden", // Ẩn nội dung tràn
-                        WebkitLineClamp: 1, // Giới hạn số dòng là 2
-                        textOverflow: "ellipsis", // Hiển thị "..." nếu nội dung bị cắt
-                      }}
-                      variant="body2"
-                    >
-                      Mot chiec xe
-                    </Typography>
-                  </Link>
+                      <Typography
+                        sx={{
+                          display: "-webkit-box",
+                          WebkitBoxOrient: "vertical",
+                          overflow: "hidden",
+                          WebkitLineClamp: 1,
+                          textOverflow: "ellipsis",
+                        }}
+                        variant="body2"
+                      >
+                        Mot chiec xe
+                      </Typography>
+                    </Link>
+                  ))}
                   <Typography
                     sx={{
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
                       color: "text.primary",
-                      WebkitBoxOrient: "vertical", // Cần thiết để lineClamp hoạt động
-                      overflow: "hidden", // Ẩn nội dung tràn
-                      WebkitLineClamp: 1, // Giới hạn số dòng là 2
-                      textOverflow: "ellipsis", // Hiển thị "..." nếu nội dung bị cắt
                     }}
                     variant="body2"
                   >
@@ -352,12 +104,7 @@ function SearchLayout() {
                 </Box>
                 <Divider sx={{ mt: 1.5 }} />
                 <Box display={"flex"} flexDirection={"column"} gap={2} my={2}>
-                  <Typography
-                    sx={{
-                      color: "text.primary",
-                    }}
-                    variant="body2"
-                  >
+                  <Typography sx={{ color: "text.primary" }} variant="body2">
                     Price
                   </Typography>
                   <Box
@@ -411,12 +158,7 @@ function SearchLayout() {
                 </Box>
                 <Divider sx={{ mt: 1.5 }} />
                 <Box display={"flex"} flexDirection={"column"} gap={2} my={2}>
-                  <Typography
-                    sx={{
-                      color: "text.primary",
-                    }}
-                    variant="body2"
-                  >
+                  <Typography sx={{ color: "text.primary" }} variant="body2">
                     Rating
                   </Typography>
                   <Box
@@ -446,6 +188,14 @@ function SearchLayout() {
               </Box>
             </Grid2>
             <Grid2 size={10}>
+              {listError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  <AlertTitle>Error</AlertTitle>
+                  {listError?.data?.message ||
+                    listError?.message ||
+                    "An unexpected error occurred while loading products."}
+                </Alert>
+              )}
               <Box
                 display={"flex"}
                 alignItems={"center"}
@@ -453,6 +203,8 @@ function SearchLayout() {
                 bgcolor={"rgba(0,0,0,.03)"}
                 p={1.5}
                 borderRadius={1}
+                mb={2}
+                boxShadow={" rgba(0, 0, 0, 0.05) 0px 0px 0px 1px"}
               >
                 <Typography variant="body1" sx={{ color: "text.primary" }}>
                   Sort by
@@ -482,14 +234,25 @@ function SearchLayout() {
                   Price up
                 </Button>
               </Box>
-              <Grid2 container spacing={1.5}>
-                {data.map((item, index) => (
-                  <Grid2 key={index} size={2.4}>
-                    <ProductMini img={item} />
-                  </Grid2>
-                ))}
+              <Grid2 container spacing={1.5} ref={flashSaleRef}>
+                {listProducts.map((item, index) =>
+                  flashSaleInView ? (
+                    <Grid2 key={index} size={2.4}>
+                      <Suspense
+                        fallback={
+                          <Skeleton
+                            variant="rectangular"
+                            height={200}
+                            animation="wave"
+                          />
+                        }
+                      >
+                        <ProductMini loading={listLoading} item={item} />
+                      </Suspense>
+                    </Grid2>
+                  ) : null
+                )}
               </Grid2>
-              {/* Footer */}
               <Box justifyContent={"center"} display={"flex"} mt={4}>
                 <Link
                   to="/"

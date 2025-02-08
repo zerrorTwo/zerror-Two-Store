@@ -1,30 +1,36 @@
-import { Box, Container, Grid2 } from "@mui/material";
+import { Box, Container, Grid2, CircularProgress } from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Link from "@mui/material/Link";
 import { useState, Suspense, lazy } from "react";
-import { useInView } from "react-intersection-observer";
-
-const ProductDetailCarousel = lazy(() =>
-  import("../../components/Carousel/ProductDetailCarousel")
-);
-const Detail = lazy(() => import("./components/Detail"));
+import { useGetProductBySlugQuery } from "../../redux/api/productSlice";
+import { useParams } from "react-router";
+import ProductDetailCarousel from "../../components/Carousel/ProductDetailCarousel";
+import Detail from "./components/Detail";
 const Specification = lazy(() => import("./components/Specification"));
 const Description = lazy(() => import("./components/Description"));
 const CommentCom = lazy(() => import("./components/CommentCom"));
 
 function ProductDetail() {
+  const { slug } = useParams();
+  const { data, isLoading, error } = useGetProductBySlugQuery(slug); // Include isLoading and error
+
+  // Handle breadcrumb click
   function handleClick(event) {
     event.preventDefault();
     console.info("You clicked a breadcrumb.");
   }
 
   const [quantity, setQuantity] = useState(1);
-  const [suggestRef, suggestInView] = useInView({
-    threshold: 0.5,
-    rootMargin: "0px 0px -100px 0px",
-    triggerOnce: true,
-  });
+
+  // If the data is loading or there's an error, return loading or error state
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
 
   return (
     <Container>
@@ -48,36 +54,40 @@ function ProductDetail() {
         px={2}
         py={2}
       >
-        <Grid2 container spacing={2} ref={suggestRef}>
-          {suggestInView && (
-            <>
-              <Grid2 size={5}>
-                <Suspense fallback={<div>Loading Carousel...</div>}>
-                  <ProductDetailCarousel />
-                </Suspense>
-              </Grid2>
-              <Grid2 size={7}>
-                <Suspense fallback={<div>Loading Detail...</div>}>
-                  <Detail quantity={quantity} setQuantity={setQuantity} />
-                </Suspense>
-              </Grid2>
-            </>
-          )}
+        <Grid2 container spacing={2}>
+          <Grid2 size={5}>
+            {data?.img ? (
+              <Suspense fallback={<CircularProgress />}>
+                <ProductDetailCarousel listImg={data.img} />
+              </Suspense>
+            ) : (
+              <div>No images available</div>
+            )}
+          </Grid2>
+          <Grid2 size={7}>
+            <Suspense fallback={<CircularProgress />}>
+              <Detail
+                data={data}
+                quantity={quantity}
+                setQuantity={setQuantity}
+              />
+            </Suspense>
+          </Grid2>
         </Grid2>
       </Box>
 
-      {/* Product specifications  */}
-      <Suspense fallback={<div>Loading Specification...</div>}>
+      {/* Product specifications */}
+      <Suspense fallback={<CircularProgress />}>
         <Specification handleClick={handleClick} />
       </Suspense>
 
-      {/* Product descriptions  */}
-      <Suspense fallback={<div>Loading Description...</div>}>
+      {/* Product descriptions */}
+      <Suspense fallback={<CircularProgress />}>
         <Description />
       </Suspense>
 
-      {/* Product comment  */}
-      <Suspense fallback={<div>Loading Comments...</div>}>
+      {/* Product comment */}
+      <Suspense fallback={<CircularProgress />}>
         <CommentCom />
       </Suspense>
     </Container>

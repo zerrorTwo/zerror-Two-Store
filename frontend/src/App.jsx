@@ -61,8 +61,8 @@ function App() {
       <Route path="/" element={<LayoutNew />}>
         <Route index element={<Home />} />
         <Route path="menu" element={<Menu />} />
-        <Route path="hihi" element={<SearchLayout />} />
-        <Route path="products" element={<ProductDetail />} />
+        <Route path="products/:slug" element={<ProductDetail />} />
+        <Route path="products/category/:category" element={<SearchLayout />} />
 
         {/* Need login to access */}
         <Route element={<RequireAuth />}>

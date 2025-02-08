@@ -15,7 +15,7 @@ Router.route("/").post(createProduct).get(getPageProducts);
 Router.route("/all").get(getAllProducts);
 Router.route("/top").get(getTopSoldProducts);
 Router.route("/delete").delete(deleteManyProducts);
-Router.route("/:id").put(updateProduct).get(getProductById);
 Router.route("/:slug").get(getProductBySlug);
+Router.route("/:id").put(updateProduct).get(getProductById);
 
 export const productRoute = Router;
