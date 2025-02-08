@@ -3,13 +3,13 @@ import QuantityGroup from "../../../components/QuantityGroup";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import PropTypes from "prop-types";
 
-function Detail({ quantity, setQuantity }) {
+function Detail({ data, quantity, setQuantity }) {
+  console.log(data.variations);
   return (
     <>
       {/* Name */}
       <Typography variant="h6" fontWeight={400}>
-        Quần Lót Nam [ COMBO 5C] boxer nam thun lạnh thoáng khí co giãn 4 chiều
-        set 5 màu CK02
+        {data?.name}
       </Typography>
 
       {/* Rating sold  */}
@@ -27,7 +27,7 @@ function Detail({ quantity, setQuantity }) {
         </Box>
         <Divider orientation="vertical" flexItem />
         <Box display={"flex"} alignItems={"center"} gap={1}>
-          <Typography variant="body1">4.8k</Typography>
+          <Typography variant="body1">{data?.totalSold}</Typography>
           <Typography variant="body1" color="text.primary">
             Sold
           </Typography>
@@ -37,7 +37,7 @@ function Detail({ quantity, setQuantity }) {
       {/* Price */}
       <Box display={"flex"} gap={2} alignItems={"center"} my={2}>
         <Typography variant="h4" color="secondary.main">
-          {new Intl.NumberFormat("en-US").format(1000000)}đ
+          {new Intl.NumberFormat("en-US").format(data?.price)}đ
         </Typography>
         <Typography
           variant="h6"
@@ -189,6 +189,7 @@ function Detail({ quantity, setQuantity }) {
 }
 
 Detail.propTypes = {
+  data: PropTypes.object.isRequired,
   quantity: PropTypes.number.isRequired,
   setQuantity: PropTypes.func.isRequired,
 };

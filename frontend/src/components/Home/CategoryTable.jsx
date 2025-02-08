@@ -79,7 +79,7 @@ export default function CategoryTable({ itemData, isLoading }) {
                   }}
                 >
                   <Link
-                    to={item.slug}
+                    to={`products/category/${item.slug}`}
                     style={{
                       display: "block",
                       textDecoration: "none",

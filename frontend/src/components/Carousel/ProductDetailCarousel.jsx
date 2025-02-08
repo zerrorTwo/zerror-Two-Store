@@ -8,7 +8,10 @@ import "swiper/css/navigation";
 import "swiper/css/thumbs";
 
 import "./carousel.css";
-function ProductDetailCarousel() {
+import PropTypes from "prop-types";
+import { PRIMITIVE_URL } from "../../redux/constants";
+
+function ProductDetailCarousel({ listImg }) {
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
 
   return (
@@ -24,144 +27,23 @@ function ProductDetailCarousel() {
         modules={[FreeMode, Navigation, Thumbs]}
         className="mySwiper2"
       >
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <img src="https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webpg" />
-        </SwiperSlide>
+        {listImg?.map((image, index) => {
+          return (
+            <SwiperSlide key={index}>
+              <CardMedia
+                component="img"
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+                alt="Product image"
+                image={`${PRIMITIVE_URL}${image}`}
+                loading="lazy"
+              />
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
       <Swiper
         onSwiper={setThumbsSwiper}
@@ -172,159 +54,30 @@ function ProductDetailCarousel() {
         modules={[FreeMode, Navigation, Thumbs]}
         className="mySwiper"
       >
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
-        <SwiperSlide>
-          <CardMedia
-            component="img"
-            sx={{
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-            }}
-            alt="green iguana"
-            image={
-              "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1gr7lxgm3zz92.webp"
-            }
-            loading="lazy"
-          />
-        </SwiperSlide>
+        {listImg?.map((image, index) => {
+          return (
+            <SwiperSlide key={index}>
+              <CardMedia
+                component="img"
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                }}
+                alt="Product thumbnail"
+                image={`${PRIMITIVE_URL}${image}`}
+                loading="lazy"
+              />
+            </SwiperSlide>
+          );
+        })}
       </Swiper>
     </>
   );
 }
+
+ProductDetailCarousel.propTypes = {
+  listImg: PropTypes.array.isRequired,
+};
 
 export default ProductDetailCarousel;

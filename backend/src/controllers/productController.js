@@ -43,12 +43,13 @@ const getPageProducts = asyncHandeler(async (req, res) => {
   const page = parseInt(req.query.page) || 1; // Mặc định là trang 1
   const limit = parseInt(req.query.limit) || 10; // Mặc định là 10 sản phẩm mỗi trang
 
-  const { category, search } = req.query;
+  const { category, search, sort } = req.query;
   const products = await productService.getPageProducts(
     page,
     limit,
     category,
-    search
+    search,
+    sort
   );
 
   res.status(StatusCodes.CREATED).json(products);
