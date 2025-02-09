@@ -23,8 +23,6 @@ function SearchLayout() {
   const [rating, setRating] = useState(0);
   const { category } = useParams(); // Lấy giá trị category từ URL
 
-  console.log(category);
-
   const {
     data: { products: listProducts = [] } = {},
     error: listError,
