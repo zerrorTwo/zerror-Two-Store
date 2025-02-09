@@ -91,22 +91,185 @@ const deleteManyProducts = async (_id) => {
   return { message: `Products deleted successfully` };
 };
 
-const getProductBySlug = async (slug) => {
+const getCategoryBreadcrumb = async (categorySlug) => {
   try {
-    const product = await ProductModel.findOne({ slug: slug })
-      .populate({
-        path: "type",
-        select: "slug",
-      })
-      .lean();
+    // Lấy danh mục hiện tại từ database, tìm bằng slug thay vì _id
+    const category = await CategoryModel.findOne({ slug: categorySlug });
 
-    if (product && product.type) {
-      product.type = product.type.slug;
+    // Kiểm tra xem danh mục có tồn tại không
+    if (!category) {
+      return null; // Nếu không tìm thấy danh mục
     }
 
-    return product;
+    // Tạo breadcrumb, bắt đầu với danh mục hiện tại
+    const breadcrumb = [category.name];
+
+    // Kiểm tra xem có danh mục cha không, nếu có tiếp tục truy vấn
+    let parentCategory = category.parent; // Truy vấn danh mục cha qua trường `parent`
+
+    // Tiến hành lặp lại để tìm các danh mục cha
+    while (parentCategory) {
+      const parent = await CategoryModel.findById(parentCategory);
+      if (parent) {
+        breadcrumb.unshift(parent.name); // Thêm danh mục cha vào đầu danh sách breadcrumb
+        parentCategory = parent.parent; // Cập nhật lại danh mục cha
+      } else {
+        break; // Nếu không tìm thấy danh mục cha thì dừng
+      }
+    }
+
+    return breadcrumb; // Trả về breadcrumb
   } catch (error) {
     throw error;
+  }
+};
+
+const getProductBySlug = async (slug) => {
+  try {
+    // Define the aggregation pipeline
+    const productsPipeline = [
+      {
+        $match: {
+          slug: slug, // Match product by slug
+        },
+      },
+      {
+        $addFields: {
+          // Calculate the minimum price across variations
+          minVariationPrice: {
+            $reduce: {
+              input: { $ifNull: ["$variations.pricing", []] },
+              initialValue: null,
+              in: {
+                $cond: [
+                  {
+                    $or: [
+                      { $eq: ["$$value", null] },
+                      { $lt: ["$$this.price", "$$value"] },
+                    ],
+                  },
+                  "$$this.price",
+                  "$$value",
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          minPrice: {
+            $cond: [
+              { $ifNull: ["$minVariationPrice", false] },
+              { $min: ["$price", "$minVariationPrice"] },
+              "$price",
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          description: { $first: "$description" },
+          price: { $first: "$price" },
+          slug: { $first: "$slug" },
+          mainImg: { $first: "$mainImg" },
+          img: { $first: "$img" },
+          stock: { $first: "$stock" },
+          sold: { $first: "$sold" },
+          variations: { $first: "$variations" },
+          minPrice: { $first: "$minPrice" },
+          // Calculate total stock from variations if available
+          totalStock: {
+            $sum: {
+              $cond: [
+                {
+                  $gt: [{ $size: { $ifNull: ["$variations.pricing", []] } }, 0], // Kiểm tra nếu mảng pricing có phần tử
+                },
+                "$variations.pricing.stock", // Nếu có giá trị trong mảng pricing, lấy stock của variations
+                "$stock", // Nếu mảng pricing rỗng, lấy stock của sản phẩm chính
+              ],
+            },
+          },
+
+          // Calculate total sold from variations if available
+          totalSold: {
+            $sum: {
+              $cond: [
+                {
+                  $gt: [{ $size: { $ifNull: ["$variations.pricing", []] } }, 0], // Kiểm tra nếu mảng pricing có phần tử
+                },
+                "$variations.pricing.sold", // Nếu có giá trị trong mảng pricing, lấy sold của variations
+                "$sold", // Nếu mảng pricing rỗng, lấy sold của sản phẩm chính
+              ],
+            },
+          },
+
+          createdAt: { $first: "$createdAt" },
+          type: { $first: "$type" },
+          status: { $first: "$status" },
+        },
+      },
+      {
+        $lookup: {
+          from: "categories", // Join with categories collection
+          localField: "type", // Field in product
+          foreignField: "_id", // Field in categories collection
+          as: "type",
+        },
+      },
+      {
+        $unwind: {
+          path: "$type", // Unwind the type array
+          preserveNullAndEmptyArrays: true,
+        },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          description: 1,
+          slug: 1,
+          mainImg: 1,
+          img: 1,
+          price: 1,
+          stock: 1,
+          sold: 1,
+          variations: 1,
+          totalSold: 1,
+          minPrice: 1,
+          totalStock: 1,
+          type: "$type.name", // Extract type name
+          categorySlug: "$type.slug", // Extract category slug (added this)
+          status: 1,
+          createdAt: 1,
+        },
+      },
+    ];
+
+    // Run the aggregation pipeline on the Product model
+    const product = await ProductModel.aggregate(productsPipeline).exec();
+
+    // If the product exists, return the product, otherwise return null
+    if (product.length > 0) {
+      const currentProduct = product[0]; // Get the first product from the array
+
+      // Lấy breadcrumb của danh mục tương ứng
+      const categoryBreadcrumb = await getCategoryBreadcrumb(
+        currentProduct.categorySlug // Use the categorySlug here
+      );
+
+      // Trả về thông tin sản phẩm cùng với breadcrumb
+      return {
+        ...currentProduct,
+        categoryBreadcrumb, // Thêm breadcrumb vào kết quả sản phẩm
+      };
+    } else {
+      return null; // Return null if no product is found
+    }
+  } catch (error) {
+    throw error; // Handle any errors
   }
 };
 
@@ -142,7 +305,6 @@ const getAllProducts = async (req, res) => {
 
 const getPageProducts = async (page, limit, category, search, sort) => {
   try {
-    console.log(category);
     const currentCategory = category
       ? await CategoryModel.findOne({ slug: category })
       : null;

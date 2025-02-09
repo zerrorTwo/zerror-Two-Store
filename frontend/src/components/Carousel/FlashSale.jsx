@@ -212,7 +212,7 @@ function FlashSale({ listItem }) {
 }
 
 FlashSale.propTypes = {
-  listItem: PropTypes.array.isRequired,
+  listItem: PropTypes.array,
 };
 
 export default FlashSale;

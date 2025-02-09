@@ -32,6 +32,8 @@ function ProductDetail() {
     return <div>Error: {error.message}</div>;
   }
 
+  console.log(data);
+
   return (
     <Container>
       {/* Breadcrumb */}
@@ -83,7 +85,7 @@ function ProductDetail() {
 
       {/* Product descriptions */}
       <Suspense fallback={<CircularProgress />}>
-        <Description />
+        <Description description={data?.description} />
       </Suspense>
 
       {/* Product comment */}
