@@ -25,4 +25,4 @@ Router.route("/").delete(deleteCategory).post(createCategory);
 
 Router.route("/:id").put(updateCategory).get(getChildCategories);
 
-export const categoryRouter = Router;
+export const categoryRoute = Router;

@@ -2,9 +2,10 @@ import express from "express";
 import { StatusCodes } from "http-status-codes";
 import { userRoute } from "./userRoute.js";
 import { authRoute } from "./authRoute.js";
-import { categoryRouter } from "./categoryRoute.js";
+import { categoryRoute } from "./categoryRoute.js";
 import { productRoute } from "./productRoute.js";
 import { uploadRoute } from "./uploadRoute.js";
+import { cartRoute } from "./cartRoute.js";
 
 const Router = express.Router();
 
@@ -14,8 +15,9 @@ Router.get("/", (req, res) => {
 
 Router.use("/auth", authRoute);
 Router.use("/users", userRoute);
-Router.use("/category", categoryRouter);
+Router.use("/category", categoryRoute);
 Router.use("/products", productRoute);
+Router.use("/cart", cartRoute);
 Router.use("/upload", uploadRoute); // Use uploadRoute for handling uploads
 
 export const APIS_V1 = Router;
