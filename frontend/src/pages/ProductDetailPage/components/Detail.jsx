@@ -3,8 +3,13 @@ import QuantityGroup from "../../../components/QuantityGroup";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import PropTypes from "prop-types";
 import { useState } from "react";
+import { selectCurrentUser } from "../../../redux/features/auth/authSlice";
+import { useSelector } from "react-redux";
+import { useAddToCartMutation } from "../../../redux/api/cartSlice";
+import { toast } from "react-toastify";
 
 function Detail({ data, quantity, setQuantity }) {
+  const [addToCart, { isLoading: isLoadingCreateNew }] = useAddToCartMutation();
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [pricing, setPricing] = useState({
     price: data?.price,
@@ -59,6 +64,32 @@ function Detail({ data, quantity, setQuantity }) {
   const allAttributesSelected = attributes.every(
     (attr) => selectedAttributes[attr.key]
   );
+
+  const userId = useSelector(selectCurrentUser)?._id;
+
+  const handleAddToCart = async () => {
+    const addToCartData = {
+      userId: userId,
+      products: [
+        {
+          productId: data?._id,
+          variations: [
+            {
+              type: Object.values(selectedAttributes).join(", "),
+              quantity: quantity,
+            },
+          ],
+        },
+      ],
+    };
+
+    try {
+      await addToCart(addToCartData);
+      toast.success("Add to cart successfully!!");
+    } catch (error) {
+      toast.error(error);
+    }
+  };
 
   return (
     <>
@@ -150,9 +181,10 @@ function Detail({ data, quantity, setQuantity }) {
       {/* Add to cart */}
       <Box display={"flex"} justifyContent={"center"} mt={2}>
         <Button
+          onClick={() => handleAddToCart()}
           variant="contained"
           color="secondary"
-          disabled={!allAttributesSelected}
+          disabled={!allAttributesSelected || isLoadingCreateNew}
           startIcon={<AddShoppingCartIcon />}
           sx={{
             px: 4,

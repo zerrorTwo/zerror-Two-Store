@@ -1,12 +1,14 @@
 import { Box, CardMedia, Typography, useTheme } from "@mui/material";
 import { Link } from "react-router-dom";
-// import PropTypes from "prop-types";
+import PropTypes from "prop-types";
+import { PRIMITIVE_URL } from "../../redux/constants";
 
-function CartPopoverItem() {
+function CartPopoverItem({ item }) {
   const theme = useTheme();
+
   return (
     <Link
-      to="/"
+      to={item?.productSlug}
       style={{
         textDecoration: "none",
         display: "block",
@@ -34,8 +36,9 @@ function CartPopoverItem() {
               width: "auto",
               objectFit: "cover",
             }}
-            alt="green iguana"
+            alt={item?.productSlug}
             image={
+              `${PRIMITIVE_URL}${item?.productImages}` ||
               "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1hz8y9e1ubj5e@resize_w450_nl.webp"
             }
             loading="lazy"
@@ -54,15 +57,14 @@ function CartPopoverItem() {
             textOverflow: "ellipsis", // Hiển thị "..." nếu nội dung bị cắt
           }}
         >
-          Lizards are a group of squamate reptiles, with over 6,000 species,
-          ranging across all continents except Antarctica
+          {item?.productName}
         </Typography>
         <Box>
           <Typography
             variant="body2"
             sx={{ color: theme.palette.secondary.main }}
           >
-            {new Intl.NumberFormat("en-US").format(1000000)}đ
+            {new Intl.NumberFormat("en-US").format(item?.variations[0]?.price)}đ
           </Typography>
         </Box>
       </Box>
@@ -70,7 +72,8 @@ function CartPopoverItem() {
   );
 }
 
-// CartPopoverItem.propTypes = {
-// };
+CartPopoverItem.propTypes = {
+  item: PropTypes.object.isRequired,
+};
 
 export default CartPopoverItem;
