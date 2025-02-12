@@ -4,63 +4,138 @@ import ApiError from "../utils/ApiError.js";
 import { StatusCodes } from "http-status-codes";
 import ProductModel from "../models/productModel.js";
 
+const validateVariation = (newProduct, variations) => {
+  const { type, quantity } = variations[0]; // Lấy thông tin variation từ tham số `variations`
+
+  // Tách type để tạo miniVar
+  const miniVar = type.split(", ");
+
+  // Lấy danh sách các variation của sản phẩm
+  const productVar = newProduct?.variations?.pricing;
+
+  // Tìm kiếm variation khớp với giá trị miniVar
+  const matchingProduct = productVar.find((item) =>
+    miniVar.every((val) => Object.values(item).includes(val))
+  );
+
+  // Nếu không tìm thấy matchingProduct, ném lỗi
+  if (!matchingProduct) {
+    throw new ApiError(
+      StatusCodes.NOT_FOUND,
+      `Product not found in the product variations`
+    );
+  }
+
+  // Kiểm tra số lượng tồn kho
+  if (quantity > matchingProduct?.stock) {
+    throw new ApiError(StatusCodes.NOT_FOUND, `Product out of stock`);
+  }
+
+  // Trả về sản phẩm phù hợp
+  return matchingProduct;
+};
+
 const addToCart = async (userId, products = {}) => {
   const userCart = await CartModel.findOne({ userId });
 
+  // Kiểm tra nếu giỏ hàng của người dùng không tồn tại
   if (!userCart) {
     return await createCart(userId, products);
   }
 
-  // Nếu cart rỗng, thêm trực tiếp sản phẩm mới
+  // Kiểm tra nếu giỏ hàng rỗng
   if (!userCart.products.length) {
-    userCart.products = [products];
+    const newProduct = await ProductModel.findById(products[0].productId);
+
+    if (!newProduct) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        `Product not found with id: ${products[0].productId}`
+      );
+    }
+
+    // Nếu không có pricing hoặc validate thành công, thêm sản phẩm vào giỏ hàng
+    userCart.products = [products[0]];
     return await userCart.save();
   }
 
+  // Nếu giỏ hàng không rỗng, gọi hàm cập nhật số lượng sản phẩm trong giỏ hàng
   return await updateUserCartQuantity(userId, products);
 };
 
-const updateUserCartQuantity = async (userId, product = {}) => {
-  const { productId, quantity, variations = [] } = product;
+const updateUserCartQuantity = async (userId, product = []) => {
+  const { productId, variations = [] } = product[0];
 
-  const query = {
-    userId,
-    "products.productId": productId,
-    "products.variations": { $all: variations },
-    state: "ACTIVE",
-  };
-
-  const updateSet = {
-    $inc: { "products.$.quantity": quantity },
-  };
-
-  const options = { new: true };
-
-  // Cập nhật số lượng nếu sản phẩm đã tồn tại
-  const updatedCart = await CartModel.findOneAndUpdate(
-    query,
-    updateSet,
-    options
-  );
-
-  if (!updatedCart) {
-    // Nếu chưa có sản phẩm, thêm mới vào giỏ
-    return await CartModel.findOneAndUpdate(
-      { userId, state: "ACTIVE" },
-      { $addToSet: { products: product } },
-      { new: true, upsert: true }
+  // Kiểm tra sản phẩm trong cơ sở dữ liệu
+  const newProduct = await ProductModel.findById(productId);
+  if (!newProduct) {
+    throw new ApiError(
+      StatusCodes.NOT_FOUND,
+      `Product not found with id: ${productId}`
     );
   }
 
-  return updatedCart;
+  // Tìm giỏ hàng của người dùng
+  const userCart = await CartModel.findOne({ userId, state: "ACTIVE" });
+
+  // Tìm sản phẩm trong giỏ hàng
+  const existingProduct = userCart.products.find(
+    (item) => item.productId.toString() === productId
+  );
+
+  if (existingProduct) {
+    // Kiểm tra nếu variation.type đã có trong sản phẩm
+    const existingVariation = existingProduct.variations.find(
+      (varItem) => varItem.type === variations[0].type
+    );
+
+    if (existingVariation) {
+      // Nếu variation đã tồn tại, cập nhật số lượng mới thay vì cộng
+      existingVariation.quantity = variations[0].quantity; // Cập nhật số lượng mới
+    } else {
+      // Nếu variation chưa tồn tại, kiểm tra variation.pricing
+      if (newProduct.variations?.pricing?.length > 0) {
+        // Nếu có pricing, validate variation trước khi thêm
+        validateVariation(newProduct, variations);
+      }
+      existingProduct.variations.push(...variations);
+    }
+
+    // Lưu lại giỏ hàng sau khi cập nhật số lượng hoặc thêm variation
+    await userCart.save();
+    return userCart;
+  } else {
+    // Nếu chưa có sản phẩm trong giỏ hàng, thêm mới vào giỏ hàng
+    await CartModel.findOneAndUpdate(
+      { userId, state: "ACTIVE" },
+      { $addToSet: { products: product[0] } },
+      { new: true, upsert: true }
+    );
+    return userCart;
+  }
 };
 
 const createCart = async (userId, products = {}) => {
   try {
-    const newCart = new CartModel({
-      userId,
-      products: [...products],
-    });
+    const { productId, variations } = products[0];
+
+    const newProduct = await ProductModel.findById(productId);
+
+    if (!newProduct) {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        `Product not found with id: ${productId}`
+      );
+    }
+
+    // Kiểm tra nếu variation.pricing không rỗng
+    if (newProduct.variations?.pricing?.length > 0) {
+      // Nếu có pricing, validate variation trước khi thêm sản phẩm
+      validateVariation(newProduct, variations);
+    }
+
+    // Tạo giỏ hàng mới
+    const newCart = new CartModel({ userId, products: [products[0]] });
 
     return await newCart.save();
   } catch (error) {
@@ -72,29 +147,45 @@ const removeProductFromCart = async (userId, product = {}) => {
   const { productId, variations = [] } = product;
 
   try {
-    const query = {
+    // Tìm cart của user đang ACTIVE
+    const userCart = await CartModel.findOne({
       userId,
       state: "ACTIVE",
-    };
-
-    const update = {
-      $pull: {
-        products: {
-          productId,
-          variations: { $all: variations },
-        },
-      },
-    };
-
-    const updatedCart = await CartModel.findOneAndUpdate(query, update, {
-      new: true,
     });
 
-    if (!updatedCart) {
-      throw new Error("Product not found or already removed.");
+    if (!userCart) {
+      throw new Error("Cart not found.");
     }
 
-    return updatedCart;
+    // Tìm sản phẩm trong giỏ hàng
+    const existingProduct = userCart.products.find(
+      (prod) => prod.productId.toString() === productId.toString()
+    );
+
+    if (!existingProduct) {
+      throw new Error("Product not found in cart.");
+    }
+
+    // Kiểm tra và xóa từng variation
+    variations.forEach((variationToRemove) => {
+      const indexToRemove = existingProduct.variations.findIndex(
+        (varItem) => varItem.type === variationToRemove.type
+      );
+
+      if (indexToRemove !== -1) {
+        existingProduct.variations.splice(indexToRemove, 1);
+      }
+    });
+
+    // Nếu không còn variation nào, xóa luôn productId khỏi giỏ hàng
+    if (existingProduct.variations.length === 0) {
+      userCart.products = userCart.products.filter(
+        (prod) => prod.productId.toString() !== productId.toString()
+      );
+    }
+
+    await userCart.save();
+    return userCart;
   } catch (error) {
     throw error;
   }
@@ -225,7 +316,6 @@ const getPageCart = async (userId, page = 1, limit = 10) => {
           type: "$productDetails.type", // Loại sản phẩm (category)
           rating: "$productDetails.rating", // Đánh giá trung bình của sản phẩm
           productVariations: "$productDetails.variations", // Các biến thể sản phẩm
-          pricing: "$productDetails.variations.pricing", // Thông tin giá của các biến thể
           price: "$productDetails.price", // Giá mặc định của sản phẩm
         },
       },
@@ -271,7 +361,6 @@ const getPageCart = async (userId, page = 1, limit = 10) => {
     let totalPrice = 0;
     const updatedProducts = cart[0].products.map((product) => {
       let finalPrice = product.price; // Mặc định là giá bình thường
-      let availableStock = product.stock; // Mặc định là số lượng tổng trong kho
 
       if (product.pricing && product.pricing.length > 0) {
         // Tìm kiếm giá từ pricing dựa trên variations
@@ -287,10 +376,6 @@ const getPageCart = async (userId, page = 1, limit = 10) => {
         }
       }
 
-      // Kiểm tra số lượng trong giỏ so với stock
-      const stockCheck =
-        product.cartQuantity <= availableStock ? "In stock" : "Out of stock";
-
       // Calculate the total price for each product
       const productTotalPrice = finalPrice * product.cartQuantity;
       totalPrice += productTotalPrice; // Add the product's total price to the overall total price
@@ -298,8 +383,6 @@ const getPageCart = async (userId, page = 1, limit = 10) => {
       return {
         ...product,
         finalPrice, // Giá cuối cùng của sản phẩm
-        availableStock, // Số lượng sản phẩm khả dụng
-        stockCheck, // Kiểm tra số lượng sản phẩm có sẵn
         productTotalPrice, // Giá trị tổng của sản phẩm
       };
     });
