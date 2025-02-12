@@ -10,11 +10,12 @@ const cartItemSchema = new mongoose.Schema(
     variations: [
       {
         type: { type: String },
+        price: { type: Number },
         quantity: { type: Number, required: true, default: 1 },
       },
     ],
   },
-  { _id: false }
+  { _id: false, timestamps: true }
 );
 
 const cartSchema = new mongoose.Schema(
