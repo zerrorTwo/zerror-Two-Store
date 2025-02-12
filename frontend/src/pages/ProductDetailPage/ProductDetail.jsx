@@ -32,8 +32,6 @@ function ProductDetail() {
     return <div>Error: {error.message}</div>;
   }
 
-  console.log(data);
-
   return (
     <Container>
       {/* Breadcrumb */}

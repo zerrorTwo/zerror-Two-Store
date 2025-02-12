@@ -17,6 +17,9 @@ import { CardMedia, Container } from "@mui/material";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CartPopover from "./Cart/CartPopover";
+import { useGetMiniCartQuery } from "../redux/api/cartSlice";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../redux/features/auth/authSlice";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -68,6 +71,14 @@ export default function HeaderLayout() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
   const [searchText, setSearchText] = useState("");
+
+  const userId = useSelector(selectCurrentUser)?._id;
+
+  const {
+    data,
+    error: cartError,
+    isLoading: cartLoading,
+  } = useGetMiniCartQuery(userId) || {}; // Tránh lỗi khi data là undefined
 
   const handleCartClick = () => {
     navigate("/cart");
@@ -154,7 +165,7 @@ export default function HeaderLayout() {
     >
       <MenuItem>
         <IconButton size="large" aria-label="show 4 new mails" color="inherit">
-          <Badge badgeContent={4} color="error">
+          <Badge badgeContent={data?.totalItems} color="error">
             <ShoppingCartIcon />
           </Badge>
         </IconButton>
@@ -259,13 +270,16 @@ export default function HeaderLayout() {
                   onMouseEnter={handlePopoverOpen}
                   onMouseLeave={handlePopoverClose}
                 >
-                  <Badge badgeContent={4} color="error">
+                  <Badge badgeContent={data?.totalItems} color="error">
                     <ShoppingCartIcon />
                   </Badge>
                 </IconButton>
 
                 {cartPopoverVisible && (
                   <CartPopover
+                    data={data}
+                    error={cartError}
+                    loading={cartLoading}
                     onMouseEnter={handlePopoverOpen}
                     onMouseLeave={handlePopoverClose}
                   />

@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import CartPopoverItem from "./CartPopoverItem";
 import { Link } from "react-router-dom";
 
-function CartPopover({ onMouseEnter, onMouseLeave }) {
+function CartPopover({ data, error, loading, onMouseEnter, onMouseLeave }) {
   return (
     <Box
       onMouseEnter={onMouseEnter}
@@ -11,6 +11,7 @@ function CartPopover({ onMouseEnter, onMouseLeave }) {
       position={"absolute"}
       top={"95%"}
       right={"0px"}
+      minWidth={"300px"}
     >
       <Paper
         elevation={3}
@@ -22,10 +23,15 @@ function CartPopover({ onMouseEnter, onMouseLeave }) {
         }}
       >
         <Box sx={{ p: 1 }}>Recently Added Products</Box>
-        <CartPopoverItem />
-        <CartPopoverItem />
-        <CartPopoverItem />
-        <CartPopoverItem />
+        {error ? (
+          <Typography>{error}</Typography>
+        ) : loading ? (
+          <Typography>Loading...</Typography>
+        ) : (
+          data?.products?.map((item) => (
+            <CartPopoverItem key={item._id} item={item} />
+          ))
+        )}
         <Box
           sx={{
             p: 1,
@@ -35,7 +41,9 @@ function CartPopover({ onMouseEnter, onMouseLeave }) {
             bgcolor: "white",
           }}
         >
-          <Typography variant="body2">1 More Products in Cart</Typography>
+          <Typography variant="body2">
+            {Math.abs(data?.totalItems - 5) || 0} More Products in Cart
+          </Typography>
           <Box
             sx={{ bgcolor: "secondary.main", px: 1, py: 0.5, borderRadius: 1 }}
           >
@@ -58,6 +66,9 @@ function CartPopover({ onMouseEnter, onMouseLeave }) {
 }
 
 CartPopover.propTypes = {
+  data: PropTypes.object.isRequired,
+  error: PropTypes.bool,
+  loading: PropTypes.bool,
   onMouseEnter: PropTypes.func,
   onMouseLeave: PropTypes.func,
 };
