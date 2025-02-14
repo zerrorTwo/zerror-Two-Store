@@ -27,10 +27,12 @@ function CartDetailItem({
 }) {
   const [quantity, setQuantity] = useState(variation.quantity);
   const [anchorEl, setAnchorEl] = useState(null);
-  const isChecked = selected.includes(`${productSlug}-${variation.type}`); // So sánh ID duy nhất
+  const isChecked = selected.includes(
+    `${productSlug}-${JSON.stringify(variation.type)}`
+  ); // So sánh ID duy nhất
 
   const handleCheckboxChange = (event) => {
-    const itemId = `${productSlug}-${variation.type}`; // Tạo ID duy nhất cho mỗi variation
+    const itemId = `${productSlug}-${JSON.stringify(variation.type)}`; // Tạo ID duy nhất cho mỗi variation
     onSelect(itemId, event.target.checked); // Truyền ID duy nhất
   };
 
@@ -122,35 +124,38 @@ function CartDetailItem({
                     {productName}
                   </Typography>
                 </Link>
-                <Box
-                  onClick={handleClick}
-                  display={"flex"}
-                  justifyContent={"space-between"}
-                  alignItems={"center"}
-                  border={1}
-                  borderColor="grey.300"
-                  borderRadius={1}
-                  px={1}
-                  py={0.5}
-                  mt={1}
-                  sx={{
-                    cursor: "pointer",
-                    maxWidth: "200px",
-                    minWidth: "200px",
-                  }}
-                >
-                  <Typography
-                    variant="body2"
+                {variation?.type && (
+                  <Box
+                    onClick={handleClick}
+                    display={"flex"}
+                    justifyContent={"space-between"}
+                    alignItems={"center"}
+                    border={1}
+                    borderColor="grey.300"
+                    borderRadius={1}
+                    px={1}
+                    py={0.5}
+                    mt={1}
                     sx={{
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
+                      cursor: "pointer",
+                      maxWidth: "200px",
+                      minWidth: "200px",
                     }}
                   >
-                    {Object.values(variation?.type).join(", ")}
-                  </Typography>
-                  <ArrowDropDownIcon fontSize="small" />
-                </Box>
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {Object?.values(variation?.type)?.join(", ")}
+                    </Typography>
+                    <ArrowDropDownIcon fontSize="small" />
+                  </Box>
+                )}
+
                 <Popover
                   id={id}
                   open={open}

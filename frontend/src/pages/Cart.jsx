@@ -34,7 +34,8 @@ function Cart() {
       // Chọn tất cả các item
       const allItemIds = data?.products.flatMap((product) =>
         product?.cartVariations?.map(
-          (variation) => `${product.productSlug}-${variation.type}`
+          (variation) =>
+            `${product.productSlug}-${JSON.stringify(variation.type)}`
         )
       );
       setSelected(allItemIds);

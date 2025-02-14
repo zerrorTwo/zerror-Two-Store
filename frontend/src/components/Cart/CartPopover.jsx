@@ -56,7 +56,7 @@ function CartPopover({ data, error, loading, onMouseEnter, onMouseLeave }) {
               }}
               to={"/cart"}
             >
-              View My Shopping Cart
+              View All Cart
             </Link>
           </Box>
         </Box>

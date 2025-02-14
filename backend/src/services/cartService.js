@@ -389,7 +389,7 @@ const getRecentProducts = async (userId) => {
     }
 
     // Tính tổng số lượng và tổng giá trị của tất cả các sản phẩm
-    const totalItems = cart.reduce((acc, item) => acc + item.totalItems, 0);
+    const totalItems = cart?.length;
     const totalPrice = cart.reduce((acc, item) => acc + item.totalPrice, 0);
 
     // Trả về kết quả
@@ -511,20 +511,10 @@ const getPageCart = async (userId, page = 1, limit = 10) => {
       };
     });
 
-    const totalQuantity = updatedProducts.reduce((sum, product) => {
-      return (
-        sum +
-        product.cartVariations.reduce(
-          (innerSum, variation) => innerSum + variation.quantity,
-          0
-        )
-      );
-    }, 0);
-
     return {
       message: "Cart summary retrieved successfully",
       products: updatedProducts,
-      totalItems: totalQuantity,
+      totalItems: updatedProducts?.length,
       totalPrice: totalPrice,
     };
   } catch (error) {
