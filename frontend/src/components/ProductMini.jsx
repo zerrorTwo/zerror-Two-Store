@@ -19,7 +19,7 @@ function ProductMini({ item, loading = false }) {
     <Box>
       <Card
         sx={{
-          maxWidth: 192,
+          maxWidth: "100%",
           "&:hover": {
             boxShadow:
               "rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px",
@@ -94,7 +94,10 @@ function ProductMini({ item, loading = false }) {
                   variant="h6"
                   sx={{ color: theme.palette.secondary.main }}
                 >
-                  {new Intl.NumberFormat("en-US").format(item?.price || 10000)}đ
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(item?.price || 10000)}
                 </Typography>
               )}
               {!loading && (

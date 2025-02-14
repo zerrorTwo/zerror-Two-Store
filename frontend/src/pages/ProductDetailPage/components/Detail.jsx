@@ -151,7 +151,7 @@ function Detail({ data, quantity, setQuantity }) {
                       color: isSelected ? "white" : "text.secondary",
                       bgcolor: isSelected ? "secondary.main" : "white",
                       "&&:hover": {
-                        bgcolor: isSelected ? "secondary.dark" : "grey.100",
+                        bgcolor: isSelected ? "secondary.light" : "grey.100",
                       },
                     }}
                     label={option}

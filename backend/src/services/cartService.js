@@ -458,40 +458,41 @@ const getPageCart = async (userId, page = 1, limit = 10) => {
     }
 
     // Now calculate final price for each product and compute total price
+    // Now calculate final price for each product and compute total price
     let totalPrice = 0;
     const updatedProducts = cart[0].products.map((product) => {
-      let finalPrice = product.price; // Mặc định là giá bình thường
+      // Tính tổng giá của từng product dựa trên cartVariations
+      const productTotalPrice = product.cartVariations.reduce(
+        (sum, variation) => {
+          return sum + variation.price * variation.quantity;
+        },
+        0
+      );
 
-      if (product.pricing && product.pricing.length > 0) {
-        // Tìm kiếm giá từ pricing dựa trên variations
-        const matchingVariation = product.pricing.find((variant) => {
-          return (
-            variant.size === product.cartVariations.size &&
-            variant.color === product.cartVariations.color
-          );
-        });
-        if (matchingVariation) {
-          finalPrice = matchingVariation.price; // Sử dụng giá từ pricing
-          availableStock = matchingVariation.stock; // Lấy stock từ pricing
-        }
-      }
-
-      // Calculate the total price for each product
-      const productTotalPrice = finalPrice * product.cartQuantity;
-      totalPrice += productTotalPrice; // Add the product's total price to the overall total price
+      // Cộng dồn vào tổng giá của toàn bộ giỏ hàng
+      totalPrice += productTotalPrice;
 
       return {
         ...product,
-        finalPrice, // Giá cuối cùng của sản phẩm
-        productTotalPrice, // Giá trị tổng của sản phẩm
+        productTotalPrice, // Tổng giá trị của sản phẩm này
       };
     });
+
+    const totalQuantity = updatedProducts.reduce((sum, product) => {
+      return (
+        sum +
+        product.cartVariations.reduce(
+          (innerSum, variation) => innerSum + variation.quantity,
+          0
+        )
+      );
+    }, 0);
 
     return {
       message: "Cart summary retrieved successfully",
       products: updatedProducts,
-      totalItems: cart.length,
-      totalPrice: totalPrice, // Return the calculated totalPrice based on finalPrice
+      totalItems: totalQuantity,
+      totalPrice: totalPrice,
     };
   } catch (error) {
     throw error;

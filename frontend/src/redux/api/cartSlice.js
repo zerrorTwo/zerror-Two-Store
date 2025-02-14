@@ -4,8 +4,8 @@ import { CART_URL } from "../constants";
 export const cartApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getAllCart: builder.query({
-      query: () => ({
-        url: `${CART_URL}/`,
+      query: (userId) => ({
+        url: `${CART_URL}?userId=${userId}`,
         method: "GET",
       }),
       providesTags: ["Cart"],
