@@ -17,7 +17,6 @@ function Cart() {
   const [selected, setSelected] = useState([]);
   const userId = useSelector(selectCurrentUser)?._id;
   const { data } = useGetAllCartQuery(userId);
-  console.log(data);
 
   const handleSelectItem = (itemId, isChecked) => {
     setSelected(
@@ -175,7 +174,7 @@ function Cart() {
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
                     currency: "VND",
-                  }).format(1000000)}
+                  }).format(data?.totalPrice)}
                 </Typography>
               </Box>
               <Button

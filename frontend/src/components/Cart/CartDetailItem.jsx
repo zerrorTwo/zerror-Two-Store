@@ -147,7 +147,7 @@ function CartDetailItem({
                       textOverflow: "ellipsis",
                     }}
                   >
-                    {variation.type}
+                    {Object.values(variation?.type).join(", ")}
                   </Typography>
                   <ArrowDropDownIcon fontSize="small" />
                 </Box>

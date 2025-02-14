@@ -9,7 +9,7 @@ const cartItemSchema = new mongoose.Schema(
     },
     variations: [
       {
-        type: { type: String },
+        type: { type: Object },
         price: { type: Number },
         quantity: { type: Number, required: true, default: 1 },
       },
