@@ -6,12 +6,18 @@ import ProductModel from "../models/productModel.js";
 
 const validateVariation = (newProduct, variations) => {
   const { type, quantity } = variations[0]; // Lấy thông tin variation từ tham số `variations`
+  const typeStr = Object.values(type).join(", ");
 
   // Tách type để tạo miniVar
-  const miniVar = type.split(", ");
+  const miniVar = typeStr.split(", ");
 
   // Lấy danh sách các variation của sản phẩm
   const productVar = newProduct?.variations?.pricing;
+
+  const keyCount = Object.keys(newProduct?.variations)?.length;
+  if (keyCount - 1 !== miniVar?.length) {
+    throw new ApiError(StatusCodes.NOT_FOUND, `Variation is not available!!`);
+  }
 
   // Tìm kiếm variation khớp với giá trị miniVar
   const matchingProduct = productVar.find((item) =>
@@ -22,13 +28,13 @@ const validateVariation = (newProduct, variations) => {
   if (!matchingProduct) {
     throw new ApiError(
       StatusCodes.NOT_FOUND,
-      `Product not found in the product variations`
+      `Product not found in the product variations!!`
     );
   }
 
   // Kiểm tra số lượng tồn kho
   if (quantity > matchingProduct?.stock) {
-    throw new ApiError(StatusCodes.NOT_FOUND, `Product out of stock`);
+    throw new ApiError(StatusCodes.NOT_FOUND, `Product out of stock!!`);
   }
 
   // Cập nhật giá vào matchingProduct
@@ -118,24 +124,28 @@ const updateUserCartQuantity = async (userId, product = []) => {
   );
 
   if (existingProduct) {
-    // Kiểm tra nếu variation.type đã có trong sản phẩm
-    const existingVariation = existingProduct.variations.find(
-      (varItem) => varItem.type === variations[0].type
+    // Kiểm tra nếu variation.type đã có trong sản phẩm (không phân biệt thứ tự)
+    const existingVariationIndex = existingProduct.variations.findIndex(
+      (varItem) =>
+        JSON.stringify(Object.entries(varItem.type).sort()) ===
+        JSON.stringify(Object.entries(variations[0].type).sort())
     );
 
-    if (existingVariation) {
+    if (existingVariationIndex !== -1) {
       // Nếu variation đã tồn tại, cập nhật số lượng mới thay vì cộng
-      existingVariation.quantity += variations[0].quantity; // Cập nhật số lượng mới
+      existingProduct.variations[existingVariationIndex].quantity +=
+        variations[0].quantity;
 
       // Cập nhật giá cho variation nếu có pricing mới
       const validVariation = validateVariation(newProduct, variations);
-      existingVariation.price = validVariation.price; // Cập nhật giá từ pricing
+      existingProduct.variations[existingVariationIndex].price =
+        validVariation.price; // Cập nhật giá từ pricing
     } else {
       // Nếu variation chưa tồn tại, kiểm tra variation.pricing
       const validVariation = validateVariation(newProduct, variations);
       variations[0].price = validVariation.price; // Gán giá vào variation mới
 
-      existingProduct.variations.push(...variations);
+      existingProduct.variations.push(...variations); // Thêm variation mới vào sản phẩm
     }
 
     // Lưu lại giỏ hàng sau khi cập nhật số lượng hoặc thêm variation
@@ -294,6 +304,16 @@ const getRecentProducts = async (userId) => {
       {
         $addFields: {
           productCreatedAt: "$products.createdAt", // Gắn thời gian tạo của sản phẩm vào trường mới
+          normalizedVariationType: {
+            $arrayToObject: {
+              // Chuyển các cặp key-value thành đối tượng
+              $map: {
+                input: { $objectToArray: "$products.variations.type" },
+                as: "item",
+                in: { k: "$$item.k", v: "$$item.v" },
+              },
+            },
+          },
         },
       },
 
@@ -302,7 +322,20 @@ const getRecentProducts = async (userId) => {
         $project: {
           _id: 0,
           productId: "$products.productId",
-          variationType: "$products.variations.type",
+          variationType: {
+            // Đảm bảo `type` là object, ví dụ [{ size: "M", color: "Red" }]
+            $map: {
+              input: [
+                {
+                  $arrayToObject: {
+                    $objectToArray: "$products.variations.type",
+                  },
+                },
+              ],
+              as: "type",
+              in: "$$type",
+            },
+          },
           variationPrice: "$products.variations.price",
           variationQuantity: "$products.variations.quantity",
           productName: "$productDetails.name",
@@ -331,7 +364,7 @@ const getRecentProducts = async (userId) => {
           productSlug: { $first: "$productSlug" },
           variations: {
             $push: {
-              type: "$variationType",
+              type: "$variationType", // Dùng variationType đã chuẩn hóa
               price: "$variationPrice",
               quantity: "$variationQuantity",
             },

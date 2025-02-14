@@ -8,10 +8,34 @@ import {
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { Close as CloseIcon } from "@mui/icons-material";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+
+// Function to get pricing for selected attributes
+const getPricingForSelectedAttributes = (
+  selectedAttributes,
+  pricingData,
+  data
+) => {
+  const selectedVariation = pricingData.find((pricingItem) =>
+    Object.keys(selectedAttributes).every(
+      (key) => pricingItem[key] === selectedAttributes[key]
+    )
+  );
+
+  if (selectedVariation) {
+    return {
+      price: selectedVariation.price,
+      stock: selectedVariation.stock,
+    };
+  }
+  return {
+    price: data?.price || 0,
+    stock: data?.totalStock || 0,
+  };
+};
 
 function CartVariationPopover({ initAttribute, data, onClose }) {
-  const [selectedAttributes, setSelectedAttributes] = useState({});
+  const [selectedAttributes, setSelectedAttributes] = useState(initAttribute);
   const [pricing, setPricing] = useState({
     price: data?.price || 0,
     stock: data?.totalStock || 0,
@@ -24,57 +48,40 @@ function CartVariationPopover({ initAttribute, data, onClose }) {
       : Object.values(data?.pricing || {});
   }, [data?.pricing]);
 
-  // Chuyển đổi dữ liệu attributes2 từ data
+  // Convert data to attributes2
   const attributes2 = useMemo(() => {
     return Object.keys(data || {})
       .filter((key) => key !== "pricing")
       .map((key) => ({
-        label: key.charAt(0).toUpperCase() + key.slice(1),
+        label: key,
+        key: key,
         options: data[key],
       }));
   }, [data]);
 
-  const initAttributesArray = initAttribute
-    .split(", ")
-    .map((item) => item.trim());
-  // Tách initAttribute thành mảng và gán các giá trị vào selectedAttributes
-  console.log(initAttributesArray);
-  console.log(attributes2);
-
-  // Hàm xử lý sự kiện khi người dùng chọn thuộc tính
+  // Handle attribute click and update the selected attribute
   const handleAttributeClick = (label, option) => {
     const newSelectedAttributes = {
       ...selectedAttributes,
       [label]: selectedAttributes[label] === option ? null : option, // Toggle selection
     };
     setSelectedAttributes(newSelectedAttributes);
-
-    // Kiểm tra nếu tất cả các thuộc tính đã được chọn
-    const allAttributesSelected = attributes2.every(
-      (attr) => newSelectedAttributes[attr.label]
-    );
-
-    if (allAttributesSelected) {
-      // Tìm pricing tương ứng với các thuộc tính đã chọn
-      const selectedVariation = pricingData.find((pricingItem) =>
-        Object.keys(newSelectedAttributes).every(
-          (key) => pricingItem[key] === newSelectedAttributes[key]
-        )
-      );
-
-      if (selectedVariation) {
-        setPricing({
-          price: selectedVariation.price,
-          stock: selectedVariation.stock,
-        });
-      }
-    }
   };
 
-  // Kiểm tra nếu đã chọn đủ tất cả các thuộc tính
+  // Check if all attributes are selected
   const allAttributesSelected = attributes2.every(
     (attr) => selectedAttributes[attr.label]
   );
+
+  // Update pricing when selectedAttributes or pricingData changes
+  useEffect(() => {
+    const newPricing = getPricingForSelectedAttributes(
+      selectedAttributes,
+      pricingData,
+      data
+    );
+    setPricing(newPricing);
+  }, [selectedAttributes, pricingData, data]);
 
   return (
     <Paper
@@ -103,11 +110,11 @@ function CartVariationPopover({ initAttribute, data, onClose }) {
         {attributes2.map((item, index) => (
           <Box key={index}>
             <Typography variant="body1" sx={{ fontWeight: "bold" }}>
-              {item.label}
+              {item.label.charAt(0).toUpperCase() + item.label.slice(1)}
             </Typography>
             <Box display="flex" gap={1} flexWrap="wrap" mt={1}>
               {item.options.map((option, idx) => {
-                const isSelected = selectedAttributes[item.label] === option;
+                const isSelected = selectedAttributes[item.key] === option;
 
                 return (
                   <Chip
@@ -131,7 +138,7 @@ function CartVariationPopover({ initAttribute, data, onClose }) {
           </Box>
         ))}
 
-        {/* Hiển thị giá mới */}
+        {/* Display the new price */}
         <Typography
           variant="body1"
           fontWeight={"bold"}
@@ -161,7 +168,7 @@ function CartVariationPopover({ initAttribute, data, onClose }) {
 CartVariationPopover.propTypes = {
   onClose: PropTypes.func.isRequired,
   data: PropTypes.object.isRequired,
-  initAttribute: PropTypes.string,
+  initAttribute: PropTypes.object,
 };
 
 export default CartVariationPopover;
