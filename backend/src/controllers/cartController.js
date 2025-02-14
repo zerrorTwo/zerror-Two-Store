@@ -27,7 +27,7 @@ const getRecentProducts = asyncHandeler(async (req, res) => {
 });
 
 const getPageCart = asyncHandeler(async (req, res) => {
-  const { userId } = req.body;
+  const { userId } = req.query;
   const cart = await cartService.getPageCart(userId);
   res.status(StatusCodes.OK).json(cart);
 });

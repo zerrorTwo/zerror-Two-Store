@@ -64,7 +64,10 @@ function CartPopoverItem({ item }) {
             variant="body2"
             sx={{ color: theme.palette.secondary.main }}
           >
-            {new Intl.NumberFormat("en-US").format(item?.variations[0]?.price)}đ
+            {new Intl.NumberFormat("vi-VN", {
+              style: "currency",
+              currency: "VND",
+            }).format(item?.variations[0]?.price)}
           </Typography>
         </Box>
       </Box>

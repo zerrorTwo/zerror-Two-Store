@@ -30,13 +30,13 @@ export default function CategoryTable({ itemData, isLoading }) {
 
       <Box overflow={"visible"} position={"relative"}>
         <Swiper
-          slidesPerView={10}
+          slidesPerView={14}
           spaceBetween={12.5}
-          slidesPerGroup={10}
+          slidesPerGroup={14}
           breakpoints={{
             0: { slidesPerView: 3, slidesPerGroup: 3 }, // XS (màn hình nhỏ)
             640: { slidesPerView: 4, slidesPerGroup: 4 }, // Small screen (default config)
-            1024: { slidesPerView: 6, slidesPerGroup: 6 }, // Large screen config
+            1024: { slidesPerView: 7, slidesPerGroup: 7 }, // Large screen config
           }}
           grid={{
             rows: 2,

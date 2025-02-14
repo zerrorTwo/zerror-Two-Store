@@ -1,6 +1,26 @@
 import { createTheme } from "@mui/material/styles";
 
 const theme = createTheme({
+  components: {
+    MuiContainer: {
+      defaultProps: {
+        maxWidth: "lg", // Có thể đổi thành "xs", "sm", "md", "lg", "xl" hoặc false
+      },
+      styleOverrides: {
+        maxWidthLg: {
+          maxWidth: "1356px !important", // Đặt maxWidth tùy ý
+        },
+      },
+    },
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          background:
+            "radial-gradient(circle, rgba(201,74,0,1) 0%, rgba(201,90,0,1) 35%, rgba(201,110,0,1) 100%)", // Apply the radial gradient to the background property
+        },
+      },
+    },
+  },
   palette: {
     primary: {
       main: "#FFF", // Màu chính (ví dụ: màu đen)
@@ -16,7 +36,7 @@ const theme = createTheme({
       primary: "#999", // Màu chữ chính
       secondary: "#000", // Màu chữ phụ
       blackColor: "#000", // Màu
-      hover: "#F5F5F5", // Màu
+      hover: "#e3e1e1", // Màu
     },
     button: {
       backgroundColor: "#EE4899", // Màu nền của nút

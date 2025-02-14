@@ -1,4 +1,4 @@
-import { styled, alpha, useTheme } from "@mui/material/styles";
+import { styled, alpha } from "@mui/material/styles";
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
@@ -25,11 +25,9 @@ const Search = styled("div")(({ theme }) => ({
   position: "relative",
   borderRadius: theme.shape.borderRadius,
   backgroundColor: alpha(theme.palette.common.black, 0.1),
-  "&:hover": {
-    backgroundColor: alpha(theme.palette.common.black, 0.15),
-  },
   marginRight: theme.spacing(2),
   marginLeft: 0,
+
   width: "100%",
   [theme.breakpoints.up("sm")]: {
     marginLeft: theme.spacing(3),
@@ -39,7 +37,6 @@ const Search = styled("div")(({ theme }) => ({
 
 const SearchIconWrapper = styled("div")(({ theme }) => ({
   padding: theme.spacing(0, 2),
-  borderRadius: theme.shape.borderRadius,
   height: "100%",
   position: "absolute",
   right: 0,
@@ -47,7 +44,9 @@ const SearchIconWrapper = styled("div")(({ theme }) => ({
   alignItems: "center",
   justifyContent: "center",
   cursor: "pointer",
-  backgroundColor: theme.palette.secondary.main,
+  backgroundColor: "common.white",
+  borderLeft: "1px solid",
+  borderColor: "text.hover",
 }));
 
 const StyledInputBase = styled(InputBase)(({ theme }) => ({
@@ -65,7 +64,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 }));
 
 export default function HeaderLayout() {
-  const theme = useTheme();
   const navigate = useNavigate();
   const a = undefined;
   const [anchorEl, setAnchorEl] = useState(null);
@@ -189,38 +187,36 @@ export default function HeaderLayout() {
 
   return (
     <Box sx={{ flexGrow: 1 }} position="static">
-      <AppBar sx={{ py: 1 }}>
+      <AppBar sx={{ py: 1 }} bgcolor={"secondary.main"}>
         <Container>
-          <Toolbar sx={{ px: "0 !important" }}>
+          <Toolbar sx={{ px: "0 !important", justifyContent: "space-between" }}>
             <Link
               to="/"
               style={{
-                textDecoration: "none", // Remove underline from Link
-                color: theme.palette.secondary.main, // Set color text to primary color
+                textDecoration: "none",
                 display: "flex",
                 alignItems: "center",
               }}
             >
               <CardMedia
                 component="img"
-                image="/Assets/logo.png"
+                image="/Assets/haha.png"
                 alt="Logo"
                 sx={{
-                  height: { xs: "30px", md: "50px" },
+                  height: { xs: "30px", md: "45px" },
+                  borderRadius: "50%",
                   width: "auto",
-                  mr: 1,
                 }}
               />
               <Typography
                 variant="h6"
-                noWrap
                 component="div"
                 sx={{
                   display: {
                     xs: "none",
                     sm: "block",
                     marginLeft: 2,
-                    color: theme.palette.secondary.main,
+                    color: "white !important",
                     fontWeight: "bold",
                     fontStyle: "italic",
                   },
@@ -232,7 +228,9 @@ export default function HeaderLayout() {
             <Search
               id="Search"
               sx={{
-                width: { xs: "80% !important", sm: "60% !important" },
+                bgcolor: "common.white",
+                width: "100% !important",
+                mx: { xs: "10px", sm: "20px" },
               }}
             >
               <SearchIconWrapper
@@ -257,9 +255,14 @@ export default function HeaderLayout() {
                 onKeyDown={handleKeyDown}
               />
             </Search>
-            <Box sx={{ flexGrow: 1 }} />
             <Box
-              sx={{ display: { xs: "none", md: "flex" }, alignItems: "center" }}
+              sx={{
+                display: { xs: "none", md: "flex" },
+                alignItems: "center",
+                gap: 2,
+                flexGrow: 1,
+                justifyContent: "flex-end",
+              }}
             >
               <Box sx={{ position: "relative" }}>
                 <IconButton
@@ -270,8 +273,8 @@ export default function HeaderLayout() {
                   onMouseEnter={handlePopoverOpen}
                   onMouseLeave={handlePopoverClose}
                 >
-                  <Badge badgeContent={data?.totalItems} color="error">
-                    <ShoppingCartIcon />
+                  <Badge badgeContent={data?.totalItems} color="primary">
+                    <ShoppingCartIcon sx={{ color: "common.white" }} />
                   </Badge>
                 </IconButton>
 
@@ -314,8 +317,20 @@ export default function HeaderLayout() {
                   aria-haspopup="true"
                   onClick={handleProfileMenuOpen}
                   color="inherit"
+                  sx={{
+                    mr: 0,
+                    bgcolor: "common.white",
+                    borderRadius: 6,
+                    py: 1,
+                    "&:hover": {
+                      backgroundColor: "common.white",
+                    },
+                  }}
                 >
                   <AccountCircle />
+                  <Typography fontWeight={"bold"} ml={0.5} variant="caption">
+                    Le Nam
+                  </Typography>
                 </IconButton>
               )}
             </Box>
