@@ -75,7 +75,7 @@ function Detail({ data, quantity, setQuantity }) {
           productId: data?._id,
           variations: [
             {
-              type: Object.values(selectedAttributes).join(", "),
+              type: selectedAttributes,
               quantity: quantity,
             },
           ],
@@ -84,8 +84,12 @@ function Detail({ data, quantity, setQuantity }) {
     };
 
     try {
-      await addToCart(addToCartData);
-      toast.success("Add to cart successfully!!");
+      const success = await addToCart(addToCartData).unwrap();
+      if (success) {
+        toast.success("Add to cart successfully!!");
+      } else {
+        toast.error("Add to cart failed!!");
+      }
     } catch (error) {
       toast.error(error);
     }
