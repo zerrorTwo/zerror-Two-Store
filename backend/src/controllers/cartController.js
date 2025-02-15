@@ -14,9 +14,15 @@ const updateQuantity = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(cart);
 });
 
+const updateVariation = asyncHandeler(async (req, res) => {
+  const { userId, products } = req.body;
+  const cart = await cartService.updateUserCartVariation(userId, products);
+  res.status(StatusCodes.OK).json(cart);
+});
+
 const removeItem = asyncHandeler(async (req, res) => {
-  const { userId, product } = req.body;
-  const cart = await cartService.removeProductFromCart(userId, product);
+  const { userId, products } = req.body;
+  const cart = await cartService.removeProductFromCart(userId, products);
   res.status(StatusCodes.OK).json(cart);
 });
 
@@ -35,6 +41,7 @@ const getPageCart = asyncHandeler(async (req, res) => {
 export {
   createCart,
   updateQuantity,
+  updateVariation,
   removeItem,
   getRecentProducts,
   getPageCart,
