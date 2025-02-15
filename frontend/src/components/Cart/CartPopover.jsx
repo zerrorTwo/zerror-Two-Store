@@ -1,9 +1,10 @@
-import { Box, Paper, Typography } from "@mui/material";
+import { Box, CardMedia, Paper, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import CartPopoverItem from "./CartPopoverItem";
 import { Link } from "react-router-dom";
 
 function CartPopover({ data, error, loading, onMouseEnter, onMouseLeave }) {
+  const number = data?.totalItems > 5 ? data?.totalItems - 5 : 0;
   return (
     <Box
       onMouseEnter={onMouseEnter}
@@ -23,15 +24,41 @@ function CartPopover({ data, error, loading, onMouseEnter, onMouseLeave }) {
         }}
       >
         <Box sx={{ p: 1 }}>Recently Added Products</Box>
-        {error ? (
-          <Typography>{error}</Typography>
-        ) : loading ? (
-          <Typography>Loading...</Typography>
+        {!data?.totalItems ? (
+          <Box
+            bgcolor={"white"}
+            display={"flex"}
+            flexDirection={"column"}
+            width={"100%"}
+            alignItems={"center"}
+            gap={1}
+          >
+            <CardMedia
+              component="img"
+              sx={{
+                height: "auto",
+                width: "100px",
+                objectFit: "cover",
+              }}
+              image={"/Assets/cart.png"}
+              loading="lazy"
+            />
+            <Typography variant="h6">Nothing here.</Typography>
+          </Box>
         ) : (
-          data?.products?.map((item) => (
-            <CartPopoverItem key={item._id} item={item} />
-          ))
+          <>
+            {error ? (
+              <Typography>{error}</Typography>
+            ) : loading ? (
+              <Typography>Loading...</Typography>
+            ) : (
+              data?.products?.map((item) => (
+                <CartPopoverItem key={item._id} item={item} />
+              ))
+            )}
+          </>
         )}
+
         <Box
           sx={{
             p: 1,
@@ -42,7 +69,7 @@ function CartPopover({ data, error, loading, onMouseEnter, onMouseLeave }) {
           }}
         >
           <Typography variant="body2">
-            {Math.abs(data?.totalItems - 5) || 0} More Products in Cart
+            {number} More Products in Cart
           </Typography>
           <Box
             sx={{ bgcolor: "secondary.main", px: 1, py: 0.5, borderRadius: 1 }}

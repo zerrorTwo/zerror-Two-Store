@@ -68,30 +68,59 @@ function Detail({ data, quantity, setQuantity }) {
   const userId = useSelector(selectCurrentUser)?._id;
 
   const handleAddToCart = async () => {
-    const addToCartData = {
-      userId: userId,
-      products: [
-        {
-          productId: data?._id,
-          variations: [
-            {
-              type: selectedAttributes,
-              quantity: quantity,
-            },
-          ],
-        },
-      ],
-    };
+    if (!userId) {
+      toast.error("Please log in to add items to your cart.");
+      return;
+    }
+
+    if (!data?._id || !selectedAttributes || quantity <= 0) {
+      toast.error("Please select all required options.");
+      return;
+    }
+    let addToCartData;
+    if (selectedAttributes) {
+      addToCartData = {
+        userId: userId,
+        products: [
+          {
+            productId: data?._id,
+            variations: [
+              {
+                type: selectedAttributes,
+                quantity: quantity,
+              },
+            ],
+          },
+        ],
+      };
+    } else {
+      addToCartData = {
+        userId: userId,
+        products: [
+          {
+            productId: data?._id,
+            quantity: quantity,
+          },
+        ],
+      };
+    }
 
     try {
       const success = await addToCart(addToCartData).unwrap();
       if (success) {
-        toast.success("Add to cart successfully!!");
+        toast.success("Added to cart successfully!");
       } else {
-        toast.error("Add to cart failed!!");
+        toast.error("Failed to add to cart.");
       }
     } catch (error) {
-      toast.error(error);
+      console.error("Add to Cart Error:", error);
+
+      // Kiểm tra nếu có thông báo lỗi từ API
+      if (error?.data?.message) {
+        toast.error(error.data.message);
+      } else {
+        toast.error("An unexpected error occurred. Please try again.");
+      }
     }
   };
 

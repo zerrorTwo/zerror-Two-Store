@@ -12,6 +12,7 @@ import { useGetAllCartQuery } from "../redux/api/cartSlice";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../redux/features/auth/authSlice";
 import { useState } from "react";
+import CartEmpty from "../components/Cart/CartEmpty";
 
 function Cart() {
   const [selected, setSelected] = useState([]);
@@ -19,28 +20,25 @@ function Cart() {
   const { data } = useGetAllCartQuery(userId);
 
   const handleSelectItem = (itemId, isChecked) => {
-    setSelected(
-      (prev) =>
-        isChecked
-          ? [...prev, itemId] // Thêm nếu được check
-          : prev.filter((id) => id !== itemId) // Xóa nếu bỏ check
+    setSelected((prev) =>
+      isChecked ? [...prev, itemId] : prev.filter((id) => id !== itemId)
     );
   };
 
-  const allChecked = selected?.length === data?.totalItems;
+  const allChecked = selected?.length === data?.totalVariations;
 
   const handleSelectAll = (isChecked) => {
     if (isChecked) {
-      // Chọn tất cả các item
+      // Chọn tất cả các item bao gồm cả các variation khác nhau
       const allItemIds = data?.products.flatMap((product) =>
         product?.cartVariations?.map(
           (variation) =>
-            `${product.productSlug}-${JSON.stringify(variation.type)}`
+            `${product.productId}-${JSON.stringify(variation.type)}`
         )
       );
       setSelected(allItemIds);
     } else {
-      // Bỏ chọn tất cả các item
+      // Bỏ chọn tất cả
       setSelected([]);
     }
   };
@@ -56,6 +54,7 @@ function Cart() {
             {/* Cart Header */}
             <Box
               sx={{
+                border: "1px solid silver",
                 p: 1,
                 borderRadius: 1,
                 boxShadow:
@@ -119,20 +118,27 @@ function Cart() {
               </Grid2>
             </Box>
 
-            {/* Cart Content */}
-            {data?.products?.map((product) =>
-              product?.cartVariations?.map((variation, index) => (
-                <CartDetailItem
-                  key={`${product.productSlug}-${index}`}
-                  productName={product.productName}
-                  productSlug={product.productSlug}
-                  productImages={product.productImages}
-                  variation={variation}
-                  selected={selected}
-                  onSelect={handleSelectItem}
-                  allVariations={product?.productVariations}
-                />
-              ))
+            {data?.products?.length === 0 ? (
+              <CartEmpty />
+            ) : (
+              <>
+                {/* Cart Content */}
+                {data?.products?.map((product) =>
+                  product?.cartVariations?.map((variation, index) => (
+                    <CartDetailItem
+                      key={`${product.productId}-${index}`}
+                      productId={product.productId}
+                      productName={product.productName}
+                      productSlug={product.productSlug}
+                      productImages={product.productImages}
+                      variation={variation}
+                      selected={selected}
+                      onSelect={handleSelectItem}
+                      allVariations={product?.productVariations}
+                    />
+                  ))
+                )}
+              </>
             )}
           </Box>
         </Grid2>

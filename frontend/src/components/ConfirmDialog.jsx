@@ -6,10 +6,11 @@ import {
   DialogActions,
   Button,
   Typography,
+  CircularProgress,
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 
-const ConfirmDialog = ({ open, onClose, onConfirm, itemCount }) => {
+const ConfirmDialog = ({ open, onClose, onConfirm, itemCount, isLoading }) => {
   const theme = useTheme();
 
   return (
@@ -46,7 +47,7 @@ const ConfirmDialog = ({ open, onClose, onConfirm, itemCount }) => {
             },
           }}
         >
-          Delete
+          {isLoading ? <CircularProgress size={25} /> : "Delete"}
         </Button>
       </DialogActions>
     </Dialog>
@@ -58,6 +59,7 @@ ConfirmDialog.propTypes = {
   onClose: PropTypes.func.isRequired,
   onConfirm: PropTypes.func.isRequired,
   itemCount: PropTypes.number.isRequired,
+  isLoading: PropTypes.bool,
 };
 
 export default ConfirmDialog;

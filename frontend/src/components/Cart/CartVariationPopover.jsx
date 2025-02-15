@@ -9,6 +9,8 @@ import {
 import PropTypes from "prop-types";
 import { Close as CloseIcon } from "@mui/icons-material";
 import { useState, useMemo, useEffect } from "react";
+import { useUpdateVariationMutation } from "../../redux/api/cartSlice";
+import { toast } from "react-toastify";
 
 // Function to get pricing for selected attributes
 const getPricingForSelectedAttributes = (
@@ -34,7 +36,14 @@ const getPricingForSelectedAttributes = (
   };
 };
 
-function CartVariationPopover({ initAttribute, data, onClose }) {
+function CartVariationPopover({
+  initAttribute,
+  data,
+  onClose,
+  productId,
+  userId,
+}) {
+  const [updateVar] = useUpdateVariationMutation();
   const [selectedAttributes, setSelectedAttributes] = useState(initAttribute);
   const [pricing, setPricing] = useState({
     price: data?.price || 0,
@@ -83,6 +92,46 @@ function CartVariationPopover({ initAttribute, data, onClose }) {
     setPricing(newPricing);
   }, [selectedAttributes, pricingData, data]);
 
+  const handleUpdateVariation = async () => {
+    try {
+      if (!allAttributesSelected) {
+        toast.error("Please select all attributes.");
+        return;
+      }
+      if (
+        JSON.stringify(selectedAttributes) === JSON.stringify(initAttribute)
+      ) {
+        toast.error("No changes detected.");
+        return;
+      }
+      const data = {
+        userId: userId,
+        state: "ACTIVE",
+        products: [
+          {
+            productId: productId,
+            variations: [
+              {
+                oldType: initAttribute,
+                type: selectedAttributes,
+              },
+            ],
+          },
+        ],
+      };
+
+      await updateVar(data).unwrap();
+      toast.success("Successfully");
+    } catch (error) {
+      console.error("Delete Error:", error);
+      if (error?.data?.message) {
+        toast.error(error.data.message);
+      } else {
+        toast.error("Something went wrong. Please try again.");
+      }
+    }
+  };
+
   return (
     <Paper
       sx={{
@@ -128,6 +177,7 @@ function CartVariationPopover({ initAttribute, data, onClose }) {
                         bgcolor: isSelected ? "secondary.light" : "grey.100",
                       },
                     }}
+                    disabled={pricing?.stock === 0}
                     label={option}
                     variant={isSelected ? "filled" : "outlined"}
                     onClick={() => handleAttributeClick(item.label, option)}
@@ -152,6 +202,7 @@ function CartVariationPopover({ initAttribute, data, onClose }) {
         </Typography>
 
         <Button
+          onClick={handleUpdateVariation}
           fullWidth
           disabled={!allAttributesSelected}
           sx={{
@@ -168,6 +219,8 @@ function CartVariationPopover({ initAttribute, data, onClose }) {
 CartVariationPopover.propTypes = {
   onClose: PropTypes.func.isRequired,
   data: PropTypes.object.isRequired,
+  productId: PropTypes.string.isRequired,
+  userId: PropTypes.string.isRequired,
   initAttribute: PropTypes.object,
 };
 

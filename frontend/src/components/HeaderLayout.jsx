@@ -268,12 +268,16 @@ export default function HeaderLayout() {
                 <IconButton
                   onClick={() => handleCartClick()}
                   size="large"
-                  aria-label="show 4 new mails"
+                  aria-label="show 4 new"
                   color="inherit"
                   onMouseEnter={handlePopoverOpen}
                   onMouseLeave={handlePopoverClose}
                 >
-                  <Badge badgeContent={data?.totalItems} color="primary">
+                  <Badge
+                    showZero
+                    badgeContent={data?.totalItems || 0}
+                    color="primary"
+                  >
                     <ShoppingCartIcon sx={{ color: "common.white" }} />
                   </Badge>
                 </IconButton>
