@@ -1,6 +1,8 @@
 import { Typography, Box } from "@mui/material";
 // import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 // import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import PlaceIcon from "@mui/icons-material/Place";
+import ContactPhoneIcon from "@mui/icons-material/ContactPhone";
 import PropTypes from "prop-types"; // Import PropTypes
 function AddressItem({ id, selected, setSelectedAddress }) {
   return (
@@ -40,7 +42,14 @@ function AddressItem({ id, selected, setSelectedAddress }) {
               />
             }
           /> */}
-          <Typography color="common.black" variant="body1">
+          <Typography
+            color="common.black"
+            variant="body1"
+            display="flex"
+            alignItems="center"
+            gap={0.5}
+          >
+            <ContactPhoneIcon sx={{ color: "text.primary" }} fontSize="20px" />
             Le Quoc Nam
           </Typography>
         </Box>
@@ -50,8 +59,14 @@ function AddressItem({ id, selected, setSelectedAddress }) {
       </Box>
 
       {/* Content  */}
-      <Box display={"flex"} gap={2}>
-        <Typography color="common.black" variant="body2">
+      <Box display={"flex"}>
+        <Typography
+          gap={0.5}
+          color="common.black"
+          variant="body2"
+          alignItems={"center"}
+        >
+          <PlaceIcon sx={{ color: "text.primary" }} fontSize="20px" />
           ktx khu b đhqg Postcode: Hồ Chí Minh - Thành Phố Thủ Đức - Phường Linh
           Trung
         </Typography>
