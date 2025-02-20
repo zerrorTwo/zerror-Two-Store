@@ -13,6 +13,8 @@ function CheckoutPage() {
     bottom: false,
     right: false,
   });
+  const data = JSON.parse(localStorage.getItem("selectedItems"));
+  console.log(data);
 
   const toggleDrawer = (anchor, open) => (event) => {
     if (
@@ -84,61 +86,20 @@ function CheckoutPage() {
               </Box>
             </Box>
 
-            <Box
-              sx={{
-                border: "1px solid silver",
-                p: 2,
-                borderRadius: 1,
-                boxShadow:
-                  " rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px",
-              }}
-            >
-              <CheckoutProduct />
-            </Box>
-            <Box
-              sx={{
-                border: "1px solid silver",
-                p: 2,
-                borderRadius: 1,
-                boxShadow:
-                  " rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px",
-              }}
-            >
-              <CheckoutProduct />
-            </Box>
-            <Box
-              sx={{
-                border: "1px solid silver",
-                p: 2,
-                borderRadius: 1,
-                boxShadow:
-                  " rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px",
-              }}
-            >
-              <CheckoutProduct />
-            </Box>
-            <Box
-              sx={{
-                border: "1px solid silver",
-                p: 2,
-                borderRadius: 1,
-                boxShadow:
-                  " rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px",
-              }}
-            >
-              <CheckoutProduct />
-            </Box>
-            <Box
-              sx={{
-                border: "1px solid silver",
-                p: 2,
-                borderRadius: 1,
-                boxShadow:
-                  " rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px",
-              }}
-            >
-              <CheckoutProduct />
-            </Box>
+            {data?.map((item, index) => (
+              <Box
+                key={index}
+                sx={{
+                  border: "1px solid silver",
+                  p: 2,
+                  borderRadius: 1,
+                  boxShadow:
+                    " rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px",
+                }}
+              >
+                <CheckoutProduct item={item} />
+              </Box>
+            ))}
           </Box>
         </Grid2>
 

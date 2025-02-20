@@ -1,3 +1,7 @@
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { useGetAllCartQuery } from "../redux/api/cartSlice";
+import { selectCurrentUser } from "../redux/features/auth/authSlice";
 import Checkbox from "@mui/material/Checkbox";
 import {
   Box,
@@ -8,40 +12,99 @@ import {
   Typography,
 } from "@mui/material";
 import CartDetailItem from "../components/Cart/CartDetailItem";
-import { useGetAllCartQuery } from "../redux/api/cartSlice";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../redux/features/auth/authSlice";
-import { useState } from "react";
 import CartEmpty from "../components/Cart/CartEmpty";
 
 function Cart() {
-  const [selected, setSelected] = useState([]);
   const userId = useSelector(selectCurrentUser)?._id;
   const { data } = useGetAllCartQuery(userId);
 
+  // Lấy danh sách đã chọn từ localStorage
+  const storedSelected =
+    JSON.parse(localStorage.getItem("selectedItems")) || [];
+  const [selected, setSelected] = useState(
+    storedSelected.map(
+      (item) => `${item.productId}-${JSON.stringify(item?.variation?.type)}`
+    )
+  );
+
+  // Cập nhật localStorage khi selected thay đổi
+  useEffect(() => {
+    const selectedProducts = selected
+      .map((itemId) => {
+        const [productId, variationType] = itemId.split("-");
+        const product = data?.products.find((p) => p.productId === productId);
+        const variation = product?.cartVariations.find(
+          (v) => JSON.stringify(v?.type) === variationType
+        );
+
+        console.log(product);
+
+        if (!product) return null;
+
+        return {
+          productId: product.productId,
+          name: product.productName,
+          slug: product.productSlug,
+          images: product.productImages,
+          price: variation?.price || product?.cartVariations[0]?.price,
+          quantity: variation?.quantity || product?.cartVariations[0]?.quantity,
+          variation: variation,
+        };
+      })
+      .filter(Boolean); // Loại bỏ null
+
+    localStorage.setItem("selectedItems", JSON.stringify(selectedProducts));
+  }, [selected, data]);
+
+  // Hàm chọn 1 sản phẩm
   const handleSelectItem = (itemId, isChecked) => {
     setSelected((prev) =>
       isChecked ? [...prev, itemId] : prev.filter((id) => id !== itemId)
     );
   };
 
-  const allChecked = selected?.length === data?.totalVariations;
-
+  // Hàm chọn tất cả sản phẩm
   const handleSelectAll = (isChecked) => {
     if (isChecked) {
-      // Chọn tất cả các item bao gồm cả các variation khác nhau
-      const allItemIds = data?.products.flatMap((product) =>
-        product?.cartVariations?.map(
-          (variation) =>
-            `${product.productId}-${JSON.stringify(variation.type)}`
-        )
+      const allItems = data?.products.flatMap((product) =>
+        product?.cartVariations?.map((variation) => {
+          const itemId = `${product.productId}-${JSON.stringify(
+            variation.type
+          )}`;
+          return {
+            id: itemId,
+            product: {
+              productId: product.productId,
+              name: product.productName,
+              slug: product.productSlug,
+              images: product.productImages,
+              price: variation?.price || product?.cartVariations[0]?.price,
+              quantity:
+                variation?.quantity || product?.cartVariations[0]?.quantity,
+              variation: variation,
+            },
+          };
+        })
       );
-      setSelected(allItemIds);
+
+      setSelected(allItems.map((item) => item.id));
+      localStorage.setItem(
+        "selectedItems",
+        JSON.stringify(allItems.map((item) => item.product))
+      );
     } else {
-      // Bỏ chọn tất cả
       setSelected([]);
+      localStorage.removeItem("selectedItems");
     }
   };
+
+  // Kiểm tra tất cả có được chọn không
+  const allChecked =
+    selected.length ===
+    data?.products?.reduce(
+      (total, product) => total + product.cartVariations.length,
+      0
+    );
 
   return (
     <Container>
@@ -51,7 +114,6 @@ function Cart() {
       <Grid2 container spacing={2}>
         <Grid2 size={8.5}>
           <Box display={"flex"} flexDirection={"column"} gap={2} mb={5}>
-            {/* Cart Header */}
             <Box
               sx={{
                 border: "1px solid silver",
@@ -68,9 +130,9 @@ function Cart() {
                       checked={allChecked}
                       onChange={(e) => handleSelectAll(e.target.checked)}
                       sx={{
-                        color: "text.primary", // Unchecked color
+                        color: "text.primary",
                         "&.Mui-checked": {
-                          color: "secondary.main", // Checked color
+                          color: "secondary.main",
                         },
                       }}
                     />
@@ -97,14 +159,6 @@ function Cart() {
                         Quantity
                       </Typography>
                     </Grid2>
-                    {/* <Grid2 size={3} textAlign={"center"}>
-                      <Typography
-                        sx={{ color: "text.secondary" }}
-                        variant="body1"
-                      >
-                        Total Price
-                      </Typography>
-                    </Grid2> */}
                     <Grid2 size={3} textAlign={"center"}>
                       <Typography
                         sx={{ color: "text.secondary" }}
@@ -122,7 +176,6 @@ function Cart() {
               <CartEmpty />
             ) : (
               <>
-                {/* Cart Content */}
                 {data?.products?.map((product) =>
                   product?.cartVariations?.map((variation, index) => (
                     <CartDetailItem
@@ -144,7 +197,6 @@ function Cart() {
         </Grid2>
 
         <Grid2 size={3.5}>
-          {/* Cart Footer */}
           <Box
             sx={{
               p: 1,
