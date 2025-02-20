@@ -1,8 +1,11 @@
 import { Grid2, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
 import CardMedia from "@mui/material/CardMedia";
+import PropTypes from "prop-types"; // Import PropTypes
+import { PRIMITIVE_URL } from "../../redux/constants";
 
-function CheckoutProduct() {
+function CheckoutProduct({ item }) {
+  // console.log(JSON.stringtify(item?.variation?.type));
   return (
     <Box>
       <Grid2 container sx={{ alignItems: "center" }}>
@@ -11,7 +14,7 @@ function CheckoutProduct() {
             <Box display="flex" flexDirection="row" gap={1} overflow="hidden">
               <CardMedia
                 component="img"
-                src="https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m5e5ewps2p4o66.webp"
+                src={`${PRIMITIVE_URL}${item?.images}`}
                 sx={{ height: "80px", width: "auto", objectFit: "cover" }}
                 loading="lazy"
               />
@@ -33,8 +36,7 @@ function CheckoutProduct() {
                     },
                   }}
                 >
-                  RACK Kệ Đựng Gia Vị INOX Kệ Gia Vị Công Suất Lớn Kệ Để Dao
-                  Thớt Tiết Kiệm Không Gian
+                  {item?.name}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -45,7 +47,11 @@ function CheckoutProduct() {
                     color: "text.primary",
                   }}
                 >
-                  Variation: con me may
+                  {item?.variation?.type
+                    ? `Variation: ${Object.values(item.variation.type).join(
+                        ", "
+                      )}`
+                    : ""}
                 </Typography>
                 <textarea
                   style={{
@@ -71,7 +77,7 @@ function CheckoutProduct() {
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
                     currency: "VND",
-                  }).format(111111)}
+                  }).format(item?.variation?.price || item?.price)}
                 </Typography>
               </Box>
             </Grid2>
@@ -81,7 +87,7 @@ function CheckoutProduct() {
                   Qty
                 </Typography>
                 <Typography fontWeight="bold" color="secondary.main">
-                  2
+                  {item?.variation?.quantity || item?.quantity}
                 </Typography>
               </Box>
             </Grid2>
@@ -94,7 +100,10 @@ function CheckoutProduct() {
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
                     currency: "VND",
-                  }).format(111111)}
+                  }).format(
+                    item?.variation?.price * item?.variation?.quantity ||
+                      item?.price * item?.quantity
+                  )}
                 </Typography>
               </Box>
             </Grid2>
@@ -104,5 +113,9 @@ function CheckoutProduct() {
     </Box>
   );
 }
+
+CheckoutProduct.propTypes = {
+  item: PropTypes.object,
+};
 
 export default CheckoutProduct;

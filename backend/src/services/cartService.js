@@ -550,8 +550,11 @@ const getPageCart = async (userId, page = 1, limit = 10) => {
           rating: "$productDetails.rating", // Đánh giá trung bình của sản phẩm
           productVariations: "$productDetails.variations", // Các biến thể sản phẩm
           price: "$productDetails.price", // Giá mặc định của sản phẩm
+          createdAt: "$products.createdAt", // Thêm ngày tạo để sắp xếp
         },
       },
+
+      { $sort: { createdAt: -1 } },
 
       // Tính toán tổng số sản phẩm và tổng giá trị
       {
@@ -566,6 +569,8 @@ const getPageCart = async (userId, page = 1, limit = 10) => {
           },
         },
       },
+
+      { $sort: { createdAt: -1 } },
 
       // Lấy sản phẩm theo trang (sử dụng $skip và $limit)
       { $skip: skip }, // Bỏ qua các sản phẩm đã được lấy từ các trang trước
