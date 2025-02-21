@@ -5,6 +5,8 @@ import {
   getPageCart,
   getRecentProducts,
   removeItem,
+  updateAllCheckout,
+  updateCheckout,
   updateQuantity,
   updateVariation,
 } from "../../controllers/cartController.js";
@@ -17,7 +19,10 @@ Router.route("/")
   .post(createCart)
   .put(updateQuantity)
   .delete(removeItem);
+
 Router.route("/recent").get(getRecentProducts);
 Router.route("/update-variation").put(updateVariation);
+Router.route("/update-checkout").patch(updateCheckout);
+Router.route("/update-all-checkout").patch(updateAllCheckout);
 
 export const cartRoute = Router;

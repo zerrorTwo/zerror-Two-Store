@@ -39,6 +39,24 @@ export const cartApiSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["Cart"],
     }),
 
+    updateCheckout: builder.mutation({
+      query: (body) => ({
+        url: `${CART_URL}/update-checkout`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Cart"],
+    }),
+
+    updateAllCheckout: builder.mutation({
+      query: (body) => ({
+        url: `${CART_URL}/update-all-checkout`,
+        method: "PATCH",
+        body,
+      }),
+      invalidatesTags: ["Cart"],
+    }),
+
     removeProduct: builder.mutation({
       query: (body) => ({
         url: `${CART_URL}/`,
@@ -56,4 +74,6 @@ export const {
   useGetMiniCartQuery,
   useRemoveProductMutation,
   useUpdateVariationMutation,
+  useUpdateCheckoutMutation,
+  useUpdateAllCheckoutMutation,
 } = cartApiSlice;

@@ -1,9 +1,10 @@
-// Import các thư viện cần thiết
 import { Link } from "react-router-dom";
 import Checkbox from "@mui/material/Checkbox";
 import {
+  Backdrop,
   Box,
   CardMedia,
+  CircularProgress,
   Grid2,
   Popover,
   Tooltip,
@@ -16,7 +17,10 @@ import CartVariationPopover from "./CartVariationPopover";
 import PropTypes from "prop-types";
 import { PRIMITIVE_URL } from "../../redux/constants";
 import ConfirmDialog from "../ConfirmDialog";
-import { useRemoveProductMutation } from "../../redux/api/cartSlice";
+import {
+  useRemoveProductMutation,
+  useUpdateCheckoutMutation,
+} from "../../redux/api/cartSlice";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../redux/features/auth/authSlice";
@@ -27,50 +31,56 @@ function CartDetailItem({
   productName,
   productSlug,
   productImages,
+  checkout,
   variation,
-  selected = [],
-  onSelect,
   allVariations,
 }) {
   const [anchorEl, setAnchorEl] = useState(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [backdropOpen, setBackdropOpen] = useState(false);
   const [deleteProduct, { isLoading }] = useRemoveProductMutation();
   const userId = useSelector(selectCurrentUser)?._id;
+  const [updateCheckout] = useUpdateCheckoutMutation();
 
   const handleOpenDialog = () => setDialogOpen(true);
   const handleCloseDialog = () => setDialogOpen(false);
 
   const handleConfirmDelete = async () => {
     try {
-      const data = {
+      await deleteProduct({
         userId,
         state: "ACTIVE",
-        products: [
-          {
-            productId,
-            variations: [{ type: variation.type }],
-          },
-        ],
-      };
-
-      await deleteProduct(data).unwrap();
+        products: [{ productId, variations: [{ type: variation.type }] }],
+      }).unwrap();
       setDialogOpen(false);
       toast.success("Successfully removed product from cart.");
     } catch (error) {
       console.error("Delete Error:", error);
-      if (error?.data?.message) {
-        toast.error(error.data.message);
-      } else {
-        toast.error("Something went wrong. Please try again.");
-      }
+      toast.error(error?.data?.message || "Something went wrong.");
     }
   };
 
-  const itemId = `${productId}-${JSON.stringify(variation.type)}`;
-  const isChecked = selected.includes(itemId);
+  // ✅ Thêm backdrop khi cập nhật checkbox
+  const handleCheckboxChange = async () => {
+    setBackdropOpen(true);
+    const requestData = {
+      userId,
+      state: "ACTIVE",
+      products: [
+        {
+          productId,
+          variations: [{ type: variation.type }],
+        },
+      ],
+    };
 
-  const handleCheckboxChange = (event) => {
-    onSelect(itemId, event.target.checked);
+    try {
+      await updateCheckout(requestData).unwrap();
+    } catch (error) {
+      toast.error("Không thể cập nhật trạng thái giỏ hàng.", error?.stack);
+    } finally {
+      setBackdropOpen(false);
+    }
   };
 
   const handleClick = (event) => setAnchorEl(event.currentTarget);
@@ -85,21 +95,18 @@ function CartDetailItem({
         py: 2,
         border: "1px solid silver",
         borderRadius: 1,
-        boxShadow:
-          "rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px",
+        boxShadow: "rgba(0, 0, 0, 0.1) 0px 0px 5px 0px",
       }}
     >
       <Grid2 container sx={{ alignItems: "center" }}>
         <Grid2 size={6}>
           <Box display="flex" alignItems="center" gap={0}>
             <Checkbox
-              checked={isChecked}
-              onChange={handleCheckboxChange}
+              checked={checkout}
+              onChange={handleCheckboxChange} // ✅ Gọi API khi chọn checkbox
               sx={{
                 color: "text.primary",
-                "&.Mui-checked": {
-                  color: "secondary.main",
-                },
+                "&.Mui-checked": { color: "secondary.main" },
               }}
             />
             <Box display="flex" flexDirection="row" gap={1} overflow="hidden">
@@ -132,18 +139,16 @@ function CartDetailItem({
                       textOverflow: "ellipsis",
                       wordBreak: "break-all",
                       maxHeight: "40px",
-                      "&:hover": {
-                        color: "secondary.main",
-                      },
+                      "&:hover": { color: "secondary.main" },
                     }}
                   >
                     {productName}
                   </Typography>
                 </Link>
-                {variation.type ? (
+                {variation.type && (
                   <>
                     <Box
-                      onClick={variation?.type ? handleClick : undefined}
+                      onClick={handleClick}
                       display="flex"
                       justifyContent="space-between"
                       alignItems="center"
@@ -154,7 +159,7 @@ function CartDetailItem({
                       py={0.5}
                       mt={1}
                       sx={{
-                        cursor: variation?.type ? "pointer" : "default",
+                        cursor: "pointer",
                         maxWidth: "200px",
                         minWidth: "200px",
                       }}
@@ -165,18 +170,11 @@ function CartDetailItem({
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
-                          color: variation?.type
-                            ? "text.primary"
-                            : "text.disabled",
                         }}
                       >
-                        {variation?.type
-                          ? Object.values(variation.type).join(", ")
-                          : "No variations"}
+                        {Object.values(variation.type).join(", ")}
                       </Typography>
-                      {variation?.type && (
-                        <ArrowDropDownIcon fontSize="small" />
-                      )}
+                      <ArrowDropDownIcon fontSize="small" />
                     </Box>
 
                     <Popover
@@ -184,10 +182,7 @@ function CartDetailItem({
                       open={open}
                       anchorEl={anchorEl}
                       onClose={handleClose}
-                      anchorOrigin={{
-                        vertical: "bottom",
-                        horizontal: "left",
-                      }}
+                      anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                     >
                       <CartVariationPopover
                         productId={productId}
@@ -198,7 +193,7 @@ function CartDetailItem({
                       />
                     </Popover>
                   </>
-                ) : null}
+                )}
               </Box>
             </Box>
           </Box>
@@ -242,6 +237,10 @@ function CartDetailItem({
           </Grid2>
         </Grid2>
       </Grid2>
+
+      <Backdrop sx={{ color: "#fff", zIndex: 9999 }} open={backdropOpen}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Box>
   );
 }
@@ -251,10 +250,9 @@ CartDetailItem.propTypes = {
   productName: PropTypes.string.isRequired,
   productSlug: PropTypes.string.isRequired,
   productImages: PropTypes.string.isRequired,
+  checkout: PropTypes.bool.isRequired,
   variation: PropTypes.object.isRequired,
   allVariations: PropTypes.object.isRequired,
-  selected: PropTypes.array,
-  onSelect: PropTypes.func,
 };
 
 export default CartDetailItem;

@@ -4,8 +4,7 @@ import CardMedia from "@mui/material/CardMedia";
 import PropTypes from "prop-types"; // Import PropTypes
 import { PRIMITIVE_URL } from "../../redux/constants";
 
-function CheckoutProduct({ item }) {
-  // console.log(JSON.stringtify(item?.variation?.type));
+function CheckoutProduct({ item, name, img }) {
   return (
     <Box>
       <Grid2 container sx={{ alignItems: "center" }}>
@@ -14,7 +13,7 @@ function CheckoutProduct({ item }) {
             <Box display="flex" flexDirection="row" gap={1} overflow="hidden">
               <CardMedia
                 component="img"
-                src={`${PRIMITIVE_URL}${item?.images}`}
+                src={`${PRIMITIVE_URL}${img}`}
                 sx={{ height: "80px", width: "auto", objectFit: "cover" }}
                 loading="lazy"
               />
@@ -36,7 +35,7 @@ function CheckoutProduct({ item }) {
                     },
                   }}
                 >
-                  {item?.name}
+                  {name}
                 </Typography>
                 <Typography
                   variant="body2"
@@ -47,10 +46,8 @@ function CheckoutProduct({ item }) {
                     color: "text.primary",
                   }}
                 >
-                  {item?.variation?.type
-                    ? `Variation: ${Object.values(item.variation.type).join(
-                        ", "
-                      )}`
+                  {item?.type
+                    ? `Variation: ${Object.values(item.type).join(", ")}`
                     : ""}
                 </Typography>
                 <textarea
@@ -115,7 +112,9 @@ function CheckoutProduct({ item }) {
 }
 
 CheckoutProduct.propTypes = {
-  item: PropTypes.object,
+  item: PropTypes.object.isRequired,
+  name: PropTypes.string.isRequired,
+  img: PropTypes.string.isRequired,
 };
 
 export default CheckoutProduct;
