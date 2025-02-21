@@ -1,111 +1,57 @@
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import { useGetAllCartQuery } from "../redux/api/cartSlice";
-import { selectCurrentUser } from "../redux/features/auth/authSlice";
 import Checkbox from "@mui/material/Checkbox";
 import {
+  Backdrop,
   Box,
   Button,
+  CircularProgress,
   Container,
   Divider,
   Grid2,
   Typography,
 } from "@mui/material";
 import CartDetailItem from "../components/Cart/CartDetailItem";
+import {
+  useGetAllCartQuery,
+  useUpdateAllCheckoutMutation,
+} from "../redux/api/cartSlice";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../redux/features/auth/authSlice";
 import CartEmpty from "../components/Cart/CartEmpty";
+import { toast } from "react-toastify";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 
 function Cart() {
   const userId = useSelector(selectCurrentUser)?._id;
-  const { data } = useGetAllCartQuery(userId);
+  const { data, refetch } = useGetAllCartQuery(userId);
+  const navigate = useNavigate();
+  const [updateAllCheckout, { isLoading }] = useUpdateAllCheckoutMutation(); // ✅ Dùng isLoading
 
-  // Lấy danh sách đã chọn từ localStorage
-  const storedSelected =
-    JSON.parse(localStorage.getItem("selectedItems")) || [];
-  const [selected, setSelected] = useState(
-    storedSelected.map(
-      (item) => `${item.productId}-${JSON.stringify(item?.variation?.type)}`
-    )
-  );
+  const [allChecked, setAllChecked] = useState(false);
 
-  // Cập nhật localStorage khi selected thay đổi
+  // Cập nhật trạng thái "Select All" dựa vào dữ liệu giỏ hàng
   useEffect(() => {
-    const selectedProducts = selected
-      .map((itemId) => {
-        const [productId, variationType] = itemId.split("-");
-        const product = data?.products.find((p) => p.productId === productId);
-        const variation = product?.cartVariations.find(
-          (v) => JSON.stringify(v?.type) === variationType
-        );
-
-        console.log(product);
-
-        if (!product) return null;
-
-        return {
-          productId: product.productId,
-          name: product.productName,
-          slug: product.productSlug,
-          images: product.productImages,
-          price: variation?.price || product?.cartVariations[0]?.price,
-          quantity: variation?.quantity || product?.cartVariations[0]?.quantity,
-          variation: variation,
-        };
-      })
-      .filter(Boolean); // Loại bỏ null
-
-    localStorage.setItem("selectedItems", JSON.stringify(selectedProducts));
-  }, [selected, data]);
-
-  // Hàm chọn 1 sản phẩm
-  const handleSelectItem = (itemId, isChecked) => {
-    setSelected((prev) =>
-      isChecked ? [...prev, itemId] : prev.filter((id) => id !== itemId)
-    );
-  };
-
-  // Hàm chọn tất cả sản phẩm
-  const handleSelectAll = (isChecked) => {
-    if (isChecked) {
-      const allItems = data?.products.flatMap((product) =>
-        product?.cartVariations?.map((variation) => {
-          const itemId = `${product.productId}-${JSON.stringify(
-            variation.type
-          )}`;
-          return {
-            id: itemId,
-            product: {
-              productId: product.productId,
-              name: product.productName,
-              slug: product.productSlug,
-              images: product.productImages,
-              price: variation?.price || product?.cartVariations[0]?.price,
-              quantity:
-                variation?.quantity || product?.cartVariations[0]?.quantity,
-              variation: variation,
-            },
-          };
-        })
+    if (data?.products?.length) {
+      const isAllChecked = data.products.every((product) =>
+        product.cartVariations.every((variation) => variation.checkout)
       );
+      setAllChecked(isAllChecked);
+    }
+  }, [data]);
 
-      setSelected(allItems.map((item) => item.id));
-      localStorage.setItem(
-        "selectedItems",
-        JSON.stringify(allItems.map((item) => item.product))
-      );
-    } else {
-      setSelected([]);
-      localStorage.removeItem("selectedItems");
+  // Hàm xử lý chọn/bỏ chọn tất cả sản phẩm
+  const handleSelectAll = async (isChecked) => {
+    try {
+      await updateAllCheckout({
+        userId,
+        checkoutState: isChecked,
+      }).unwrap();
+      refetch();
+    } catch (error) {
+      console.error("Lỗi khi cập nhật trạng thái giỏ hàng:", error);
+      toast.error("Không thể cập nhật trạng thái giỏ hàng.");
     }
   };
-
-  // Kiểm tra tất cả có được chọn không
-  const allChecked =
-    selected.length ===
-    data?.products?.reduce(
-      (total, product) => total + product.cartVariations.length,
-      0
-    );
-
   return (
     <Container>
       <Typography variant="h6" gutterBottom>
@@ -114,6 +60,7 @@ function Cart() {
       <Grid2 container spacing={2}>
         <Grid2 size={8.5}>
           <Box display={"flex"} flexDirection={"column"} gap={2} mb={5}>
+            {/* Cart Header */}
             <Box
               sx={{
                 border: "1px solid silver",
@@ -136,9 +83,7 @@ function Cart() {
                         },
                       }}
                     />
-                    <Typography variant="body1">
-                      Product ({selected?.length})
-                    </Typography>
+                    <Typography variant="body1">Product</Typography>
                   </Box>
                 </Grid2>
                 <Grid2 size={6}>
@@ -180,14 +125,14 @@ function Cart() {
                   product?.cartVariations?.map((variation, index) => (
                     <CartDetailItem
                       key={`${product.productId}-${index}`}
-                      productId={product.productId}
-                      productName={product.productName}
-                      productSlug={product.productSlug}
-                      productImages={product.productImages}
+                      productId={product?.productId}
+                      productName={product?.productName}
+                      productSlug={product?.productSlug}
+                      productImages={product?.productImages}
+                      checkout={variation?.checkout}
                       variation={variation}
-                      selected={selected}
-                      onSelect={handleSelectItem}
                       allVariations={product?.productVariations}
+                      refetch={refetch}
                     />
                   ))
                 )}
@@ -228,15 +173,18 @@ function Cart() {
 
             <Box display={"flex"} flexDirection={"column"} gap={2}>
               <Box display={"flex"} alignItems={"center"} gap={1}>
-                <Typography variant="body1">Total (0 item):</Typography>
+                <Typography variant="body1">
+                  Total ({data?.totalItems || 0} items):
+                </Typography>
                 <Typography variant="h6" sx={{ color: "secondary.main" }}>
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
                     currency: "VND",
-                  }).format(data?.totalPrice)}
+                  }).format(data?.totalPrice || 0)}
                 </Typography>
               </Box>
               <Button
+                onClick={() => navigate("/checkout")}
                 sx={{
                   boxShadow: "none",
                   bgcolor: "secondary.main",
@@ -252,6 +200,9 @@ function Cart() {
           </Box>
         </Grid2>
       </Grid2>
+      <Backdrop sx={{ color: "#fff", zIndex: 9999 }} open={isLoading}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Container>
   );
 }

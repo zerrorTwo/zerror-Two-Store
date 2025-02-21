@@ -268,6 +268,109 @@ const updateUserCartVariation = async (userId, products = []) => {
   }
 };
 
+const updateCheckout = async (userId, product = []) => {
+  if (!product.length) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Product data is required.");
+  }
+
+  const { productId, variations = [] } = product[0];
+
+  // Kiểm tra nếu variations có dữ liệu hợp lệ
+  if (variations.length > 0 && typeof variations[0] !== "object") {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid variations format.");
+  }
+
+  const isUpdate = variations[0]?.isUpdate; // Kiểm tra flag update
+
+  // Tìm sản phẩm trong database
+  const newProduct = await ProductModel.findById(productId);
+  if (!newProduct) {
+    throw new ApiError(
+      StatusCodes.NOT_FOUND,
+      `Product not found with id: ${productId}`
+    );
+  }
+
+  // Tìm giỏ hàng của người dùng
+  let userCart = await CartModel.findOne({ userId, state: "ACTIVE" });
+
+  if (!userCart) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "User cart not found.");
+  }
+
+  // Kiểm tra nếu sản phẩm không có variations.pricing hoặc là mảng rỗng
+  if (!newProduct.variations?.pricing?.length) {
+    // Tìm sản phẩm trong giỏ hàng
+    const existingProduct = userCart.products.find(
+      (item) => item.productId.toString() === productId
+    );
+
+    if (!existingProduct) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Product not found in cart.");
+    }
+
+    // Cập nhật trạng thái checkout của variation đầu tiên
+    if (existingProduct.variations.length > 0) {
+      existingProduct.variations[0].checkout =
+        !existingProduct.variations[0].checkout;
+    } else {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        "No variations found for this product."
+      );
+    }
+
+    await userCart.save();
+    return userCart;
+  }
+
+  // Nếu có variations.pricing, tiếp tục xử lý
+  const existingProduct = userCart.products.find(
+    (item) => item.productId.toString() === productId
+  );
+
+  if (existingProduct) {
+    // Kiểm tra nếu variation.type đã có trong sản phẩm (không phân biệt thứ tự)
+    const existingVariationIndex = existingProduct.variations.findIndex(
+      (varItem) =>
+        JSON.stringify(Object.entries(varItem.type).sort()) ===
+        JSON.stringify(Object.entries(variations[0].type).sort())
+    );
+
+    if (existingVariationIndex !== -1) {
+      // Nếu variation đã tồn tại, cập nhật trạng thái checkout
+      existingProduct.variations[existingVariationIndex].checkout =
+        !existingProduct.variations[existingVariationIndex].checkout;
+    } else {
+      throw new ApiError(
+        StatusCodes.NOT_FOUND,
+        "Variation not found for this product."
+      );
+    }
+
+    await userCart.save();
+    return userCart;
+  } else {
+    throw new ApiError(StatusCodes.NOT_FOUND, "Product not found in cart.");
+  }
+};
+
+const updateAllCheckout = async (userId, newState) => {
+  if (typeof newState !== "boolean") {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      "newState must be true or false"
+    );
+  }
+
+  await CartModel.updateOne(
+    { userId, state: "ACTIVE" },
+    { $set: { "products.$[].variations.$[].checkout": newState } }
+  );
+
+  return await CartModel.findOne({ userId, state: "ACTIVE" });
+};
+
 const createCart = async (userId, products = []) => {
   try {
     const { productId, variations } = products[0];
@@ -441,6 +544,7 @@ const getRecentProducts = async (userId) => {
           variationType: "$products.variations.type",
           variationPrice: "$products.variations.price",
           variationQuantity: "$products.variations.quantity",
+          variationCheckout: "$products.variations.checkout",
           productName: "$productDetails.name",
           productImages: "$productDetails.mainImg",
           productSlug: "$productDetails.slug",
@@ -467,6 +571,7 @@ const getRecentProducts = async (userId) => {
               type: "$variationType",
               price: "$variationPrice",
               quantity: "$variationQuantity",
+              checkout: "$variationCheckout",
             },
           },
           productCreatedAt: { $first: "$productCreatedAt" },
@@ -640,4 +745,6 @@ export const cartService = {
   getRecentProducts,
   getPageCart,
   updateUserCartVariation,
+  updateCheckout,
+  updateAllCheckout,
 };

@@ -20,6 +20,18 @@ const updateVariation = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(cart);
 });
 
+const updateCheckout = asyncHandeler(async (req, res) => {
+  const { userId, products } = req.body;
+  const cart = await cartService.updateCheckout(userId, products);
+  res.status(StatusCodes.OK).json(cart);
+});
+
+const updateAllCheckout = asyncHandeler(async (req, res) => {
+  const { userId, checkoutState } = req.body;
+  const cart = await cartService.updateAllCheckout(userId, checkoutState);
+  res.status(StatusCodes.OK).json(cart);
+});
+
 const removeItem = asyncHandeler(async (req, res) => {
   const { userId, products } = req.body;
   const cart = await cartService.removeProductFromCart(userId, products);
@@ -42,7 +54,9 @@ export {
   createCart,
   updateQuantity,
   updateVariation,
+  updateCheckout,
   removeItem,
   getRecentProducts,
   getPageCart,
+  updateAllCheckout,
 };

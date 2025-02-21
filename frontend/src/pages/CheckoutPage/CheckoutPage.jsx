@@ -5,6 +5,9 @@ import AddressDrawer from "./AddressDrawer";
 import CheckoutProduct from "./CheckoutProduct";
 import AddLocationIcon from "@mui/icons-material/AddLocation";
 import PaymentMethod from "./PaymentMethod";
+import { useGetProductCheckoutQuery } from "../../redux/api/checkoutSlice";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../../redux/features/auth/authSlice";
 
 function CheckoutPage() {
   const [state, setState] = useState({
@@ -13,8 +16,8 @@ function CheckoutPage() {
     bottom: false,
     right: false,
   });
-  const data = JSON.parse(localStorage.getItem("selectedItems"));
-  console.log(data);
+  const userId = useSelector(selectCurrentUser)?._id;
+  const { data } = useGetProductCheckoutQuery(userId);
 
   const toggleDrawer = (anchor, open) => (event) => {
     if (
@@ -86,20 +89,26 @@ function CheckoutPage() {
               </Box>
             </Box>
 
-            {data?.map((item, index) => (
-              <Box
-                key={index}
-                sx={{
-                  border: "1px solid silver",
-                  p: 2,
-                  borderRadius: 1,
-                  boxShadow:
-                    " rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px",
-                }}
-              >
-                <CheckoutProduct item={item} />
-              </Box>
-            ))}
+            {data?.products?.map((product) =>
+              product?.cartVariations?.map((variation, index) => (
+                <Box
+                  key={index}
+                  sx={{
+                    border: "1px solid silver",
+                    p: 2,
+                    borderRadius: 1,
+                    boxShadow:
+                      "rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px",
+                  }}
+                >
+                  <CheckoutProduct
+                    name={product?.productName}
+                    img={product?.productImages}
+                    item={variation}
+                  />
+                </Box>
+              ))
+            )}
           </Box>
         </Grid2>
 
@@ -149,12 +158,14 @@ function CheckoutPage() {
             <Divider sx={{ my: 2 }} />
             <Box display="flex" flexDirection="column" gap={2}>
               <Box display="flex" alignItems="center" gap={1}>
-                <Typography variant="body1">Total (0 item):</Typography>
+                <Typography variant="body1">
+                  Total ({data?.totalItems} item):
+                </Typography>
                 <Typography variant="h6" sx={{ color: "secondary.main" }}>
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
                     currency: "VND",
-                  }).format(100000)}
+                  }).format(data?.totalPrice)}
                 </Typography>
               </Box>
               <Button

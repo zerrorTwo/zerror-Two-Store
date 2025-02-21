@@ -4,3 +4,4 @@ export const UPLOAD_URL = "http://localhost:5000/v1/api/upload";
 export const USER_URL = "http://localhost:5000/v1/api/users";
 export const PRODUCT_URL = "http://localhost:5000/v1/api/products";
 export const CART_URL = "http://localhost:5000/v1/api/cart";
+export const CHECKOUT_URL = "http://localhost:5000/v1/api/checkout";
