@@ -1,10 +1,8 @@
 import { Typography, Box } from "@mui/material";
-// import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
-// import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PlaceIcon from "@mui/icons-material/Place";
 import ContactPhoneIcon from "@mui/icons-material/ContactPhone";
 import PropTypes from "prop-types"; // Import PropTypes
-function AddressItem({ id, selected, setSelectedAddress }) {
+function AddressItem({ id, selected, setSelectedAddress, handleOpenPopover }) {
   return (
     <Box
       p={2}
@@ -72,6 +70,32 @@ function AddressItem({ id, selected, setSelectedAddress }) {
         </Typography>
       </Box>
       {/* Footer */}
+      <Box display={"flex"} gap={2} mt={1} alignItems={"center"}>
+        <Box
+          borderRadius={2}
+          px={2}
+          height={"20px"}
+          alignItems={"center"}
+          border={"1px solid"}
+          borderColor={"secondary.main"}
+          display={"flex"}
+        >
+          <Typography
+            sx={{ color: "secondary.main", lineHeight: "20px" }}
+            variant="caption"
+          >
+            Default Shipping Address
+          </Typography>
+        </Box>
+
+        <Typography
+          sx={{ color: "#05a", cursor: "pointer" }}
+          variant="text"
+          onClick={handleOpenPopover}
+        >
+          Edit
+        </Typography>
+      </Box>
     </Box>
   );
 }
@@ -80,6 +104,7 @@ AddressItem.propTypes = {
   id: PropTypes.number.isRequired, // Validate 'id' as a required number
   selected: PropTypes.bool.isRequired, // Validate 'selected' as a required boolean
   setSelectedAddress: PropTypes.func.isRequired, // Validate 'setSelectedAddress' as a required function
+  handleOpenPopover: PropTypes.func.isRequired, // Validate 'setSelectedAddress' as a required function
 };
 // Component cha sử dụng AddressDrawer
 export default AddressItem;

@@ -7,6 +7,7 @@ import {
   DialogActions,
   CircularProgress,
   Popover,
+  // CardMedia,
 } from "@mui/material";
 import AddLocationIcon from "@mui/icons-material/AddLocation";
 import PropTypes from "prop-types";
@@ -77,9 +78,21 @@ const list = (
             id={id}
             selected={selectedAddress === id}
             setSelectedAddress={setSelectedAddress}
+            handleOpenPopover={handleOpenPopover}
           />
         ))}
       </Box>
+      {/* <Box>
+        <CardMedia
+          component="img"
+          sx={{ height: "100%", width: "100%", objectFit: "cover" }}
+          image={`Assets/location.png`}
+          loading="lazy"
+        />
+        <Typography textAlign={"center"} variant="h6">
+          Empty here.
+        </Typography>
+      </Box> */}
     </Box>
 
     {/* Footer */}
@@ -94,6 +107,7 @@ const list = (
         >
           Cancel
         </Button>
+
         <Button
           variant="contained"
           color="secondary"
