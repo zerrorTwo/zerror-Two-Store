@@ -6,7 +6,12 @@ import {
   TextField,
   Typography,
   CircularProgress,
+  FormControlLabel,
+  Checkbox,
+  IconButton,
 } from "@mui/material";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import { Close } from "@mui/icons-material";
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 import {
@@ -23,6 +28,7 @@ function AddressPopover({ handleClose }) {
     district: null,
     ward: null,
     street: "",
+    setDefault: false,
   });
 
   const [mapSrc, setMapSrc] = useState(
@@ -37,12 +43,9 @@ function AddressPopover({ handleClose }) {
   const [getWard, { data: wardData, isFetching: loadingWard }] =
     useLazyGetWardQuery();
 
-  const cities =
-    cityData?.map((item) => ({ name: item?.name, id: item?.id })) || [];
-  const districts =
-    districtData?.map((item) => ({ name: item?.name, id: item?.id })) || [];
-  const wards =
-    wardData?.map((item) => ({ name: item?.name, id: item?.id })) || [];
+  const cities = cityData || [];
+  const districts = districtData || [];
+  const wards = wardData || [];
 
   const handleChange = (field, value) => {
     setFormData((prev) => ({
@@ -94,6 +97,13 @@ function AddressPopover({ handleClose }) {
     handleClose();
   };
 
+  const isFormValid =
+    formData.name.trim() &&
+    formData.phone.trim() &&
+    formData.city &&
+    formData.district &&
+    formData.ward &&
+    formData.street.trim();
   return (
     <Box
       pt={2}
@@ -108,7 +118,7 @@ function AddressPopover({ handleClose }) {
         flexDirection="column"
         gap={2}
         flex={1}
-        overflowY="auto"
+        sx={{ overflowY: "auto" }}
       >
         <Typography variant="h6" color="common.black">
           New Address
@@ -149,6 +159,10 @@ function AddressPopover({ handleClose }) {
           sx={{
             ".MuiFormLabel-root": {
               color: "black !important",
+              lineHeight: "13px",
+            },
+            ".MuiFormControl-root": {
+              height: "40px",
             },
           }}
           disablePortal
@@ -161,29 +175,47 @@ function AddressPopover({ handleClose }) {
           loading={loadingCity}
           renderInput={(params) => (
             <TextField
+              {...params}
+              label="City"
               sx={{
                 "& .MuiOutlinedInput-root": {
                   "&.Mui-focused fieldset": {
                     borderColor: "text.primary",
                   },
                 },
+                ".MuiInputBase-root": {
+                  height: "100%",
+                  pr: "10px !important",
+                },
               }}
-              {...params}
-              label="City"
               InputProps={{
                 ...params.InputProps,
-                endAdornment: loadingCity ? (
-                  <CircularProgress size={20} />
-                ) : null,
+                endAdornment: (
+                  <>
+                    {loadingCity && <CircularProgress size={20} />}
+                    {formData.city && (
+                      <IconButton
+                        onClick={() => handleSelectCity(null)}
+                        sx={{ padding: 0.5 }}
+                      >
+                        <Close fontSize="small" />
+                      </IconButton>
+                    )}
+                    <ArrowDropDownIcon sx={{ cursor: "pointer" }} />
+                  </>
+                ),
               }}
             />
           )}
         />
-
         <Autocomplete
           sx={{
             ".MuiFormLabel-root": {
               color: "black !important",
+              lineHeight: "13px",
+            },
+            ".MuiFormControl-root": {
+              height: "40px",
             },
           }}
           disablePortal
@@ -198,19 +230,37 @@ function AddressPopover({ handleClose }) {
           renderInput={(params) => (
             <TextField
               sx={{
+                bgcolor:
+                  !formData.city || !formData.district ? "#f0f0f0" : "white", // Thay đổi màu nền khi bị vô hiệu hóa
                 "& .MuiOutlinedInput-root": {
                   "&.Mui-focused fieldset": {
                     borderColor: "text.primary",
                   },
+                },
+                ".MuiInputBase-root": {
+                  height: "100%",
+                  pr: "10px !important",
                 },
               }}
               {...params}
               label="District"
               InputProps={{
                 ...params.InputProps,
-                endAdornment: loadingDistrict ? (
-                  <CircularProgress size={20} />
-                ) : null,
+                endAdornment: (
+                  <>
+                    {formData.district && (
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSelectDistrict(null);
+                        }}
+                      >
+                        <Close fontSize="small" />
+                      </IconButton>
+                    )}
+                    <ArrowDropDownIcon />
+                  </>
+                ),
               }}
             />
           )}
@@ -220,6 +270,10 @@ function AddressPopover({ handleClose }) {
           sx={{
             ".MuiFormLabel-root": {
               color: "black !important",
+              lineHeight: "13px",
+            },
+            ".MuiFormControl-root": {
+              height: "40px",
             },
           }}
           disablePortal
@@ -234,25 +288,44 @@ function AddressPopover({ handleClose }) {
           renderInput={(params) => (
             <TextField
               sx={{
+                bgcolor:
+                  !formData.city || !formData.district ? "#f0f0f0" : "white", // Thay đổi màu nền khi bị vô hiệu hóa
                 "& .MuiOutlinedInput-root": {
                   "&.Mui-focused fieldset": {
                     borderColor: "text.primary",
                   },
+                },
+                ".MuiInputBase-root": {
+                  height: "100%",
+                  pr: "10px !important",
                 },
               }}
               {...params}
               label="Ward"
               InputProps={{
                 ...params.InputProps,
-                endAdornment: loadingWard ? (
-                  <CircularProgress size={20} />
-                ) : null,
+                endAdornment: (
+                  <>
+                    {formData.ward && (
+                      <IconButton
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleChange("ward", null);
+                        }}
+                      >
+                        <Close fontSize="small" />
+                      </IconButton>
+                    )}
+                    <ArrowDropDownIcon />
+                  </>
+                ),
               }}
             />
           )}
         />
 
         <InputBase
+          disabled={!formData.city || !formData.district || !formData.ward}
           required
           placeholder="Street Name, Building, House No."
           value={formData.street}
@@ -263,14 +336,35 @@ function AddressPopover({ handleClose }) {
             border: "1px solid silver",
             borderRadius: 1,
             color: "black",
+            bgcolor:
+              !formData.city || !formData.district || !formData.ward
+                ? "#f0f0f0"
+                : "white", // Thay đổi màu nền khi bị vô hiệu hóa
           }}
+        />
+
+        <FormControlLabel
+          sx={{ height: "30px", justifyContent: "end" }}
+          control={
+            <Checkbox
+              checked={formData.setDefault}
+              onChange={(e) => handleChange("setDefault", e.target.checked)}
+              sx={{
+                color: "text.primary",
+                "&.Mui-checked": {
+                  color: "secondary.main",
+                },
+              }}
+            />
+          }
+          label="Set default"
         />
 
         {/* Google Maps hiển thị vị trí theo địa chỉ */}
         <iframe
           src={mapSrc}
           width="100%"
-          height="450"
+          height="250"
           style={{ border: 0 }}
           allowFullScreen
           loading="lazy"
@@ -296,6 +390,7 @@ function AddressPopover({ handleClose }) {
           Cancel
         </Button>
         <Button
+          disabled={!isFormValid}
           onClick={handleSubmit}
           sx={{ bgcolor: "secondary.main", color: "white" }}
           variant="contained"
