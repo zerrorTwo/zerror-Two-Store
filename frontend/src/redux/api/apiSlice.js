@@ -72,6 +72,6 @@ const baseQueryWithAuth = async (args, api, extraOptions) => {
 
 export const apiSlice = createApi({
   baseQuery: baseQueryWithAuth,
-  tagTypes: ["Product", "Order", "User", "Category", "Cart"],
+  tagTypes: ["Product", "Order", "User", "Category", "Cart", "Address"],
   endpoints: () => ({}),
 });
