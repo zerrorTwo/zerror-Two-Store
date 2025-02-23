@@ -13,7 +13,7 @@ const addressSchema = new mongoose.Schema(
     },
     ward: { type: mongoose.Types.ObjectId, ref: "Ward", required: true },
     street: { type: String, required: true },
-    default: { type: Boolean, default: false },
+    setDefault: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

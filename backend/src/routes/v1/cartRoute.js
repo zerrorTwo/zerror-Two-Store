@@ -1,5 +1,5 @@
 import express from "express";
-import { authentication, authorization } from "../../auth/authUtil.js";
+import { authentication } from "../../auth/authUtil.js";
 import {
   createCart,
   getPageCart,
@@ -13,7 +13,7 @@ import {
 
 const Router = express.Router();
 
-// Router.use(authentication, authorization);
+Router.use(authentication);
 Router.route("/")
   .get(getPageCart)
   .post(createCart)

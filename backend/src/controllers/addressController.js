@@ -20,12 +20,10 @@ const getAllWard = asyncHandeler(async (req, res) => {
 });
 
 const createNewUserAddress = asyncHandeler(async (req, res) => {
-  const { userId } = req.query;
-  const data = req.body;
-  const address = await addressService.createNewUserAddress(userId, data);
+  const { userId } = req.params; // Lấy từ params thay vì query
+  const address = await addressService.createNewUserAddress(userId, req.body);
   res.status(StatusCodes.OK).json(address);
 });
-
 const getAllUserAddress = asyncHandeler(async (req, res) => {
   const { userId } = req.query;
   const address = await addressService.getAllUserAddress(userId);

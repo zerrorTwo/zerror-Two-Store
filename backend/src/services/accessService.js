@@ -198,6 +198,7 @@ const logout = async (req, res) => {
     // Trả về kết quả xóa key thành công
     return delKey;
   } catch (error) {
+    console.log(error);
     // Nếu có lỗi xảy ra trong quá trình logout
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to log out");
   }

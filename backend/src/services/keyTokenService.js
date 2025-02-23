@@ -28,16 +28,20 @@ const findById = async (id) => {
 
 const removeKeyByUserId = async (userId) => {
   try {
+    if (!userId) {
+      throw new Error("Invalid userId");
+    }
+
     const key = await KeyModel.findOne({ user: userId });
 
     if (!key) {
-      throw new Error("User not found.");
+      return { message: "User key not found." }; // Trả về thay vì ném lỗi
     }
 
     await KeyModel.deleteOne({ _id: key._id });
     return { message: "Delete successfully" };
   } catch (error) {
-    throw new Error("Failed to remove refresh token");
+    throw new Error(`Failed to remove token: ${error.message}`);
   }
 };
 

@@ -28,6 +28,15 @@ export const addressSlice = apiSlice.injectEndpoints({
       providesTags: ["Address"],
       keepUnusedDataFor: 5,
     }),
+
+    createUserAddress: builder.mutation({
+      query: ({ userId, data }) => ({
+        url: `${ADDRESS_URL}/${userId}`, // Sửa lại URL structure
+        method: "POST",
+        body: data,
+      }),
+      invalidatesTags: ["Address"],
+    }),
   }),
 });
 
@@ -35,4 +44,5 @@ export const {
   useLazyGetCityQuery,
   useLazyGetDistrictQuery,
   useLazyGetWardQuery,
+  useCreateUserAddressMutation,
 } = addressSlice;

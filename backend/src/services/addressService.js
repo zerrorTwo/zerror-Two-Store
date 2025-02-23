@@ -44,15 +44,18 @@ const createNewUserAddress = async (userId, data) => {
 
     // Nếu user chưa có địa chỉ nào, set địa chỉ này làm mặc định
     if (count === 0) {
-      data.default = true;
+      data.setDefault = true;
     }
 
     // Nếu địa chỉ mới là mặc định, đặt tất cả địa chỉ cũ về false trước
-    if (data.default) {
-      await AddressModel.updateMany({ userId }, { $set: { default: false } });
+    if (data.setDefault) {
+      await AddressModel.updateMany(
+        { userId },
+        { $set: { setDefault: false } }
+      );
     }
 
-    const newAddress = await AddressModel.create({ userId, ...data }).lean();
+    const newAddress = await AddressModel.create({ userId, ...data });
 
     return newAddress;
   } catch (error) {

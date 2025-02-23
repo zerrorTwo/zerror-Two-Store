@@ -55,6 +55,7 @@ function App() {
             <Route path="product" element={<ProductDashboard />} />
             <Route path="create-product" element={<CreateProduct />} />
             <Route path="update-product/:id" element={<CreateProduct />} />
+            <Route path="user" element={<UserDashboard />} />
           </Route>
         </Route>
       </Route>
