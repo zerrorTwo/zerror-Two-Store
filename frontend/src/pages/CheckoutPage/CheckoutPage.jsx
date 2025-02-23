@@ -16,8 +16,11 @@ function CheckoutPage() {
     bottom: false,
     right: false,
   });
+  const [confirmAddress, setConfirmAddress] = useState("");
   const userId = useSelector(selectCurrentUser)?._id;
   const { data } = useGetProductCheckoutQuery(userId);
+
+  console.log(confirmAddress);
 
   const toggleDrawer = (anchor, open) => (event) => {
     if (
@@ -78,6 +81,7 @@ function CheckoutPage() {
                   anchor="right"
                   state={state}
                   toggleDrawer={toggleDrawer}
+                  setConfirmAddress={setConfirmAddress}
                 />
               </Box>
               <Divider sx={{ my: 1 }} flexItem />

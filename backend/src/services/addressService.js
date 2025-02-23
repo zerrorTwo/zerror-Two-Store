@@ -72,6 +72,10 @@ const getAllUserAddress = async (userId) => {
 
     const newAddress = await AddressModel.find({ userId: userId })
       .select("-userId")
+      .populate("city")
+      .populate("district")
+      .populate("ward")
+      .sort({ setDefault: -1, createdAt: -1 })
       .lean();
 
     return newAddress;
