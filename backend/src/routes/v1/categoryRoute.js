@@ -19,7 +19,7 @@ Router.route("/tree").get(getAllCategoriesTree);
 Router.route("/").get(getPageCategory);
 Router.route("/common").get(getCommonCategories);
 
-// Router.use(authentication, authorization);
+Router.use(authentication, authorization);
 
 Router.route("/").delete(deleteCategory).post(createCategory);
 

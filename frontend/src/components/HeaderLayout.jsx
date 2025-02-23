@@ -18,8 +18,10 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CartPopover from "./Cart/CartPopover";
 import { useGetMiniCartQuery } from "../redux/api/cartSlice";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../redux/features/auth/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { logOut, selectCurrentUser } from "../redux/features/auth/authSlice";
+import { useLogoutMutation } from "../redux/api/authApiSlice";
+import { toast } from "react-toastify";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -65,7 +67,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 export default function HeaderLayout() {
   const navigate = useNavigate();
-  const a = undefined;
+  const a = useSelector(selectCurrentUser)?._id;
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
   const [searchText, setSearchText] = useState("");
@@ -86,6 +88,8 @@ export default function HeaderLayout() {
   const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
 
   const [cartPopoverVisible, setCartPopoverVisible] = useState(false);
+  const dispatch = useDispatch();
+  const [logout] = useLogoutMutation();
 
   const handlePopoverOpen = () => {
     setCartPopoverVisible(true);
@@ -105,6 +109,26 @@ export default function HeaderLayout() {
   const handleMenuClose = () => {
     setAnchorEl(null);
     handleMobileMenuClose();
+  };
+
+  const handleLogout = async () => {
+    try {
+      if (a) {
+        const result = await logout().unwrap();
+        console.log(result);
+        if (result) {
+          dispatch(logOut());
+          navigate("/");
+          window.location.reload();
+        }
+        setAnchorEl(null);
+        handleMobileMenuClose();
+      }
+    } catch (err) {
+      toast.error(
+        err?.data?.message || err?.error || "An unexpected error occurred"
+      );
+    }
   };
 
   const handleMobileMenuOpen = (event) => {
@@ -141,6 +165,7 @@ export default function HeaderLayout() {
     >
       <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
       <MenuItem onClick={handleMenuClose}>My account</MenuItem>
+      <MenuItem onClick={handleLogout}>Logout</MenuItem>
     </Menu>
   );
 
@@ -284,7 +309,7 @@ export default function HeaderLayout() {
 
                 {cartPopoverVisible && (
                   <CartPopover
-                    data={data}
+                    data={data || []}
                     error={cartError}
                     loading={cartLoading}
                     onMouseEnter={handlePopoverOpen}
@@ -293,7 +318,7 @@ export default function HeaderLayout() {
                 )}
               </Box>
 
-              {a ? (
+              {!a ? (
                 <Box
                   mx={1}
                   px={1}
@@ -307,7 +332,12 @@ export default function HeaderLayout() {
                     cursor: "pointer",
                   }}
                 >
-                  <Typography sx={{ display: "inline-block" }}>
+                  <Typography
+                    onClick={() => {
+                      navigate("/login");
+                    }}
+                    sx={{ display: "inline-block" }}
+                  >
                     Login
                   </Typography>
                   <LoginIcon />

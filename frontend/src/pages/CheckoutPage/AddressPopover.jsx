@@ -13,61 +13,125 @@ import {
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { Close } from "@mui/icons-material";
 import PropTypes from "prop-types";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
+  useCreateUserAddressMutation,
   useLazyGetCityQuery,
   useLazyGetDistrictQuery,
   useLazyGetWardQuery,
 } from "../../redux/api/addressSlice";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../../redux/features/auth/authSlice";
+import { toast } from "react-toastify";
+
+// Constants
+const INITIAL_FORM_STATE = {
+  name: "",
+  phone: "",
+  city: null,
+  district: null,
+  ward: null,
+  street: "",
+  setDefault: false,
+};
+
+const PHONE_REGEX = /^[0-9]{10}$/;
+const INITIAL_MAP_SRC =
+  "https://maps.google.com/maps?q=Ho%20Chi%20Minh%20City&t=&z=15&ie=UTF8&iwloc=&output=embed";
+
+// Reusable styles
+const commonStyles = {
+  autocomplete: {
+    ".MuiFormLabel-root": {
+      color: "black !important",
+      lineHeight: "13px",
+    },
+    ".MuiFormControl-root": {
+      height: "40px",
+    },
+  },
+  textField: {
+    "& .MuiOutlinedInput-root": {
+      "&.Mui-focused fieldset": {
+        borderColor: "text.primary",
+      },
+    },
+    ".MuiInputBase-root": {
+      height: "100%",
+      pr: "10px !important",
+    },
+  },
+  inputBase: {
+    px: 1,
+    py: 0.5,
+    border: "1px solid silver",
+    borderRadius: 1,
+    color: "black",
+  },
+};
 
 function AddressPopover({ handleClose }) {
-  const [formData, setFormData] = useState({
-    name: "",
-    phone: "",
-    city: null,
-    district: null,
-    ward: null,
-    street: "",
-    setDefault: false,
-  });
-
-  const [mapSrc, setMapSrc] = useState(
-    "https://maps.google.com/maps?q=Ho%20Chi%20Minh%20City&t=&z=15&ie=UTF8&iwloc=&output=embed"
-  );
+  const [formData, setFormData] = useState(INITIAL_FORM_STATE);
+  const [error, setError] = useState("");
+  const [mapSrc, setMapSrc] = useState(INITIAL_MAP_SRC);
+  const userId = useSelector(selectCurrentUser)?._id;
 
   // API Fetch Hooks
-  const [getCity, { data: cityData, isFetching: loadingCity }] =
+  const [createUserAddress, { isLoading }] = useCreateUserAddressMutation();
+  const [getCity, { data: cityData = [], isFetching: loadingCity }] =
     useLazyGetCityQuery();
-  const [getDistrict, { data: districtData, isFetching: loadingDistrict }] =
-    useLazyGetDistrictQuery();
-  const [getWard, { data: wardData, isFetching: loadingWard }] =
+  const [
+    getDistrict,
+    { data: districtData = [], isFetching: loadingDistrict },
+  ] = useLazyGetDistrictQuery();
+  const [getWard, { data: wardData = [], isFetching: loadingWard }] =
     useLazyGetWardQuery();
 
-  const cities = cityData || [];
-  const districts = districtData || [];
-  const wards = wardData || [];
+  // Validation handlers
+  const validatePhone = useCallback((value) => {
+    if (!/^\d*$/.test(value)) return "Number only!!";
+    if (value.length > 10) return "Max 10 number digits!!";
+    if (value.length === 10 && !PHONE_REGEX.test(value))
+      return "Invalid phone number!!";
+    return "";
+  }, []);
 
-  const handleChange = (field, value) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  const handleChange = useCallback(
+    (field, value) => {
+      if (field === "phone") {
+        setError(validatePhone(value));
+      }
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    },
+    [validatePhone]
+  );
 
-  const handleSelectCity = (value) => {
-    handleChange("city", value);
-    handleChange("district", null);
-    handleChange("ward", null);
-    if (value) getDistrict(value.id);
-  };
+  const handleSelectCity = useCallback(
+    (value) => {
+      setFormData((prev) => ({
+        ...prev,
+        city: value,
+        district: null,
+        ward: null,
+      }));
+      if (value) getDistrict(value.id);
+    },
+    [getDistrict]
+  );
 
-  const handleSelectDistrict = (value) => {
-    handleChange("district", value);
-    handleChange("ward", null);
-    if (value) getWard(value.id);
-  };
+  const handleSelectDistrict = useCallback(
+    (value) => {
+      setFormData((prev) => ({
+        ...prev,
+        district: value,
+        ward: null,
+      }));
+      if (value) getWard(value.id);
+    },
+    [getWard]
+  );
 
-  // 🔹 Tự động cập nhật bản đồ khi địa chỉ thay đổi
+  // Map update effect
   useEffect(() => {
     if (
       formData.city ||
@@ -80,7 +144,7 @@ function AddressPopover({ handleClose }) {
         formData.ward?.name,
         formData.district?.name,
         formData.city?.name,
-      ].filter(Boolean); // Loại bỏ phần tử rỗng
+      ].filter(Boolean);
 
       if (addressParts.length > 0) {
         const query = encodeURIComponent(addressParts.join(", "));
@@ -89,21 +153,60 @@ function AddressPopover({ handleClose }) {
         );
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.street]);
+  }, [formData.street, formData.ward, formData.district, formData.city]);
 
-  const handleSubmit = () => {
-    console.log("Form Data:", formData);
-    handleClose();
+  // Form validation
+  const isFormValid = useMemo(
+    () =>
+      formData.name.trim() &&
+      PHONE_REGEX.test(formData.phone.trim()) &&
+      formData.city &&
+      formData.district &&
+      formData.ward &&
+      formData.street.trim() &&
+      !error,
+    [formData, error]
+  );
+
+  // Computed properties
+  const isAddressFieldsDisabled =
+    !formData.city || !formData.district || !formData.ward;
+  const disabledFieldBackground = {
+    bgcolor: isAddressFieldsDisabled ? "#f0f0f0" : "white",
   };
 
-  const isFormValid =
-    formData.name.trim() &&
-    formData.phone.trim() &&
-    formData.city &&
-    formData.district &&
-    formData.ward &&
-    formData.street.trim();
+  const handleSubmit = async () => {
+    if (!isFormValid) {
+      toast.error("Vui lòng điền đầy đủ thông tin địa chỉ!!");
+      return;
+    }
+
+    const addressData = {
+      ...formData,
+      city: formData.city?._id,
+      district: formData.district?._id,
+      ward: formData.ward?._id,
+    };
+
+    try {
+      console.log(addressData);
+      const success = await createUserAddress({
+        userId,
+        data: addressData,
+      }).unwrap();
+      console.log(success);
+      if (success) {
+        toast.success("Thêm địa chỉ thành công!");
+        handleClose();
+      } else {
+        toast.error("Không thể thêm địa chỉ, vui lòng thử lại!");
+      }
+    } catch (error) {
+      console.error("Lỗi khi thêm địa chỉ:", error);
+      toast.error("Đã xảy ra lỗi, vui lòng thử lại sau!");
+    }
+  };
+
   return (
     <Box
       pt={2}
@@ -111,7 +214,7 @@ function AddressPopover({ handleClose }) {
       display="flex"
       flexDirection="column"
       width="500px"
-      bgcolor={"white"}
+      bgcolor="white"
     >
       <Box
         display="flex"
@@ -124,70 +227,51 @@ function AddressPopover({ handleClose }) {
           New Address
         </Typography>
 
+        {/* Name and Phone Fields */}
         <Box display="flex" gap={2}>
           <InputBase
             required
             placeholder="Name"
             value={formData.name}
             onChange={(e) => handleChange("name", e.target.value)}
-            sx={{
-              flex: 1,
-              px: 1,
-              py: 0.5,
-              border: "1px solid silver",
-              borderRadius: 1,
-              color: "black",
-            }}
+            sx={{ ...commonStyles.inputBase, flex: 1 }}
           />
-          <InputBase
+          <TextField
             required
+            error={!!error}
+            helperText={error}
             placeholder="Phone Number"
             value={formData.phone}
             onChange={(e) => handleChange("phone", e.target.value)}
+            fullWidth
             sx={{
+              ...commonStyles.textField,
+              ".MuiInputBase-root": {
+                maxHeight: "40px",
+                boxSizing: "border-box",
+              },
+              maxHeight: "40px",
               flex: 1,
-              px: 1,
-              py: 0.5,
-              border: "1px solid silver",
-              borderRadius: 1,
-              color: "black",
             }}
           />
         </Box>
 
+        {/* City Autocomplete */}
         <Autocomplete
-          sx={{
-            ".MuiFormLabel-root": {
-              color: "black !important",
-              lineHeight: "13px",
-            },
-            ".MuiFormControl-root": {
-              height: "40px",
-            },
-          }}
+          sx={commonStyles.autocomplete}
           disablePortal
           fullWidth
-          options={cities}
-          getOptionLabel={(option) => option?.name}
+          options={cityData}
+          getOptionLabel={(option) => option?.name || ""}
           value={formData.city}
-          onOpen={() => cities.length === 0 && getCity()}
+          onOpen={() => cityData.length === 0 && getCity()}
           onChange={(_, value) => handleSelectCity(value)}
           loading={loadingCity}
           renderInput={(params) => (
             <TextField
               {...params}
               label="City"
-              sx={{
-                "& .MuiOutlinedInput-root": {
-                  "&.Mui-focused fieldset": {
-                    borderColor: "text.primary",
-                  },
-                },
-                ".MuiInputBase-root": {
-                  height: "100%",
-                  pr: "10px !important",
-                },
-              }}
+              sx={commonStyles.textField}
               InputProps={{
                 ...params.InputProps,
                 endAdornment: (
@@ -208,20 +292,14 @@ function AddressPopover({ handleClose }) {
             />
           )}
         />
+
+        {/* District Autocomplete */}
         <Autocomplete
-          sx={{
-            ".MuiFormLabel-root": {
-              color: "black !important",
-              lineHeight: "13px",
-            },
-            ".MuiFormControl-root": {
-              height: "40px",
-            },
-          }}
+          sx={commonStyles.autocomplete}
           disablePortal
           fullWidth
-          options={districts}
-          getOptionLabel={(option) => option?.name}
+          options={districtData}
+          getOptionLabel={(option) => option?.name || ""}
           value={formData.district}
           onOpen={() => formData.city && getDistrict(formData.city.id)}
           onChange={(_, value) => handleSelectDistrict(value)}
@@ -229,21 +307,9 @@ function AddressPopover({ handleClose }) {
           disabled={!formData.city}
           renderInput={(params) => (
             <TextField
-              sx={{
-                bgcolor:
-                  !formData.city || !formData.district ? "#f0f0f0" : "white", // Thay đổi màu nền khi bị vô hiệu hóa
-                "& .MuiOutlinedInput-root": {
-                  "&.Mui-focused fieldset": {
-                    borderColor: "text.primary",
-                  },
-                },
-                ".MuiInputBase-root": {
-                  height: "100%",
-                  pr: "10px !important",
-                },
-              }}
               {...params}
               label="District"
+              sx={{ ...commonStyles.textField, ...disabledFieldBackground }}
               InputProps={{
                 ...params.InputProps,
                 endAdornment: (
@@ -266,20 +332,13 @@ function AddressPopover({ handleClose }) {
           )}
         />
 
+        {/* Ward Autocomplete */}
         <Autocomplete
-          sx={{
-            ".MuiFormLabel-root": {
-              color: "black !important",
-              lineHeight: "13px",
-            },
-            ".MuiFormControl-root": {
-              height: "40px",
-            },
-          }}
+          sx={commonStyles.autocomplete}
           disablePortal
           fullWidth
-          options={wards}
-          getOptionLabel={(option) => option?.name}
+          options={wardData}
+          getOptionLabel={(option) => option?.name || ""}
           value={formData.ward}
           onOpen={() => formData.district && getWard(formData.district.id)}
           onChange={(_, value) => handleChange("ward", value)}
@@ -287,21 +346,9 @@ function AddressPopover({ handleClose }) {
           disabled={!formData.district}
           renderInput={(params) => (
             <TextField
-              sx={{
-                bgcolor:
-                  !formData.city || !formData.district ? "#f0f0f0" : "white", // Thay đổi màu nền khi bị vô hiệu hóa
-                "& .MuiOutlinedInput-root": {
-                  "&.Mui-focused fieldset": {
-                    borderColor: "text.primary",
-                  },
-                },
-                ".MuiInputBase-root": {
-                  height: "100%",
-                  pr: "10px !important",
-                },
-              }}
               {...params}
               label="Ward"
+              sx={{ ...commonStyles.textField, ...disabledFieldBackground }}
               InputProps={{
                 ...params.InputProps,
                 endAdornment: (
@@ -324,25 +371,17 @@ function AddressPopover({ handleClose }) {
           )}
         />
 
+        {/* Street Input */}
         <InputBase
-          disabled={!formData.city || !formData.district || !formData.ward}
+          disabled={isAddressFieldsDisabled}
           required
           placeholder="Street Name, Building, House No."
           value={formData.street}
           onChange={(e) => handleChange("street", e.target.value)}
-          sx={{
-            px: 1,
-            py: 0.5,
-            border: "1px solid silver",
-            borderRadius: 1,
-            color: "black",
-            bgcolor:
-              !formData.city || !formData.district || !formData.ward
-                ? "#f0f0f0"
-                : "white", // Thay đổi màu nền khi bị vô hiệu hóa
-          }}
+          sx={{ ...commonStyles.inputBase, ...disabledFieldBackground }}
         />
 
+        {/* Default Checkbox */}
         <FormControlLabel
           sx={{ height: "30px", justifyContent: "end" }}
           control={
@@ -360,17 +399,19 @@ function AddressPopover({ handleClose }) {
           label="Set default"
         />
 
-        {/* Google Maps hiển thị vị trí theo địa chỉ */}
+        {/* Google Maps */}
         <iframe
+          title="Location Map"
           src={mapSrc}
           width="100%"
           height="250"
           style={{ border: 0 }}
           allowFullScreen
           loading="lazy"
-        ></iframe>
+        />
       </Box>
 
+      {/* Action Buttons */}
       <Box
         sx={{
           position: "sticky",
@@ -390,12 +431,12 @@ function AddressPopover({ handleClose }) {
           Cancel
         </Button>
         <Button
-          disabled={!isFormValid}
+          disabled={!isFormValid || isLoading}
           onClick={handleSubmit}
           sx={{ bgcolor: "secondary.main", color: "white" }}
           variant="contained"
         >
-          Submit
+          {isLoading ? <CircularProgress size={25} /> : "Submit"}
         </Button>
       </Box>
     </Box>
