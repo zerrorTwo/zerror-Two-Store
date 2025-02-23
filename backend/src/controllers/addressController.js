@@ -25,7 +25,7 @@ const createNewUserAddress = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(address);
 });
 const getAllUserAddress = asyncHandeler(async (req, res) => {
-  const { userId } = req.query;
+  const { userId } = req.params;
   const address = await addressService.getAllUserAddress(userId);
   res.status(StatusCodes.OK).json(address);
 });

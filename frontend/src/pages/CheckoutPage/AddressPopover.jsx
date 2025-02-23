@@ -70,7 +70,7 @@ const commonStyles = {
   },
 };
 
-function AddressPopover({ handleClose }) {
+function AddressPopover({ handleClose, handleOpenDrawer }) {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [error, setError] = useState("");
   const [mapSrc, setMapSrc] = useState(INITIAL_MAP_SRC);
@@ -175,7 +175,7 @@ function AddressPopover({ handleClose }) {
     bgcolor: isAddressFieldsDisabled ? "#f0f0f0" : "white",
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (event) => {
     if (!isFormValid) {
       toast.error("Vui lòng điền đầy đủ thông tin địa chỉ!!");
       return;
@@ -189,15 +189,14 @@ function AddressPopover({ handleClose }) {
     };
 
     try {
-      console.log(addressData);
       const success = await createUserAddress({
         userId,
         data: addressData,
       }).unwrap();
-      console.log(success);
       if (success) {
         toast.success("Thêm địa chỉ thành công!");
         handleClose();
+        handleOpenDrawer(event);
       } else {
         toast.error("Không thể thêm địa chỉ, vui lòng thử lại!");
       }
@@ -432,7 +431,7 @@ function AddressPopover({ handleClose }) {
         </Button>
         <Button
           disabled={!isFormValid || isLoading}
-          onClick={handleSubmit}
+          onClick={(event) => handleSubmit(event)}
           sx={{ bgcolor: "secondary.main", color: "white" }}
           variant="contained"
         >
@@ -445,6 +444,7 @@ function AddressPopover({ handleClose }) {
 
 AddressPopover.propTypes = {
   handleClose: PropTypes.func.isRequired,
+  handleOpenDrawer: PropTypes.func.isRequired,
 };
 
 export default AddressPopover;

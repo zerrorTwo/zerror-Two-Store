@@ -7,13 +7,17 @@ import {
   DialogActions,
   CircularProgress,
   Popover,
+  CardMedia,
   // CardMedia,
 } from "@mui/material";
 import AddLocationIcon from "@mui/icons-material/AddLocation";
 import PropTypes from "prop-types";
 import AddressItem from "./AddressItem";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddressPopover from "./AddressPopover";
+import { useGetAllUserAddressQuery } from "../../redux/api/addressSlice";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../../redux/features/auth/authSlice";
 
 const isLoading = false;
 
@@ -21,17 +25,26 @@ const list = (
   anchor,
   handleOpenPopover,
   selectedAddress,
-  setSelectedAddress
+  setSelectedAddress,
+  allAddress,
+  handleConfirmAddress
 ) => (
   <Box
-    py={1}
-    pl={2}
-    role="presentation"
+    display="flex"
+    flexDirection="column"
+    gap={2}
+    maxHeight="80vh"
+    px={2}
     sx={{
-      height: "100%",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "space-between",
+      pr: "0px", // Tránh khoảng trống bên phải
+      scrollbarWidth: "thin", // Firefox: làm nhỏ thanh scroll
+      "&::-webkit-scrollbar": {
+        width: "6px", // Chrome/Safari: làm nhỏ thanh scroll
+      },
+      "&::-webkit-scrollbar-thumb": {
+        backgroundColor: "#aaa", // Màu của thanh cuộn
+        borderRadius: "4px",
+      },
     }}
   >
     {/* Header */}
@@ -39,6 +52,7 @@ const list = (
       <Box
         pr={2}
         gap={2}
+        pt={1}
         display="flex"
         alignItems="center"
         justifyContent="space-between"
@@ -72,27 +86,31 @@ const list = (
         maxHeight="80vh"
         overflow="auto"
       >
-        {[1, 2, 3, 4, 5, 6].map((id) => (
-          <AddressItem
-            key={id}
-            id={id}
-            selected={selectedAddress === id}
-            setSelectedAddress={setSelectedAddress}
-            handleOpenPopover={handleOpenPopover}
-          />
-        ))}
+        {allAddress?.length > 0 ? (
+          allAddress.map((item) => (
+            <AddressItem
+              key={item._id}
+              id={item._id}
+              item={item}
+              selected={selectedAddress === item._id} // Kiểm tra nếu item được chọn
+              setSelectedAddress={setSelectedAddress}
+              handleOpenPopover={handleOpenPopover}
+            />
+          ))
+        ) : (
+          <Box>
+            <CardMedia
+              component="img"
+              sx={{ height: "100%", width: "100%", objectFit: "cover" }}
+              image={`Assets/location.png`}
+              loading="lazy"
+            />
+            <Typography textAlign={"center"} variant="h6">
+              Empty here.
+            </Typography>
+          </Box>
+        )}
       </Box>
-      {/* <Box>
-        <CardMedia
-          component="img"
-          sx={{ height: "100%", width: "100%", objectFit: "cover" }}
-          image={`Assets/location.png`}
-          loading="lazy"
-        />
-        <Typography textAlign={"center"} variant="h6">
-          Empty here.
-        </Typography>
-      </Box> */}
     </Box>
 
     {/* Footer */}
@@ -109,6 +127,7 @@ const list = (
         </Button>
 
         <Button
+          onClick={(event) => handleConfirmAddress(event)}
           variant="contained"
           color="secondary"
           sx={{
@@ -127,14 +146,20 @@ const list = (
   </Box>
 );
 
-function AddressDrawer({ anchor, state, toggleDrawer }) {
-  const [selectedAddress, setSelectedAddress] = useState(null);
+function AddressDrawer({ anchor, state, toggleDrawer, setConfirmAddress }) {
+  const [selectedAddress, setSelectedAddress] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
+  const userId = useSelector(selectCurrentUser)?._id;
+  const { data: allAddress } = useGetAllUserAddressQuery(userId);
 
   // ✅ Hàm tối ưu: Đóng Drawer & mở Popover cùng lúc
   const handleOpenPopover = (event) => {
     setAnchorEl(event.currentTarget); // Mở Popover
     toggleDrawer(anchor, false)(event); // Đóng Drawer
+  };
+
+  const handleOpenDrawer = (event) => {
+    toggleDrawer(anchor, true)(event); // Đóng Drawer
   };
 
   const handleClose = () => {
@@ -143,6 +168,18 @@ function AddressDrawer({ anchor, state, toggleDrawer }) {
 
   const open = Boolean(anchorEl);
   const id = open ? "simple-popover" : undefined;
+
+  useEffect(() => {
+    if (allAddress?.length > 0) {
+      setSelectedAddress(allAddress[0]?._id); // Chọn phần tử đầu tiên mặc định
+      setConfirmAddress(allAddress[0]?._id); // Chọn phần tử đầu tiên mặc định
+    }
+  }, [allAddress, setConfirmAddress]);
+
+  const handleConfirmAddress = (event) => {
+    setConfirmAddress(selectedAddress);
+    toggleDrawer(anchor, false)(event); // Đóng Drawer
+  };
 
   return (
     <>
@@ -159,7 +196,14 @@ function AddressDrawer({ anchor, state, toggleDrawer }) {
           },
         }}
       >
-        {list(anchor, handleOpenPopover, selectedAddress, setSelectedAddress)}
+        {list(
+          anchor,
+          handleOpenPopover,
+          selectedAddress,
+          setSelectedAddress,
+          allAddress,
+          handleConfirmAddress
+        )}
       </Drawer>
 
       {/* Popover */}
@@ -182,7 +226,10 @@ function AddressDrawer({ anchor, state, toggleDrawer }) {
           horizontal: "center",
         }}
       >
-        <AddressPopover handleClose={handleClose} />
+        <AddressPopover
+          handleOpenDrawer={handleOpenDrawer}
+          handleClose={handleClose}
+        />
       </Popover>
     </>
   );
@@ -192,6 +239,7 @@ AddressDrawer.propTypes = {
   anchor: PropTypes.string.isRequired,
   state: PropTypes.object.isRequired,
   toggleDrawer: PropTypes.func.isRequired,
+  setConfirmAddress: PropTypes.func.isRequired,
 };
 
 export default AddressDrawer;

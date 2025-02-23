@@ -1,62 +1,43 @@
 import { Typography, Box } from "@mui/material";
 import PlaceIcon from "@mui/icons-material/Place";
 import ContactPhoneIcon from "@mui/icons-material/ContactPhone";
-import PropTypes from "prop-types"; // Import PropTypes
-function AddressItem({ id, selected, setSelectedAddress, handleOpenPopover }) {
+import PropTypes from "prop-types";
+
+function AddressItem({
+  id,
+  item,
+  selected,
+  setSelectedAddress,
+  handleOpenPopover,
+}) {
   return (
     <Box
       p={2}
       sx={{
-        border: selected ? "2px solid #05a" : "2px solid #e0e0e0", // Apply red border if selected
+        border: selected ? "2px solid #05a" : "2px solid #e0e0e0",
         borderRadius: 2,
         cursor: "pointer",
       }}
-      onClick={() => setSelectedAddress(id)} // Toggle selected address
+      onClick={() => setSelectedAddress(id)}
     >
-      {/* Header  */}
+      {/* Header */}
       <Box display={"flex"} gap={1} alignItems={"center"}>
-        <Box display={"flex"} alignItems={"center"}>
-          {/* <FormControlLabel
-            sx={{ mr: 0 }}
-            control={
-              <Checkbox
-                icon={
-                  <RadioButtonUncheckedIcon
-                    sx={{
-                      color: "#05a",
-                    }}
-                  />
-                }
-                checkedIcon={
-                  <CheckCircleIcon
-                    sx={{
-                      color: "#05a",
-                      "&.Mui-checked": {
-                        color: "#05a",
-                      },
-                    }}
-                  />
-                }
-              />
-            }
-          /> */}
-          <Typography
-            color="common.black"
-            variant="body1"
-            display="flex"
-            alignItems="center"
-            gap={0.5}
-          >
-            <ContactPhoneIcon sx={{ color: "text.primary" }} fontSize="20px" />
-            Le Quoc Nam
-          </Typography>
-        </Box>
+        <Typography
+          color="common.black"
+          variant="body1"
+          display="flex"
+          alignItems="center"
+          gap={0.5}
+        >
+          <ContactPhoneIcon sx={{ color: "text.primary" }} fontSize="20px" />
+          {item.name}
+        </Typography>
         <Typography color="common.black" variant="body1">
-          0372364243
+          {item.phone}
         </Typography>
       </Box>
 
-      {/* Content  */}
+      {/* Content */}
       <Box display={"flex"}>
         <Typography
           gap={0.5}
@@ -65,28 +46,30 @@ function AddressItem({ id, selected, setSelectedAddress, handleOpenPopover }) {
           alignItems={"center"}
         >
           <PlaceIcon sx={{ color: "text.primary" }} fontSize="20px" />
-          ktx khu b đhqg Postcode: Hồ Chí Minh - Thành Phố Thủ Đức - Phường Linh
-          Trung
+          {`${item.street}, ${item.ward?.name}, ${item.district?.name}, ${item.city?.name}`}
         </Typography>
       </Box>
+
       {/* Footer */}
       <Box display={"flex"} gap={2} mt={1} alignItems={"center"}>
-        <Box
-          borderRadius={2}
-          px={2}
-          height={"20px"}
-          alignItems={"center"}
-          border={"1px solid"}
-          borderColor={"secondary.main"}
-          display={"flex"}
-        >
-          <Typography
-            sx={{ color: "secondary.main", lineHeight: "20px" }}
-            variant="caption"
+        {item.setDefault && (
+          <Box
+            borderRadius={2}
+            px={2}
+            height={"20px"}
+            alignItems={"center"}
+            border={"1px solid"}
+            borderColor={"secondary.main"}
+            display={"flex"}
           >
-            Default Shipping Address
-          </Typography>
-        </Box>
+            <Typography
+              sx={{ color: "secondary.main", lineHeight: "20px" }}
+              variant="caption"
+            >
+              Default Shipping Address
+            </Typography>
+          </Box>
+        )}
 
         <Typography
           sx={{ color: "#05a", cursor: "pointer" }}
@@ -101,10 +84,11 @@ function AddressItem({ id, selected, setSelectedAddress, handleOpenPopover }) {
 }
 
 AddressItem.propTypes = {
-  id: PropTypes.number.isRequired, // Validate 'id' as a required number
-  selected: PropTypes.bool.isRequired, // Validate 'selected' as a required boolean
-  setSelectedAddress: PropTypes.func.isRequired, // Validate 'setSelectedAddress' as a required function
-  handleOpenPopover: PropTypes.func.isRequired, // Validate 'setSelectedAddress' as a required function
+  id: PropTypes.string.isRequired, // Sửa lại từ number thành string
+  item: PropTypes.object.isRequired, // Thêm prop item
+  selected: PropTypes.bool.isRequired,
+  setSelectedAddress: PropTypes.func.isRequired,
+  handleOpenPopover: PropTypes.func.isRequired,
 };
-// Component cha sử dụng AddressDrawer
+
 export default AddressItem;

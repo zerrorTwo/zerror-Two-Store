@@ -37,6 +37,15 @@ export const addressSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Address"],
     }),
+
+    getAllUserAddress: builder.query({
+      query: (userId) => ({
+        url: `${ADDRESS_URL}/${userId}`,
+        method: "GET",
+      }),
+      providesTags: ["Address"],
+      keepUnusedDataFor: 5,
+    }),
   }),
 });
 
@@ -45,4 +54,5 @@ export const {
   useLazyGetDistrictQuery,
   useLazyGetWardQuery,
   useCreateUserAddressMutation,
+  useGetAllUserAddressQuery,
 } = addressSlice;
