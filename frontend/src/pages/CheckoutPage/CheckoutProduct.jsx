@@ -50,14 +50,14 @@ function CheckoutProduct({ item, name, img }) {
                     ? `Variation: ${Object.values(item.type).join(", ")}`
                     : ""}
                 </Typography>
-                <textarea
+                {/* <textarea
                   style={{
                     borderRadius: "2px",
                     height: "20px",
                     padding: "5px",
                   }}
                   placeholder="Message"
-                />
+                /> */}
               </Box>
             </Box>
           </Box>
