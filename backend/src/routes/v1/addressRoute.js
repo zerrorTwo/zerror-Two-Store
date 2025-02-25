@@ -5,6 +5,7 @@ import {
   getAllDistrict,
   getAllUserAddress,
   getAllWard,
+  getUserAddressById,
 } from "../../controllers/addressController.js";
 import { authentication } from "../../auth/authUtil.js";
 
@@ -14,6 +15,7 @@ Router.route("/city").get(getAllCity);
 Router.route("/district").get(getAllDistrict);
 Router.route("/ward").get(getAllWard);
 Router.use(authentication);
+Router.route("/").get(getUserAddressById);
 Router.route("/:userId").post(createNewUserAddress).get(getAllUserAddress);
 
 export const addressRoute = Router;

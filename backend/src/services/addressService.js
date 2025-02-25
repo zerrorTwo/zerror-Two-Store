@@ -84,10 +84,26 @@ const getAllUserAddress = async (userId) => {
   }
 };
 
+const getUserAddressById = async (id) => {
+  try {
+    const address = await AddressModel.findById(id)
+      .select("-userId")
+      .populate("city")
+      .populate("district")
+      .populate("ward")
+      .lean();
+
+    return address;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const addressService = {
   getAllCity,
   getAllDistrict,
   getAllWard,
   createNewUserAddress,
   getAllUserAddress,
+  getUserAddressById,
 };
