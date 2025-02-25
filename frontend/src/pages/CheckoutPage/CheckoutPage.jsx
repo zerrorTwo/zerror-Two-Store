@@ -1,6 +1,6 @@
 import { Button, Container, Divider, Grid2, Typography } from "@mui/material";
 import Box from "@mui/material/Box";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import AddressDrawer from "./AddressDrawer";
 import CheckoutProduct from "./CheckoutProduct";
 import AddLocationIcon from "@mui/icons-material/AddLocation";
@@ -8,6 +8,7 @@ import PaymentMethod from "./PaymentMethod";
 import { useGetProductCheckoutQuery } from "../../redux/api/checkoutSlice";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../redux/features/auth/authSlice";
+import { useLazyGetUserAddressByIdQuery } from "../../redux/api/addressSlice";
 
 function CheckoutPage() {
   const [state, setState] = useState({
@@ -19,8 +20,25 @@ function CheckoutPage() {
   const [confirmAddress, setConfirmAddress] = useState("");
   const userId = useSelector(selectCurrentUser)?._id;
   const { data } = useGetProductCheckoutQuery(userId);
+  const [getUserAddressById] = useLazyGetUserAddressByIdQuery();
+  const [selectedAddress, setSelectedAddress] = useState("");
 
-  console.log(confirmAddress);
+  useEffect(() => {
+    const fetchUserAddress = async () => {
+      try {
+        const response = await getUserAddressById(confirmAddress).unwrap(); // unwrap() để lấy data trực tiếp
+        setSelectedAddress(response);
+      } catch (error) {
+        console.error("Lỗi khi lấy địa chỉ:", error);
+      }
+    };
+
+    if (confirmAddress) {
+      fetchUserAddress();
+    }
+  }, [confirmAddress, getUserAddressById]);
+
+  console.log(selectedAddress);
 
   const toggleDrawer = (anchor, open) => (event) => {
     if (
@@ -87,8 +105,9 @@ function CheckoutPage() {
               <Divider sx={{ my: 1 }} flexItem />
               <Box>
                 <Typography alignItems={"center"} variant="body1">
-                  Lê Quốc Nam (+84) 372364243 Nhà văn hoá khu phố phú Xuân, Thị
-                  Trấn Phú Long, Huyện Hàm Thuận Bắc, Bình Thuận
+                  {selectedAddress
+                    ? `${selectedAddress.name} (+84) ${selectedAddress.phone}, ${selectedAddress.street}, ${selectedAddress.ward?.name}, ${selectedAddress.district?.name}, ${selectedAddress.city?.name}`
+                    : "No address selected"}
                 </Typography>
               </Box>
             </Box>

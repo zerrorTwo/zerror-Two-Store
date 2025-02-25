@@ -24,9 +24,16 @@ const createNewUserAddress = asyncHandeler(async (req, res) => {
   const address = await addressService.createNewUserAddress(userId, req.body);
   res.status(StatusCodes.OK).json(address);
 });
+
 const getAllUserAddress = asyncHandeler(async (req, res) => {
   const { userId } = req.params;
   const address = await addressService.getAllUserAddress(userId);
+  res.status(StatusCodes.OK).json(address);
+});
+
+const getUserAddressById = asyncHandeler(async (req, res) => {
+  const { id } = req.query;
+  const address = await addressService.getUserAddressById(id);
   res.status(StatusCodes.OK).json(address);
 });
 
@@ -36,4 +43,5 @@ export {
   getAllWard,
   createNewUserAddress,
   getAllUserAddress,
+  getUserAddressById,
 };
