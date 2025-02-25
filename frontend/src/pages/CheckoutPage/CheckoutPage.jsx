@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import AddressDrawer from "./AddressDrawer";
 import CheckoutProduct from "./CheckoutProduct";
 import AddLocationIcon from "@mui/icons-material/AddLocation";
-import PaymentMethod from "./PaymentMethod";
 import { useGetProductCheckoutQuery } from "../../redux/api/checkoutSlice";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../redux/features/auth/authSlice";
 import { useLazyGetUserAddressByIdQuery } from "../../redux/api/addressSlice";
+import CashPaymentMethod from "./CashPaymentMethod";
+import MomoPaymentMethod from "./MomoPaymentMethod";
 
 function CheckoutPage() {
   const [state, setState] = useState({
@@ -22,6 +23,7 @@ function CheckoutPage() {
   const { data } = useGetProductCheckoutQuery(userId);
   const [getUserAddressById] = useLazyGetUserAddressByIdQuery();
   const [selectedAddress, setSelectedAddress] = useState("");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cash");
 
   useEffect(() => {
     const fetchUserAddress = async () => {
@@ -38,8 +40,6 @@ function CheckoutPage() {
     }
   }, [confirmAddress, getUserAddressById]);
 
-  console.log(selectedAddress);
-
   const toggleDrawer = (anchor, open) => (event) => {
     if (
       event.type === "keydown" &&
@@ -48,6 +48,17 @@ function CheckoutPage() {
       return;
     }
     setState({ ...state, [anchor]: open });
+  };
+
+  const handleSubmit = () => {
+    const req = {
+      userId,
+      addressId: selectedAddress._id,
+      paymentMethod: selectedPaymentMethod,
+      products: data?.products,
+      coupon: 0,
+    };
+    console.log(req);
   };
 
   return (
@@ -153,17 +164,27 @@ function CheckoutPage() {
                 justifyContent="space-between"
                 alignItems="center"
               >
-                <Typography variant="body1">Select payment method</Typography>
+                <Typography fontWeight={"bold"} variant="body1">
+                  Select payment method
+                </Typography>
 
-                <Typography
+                {/* <Typography
                   sx={{ color: "#05a", cursor: "pointer" }}
                   variant="body1"
                 >
                   Change methods
-                </Typography>
+                </Typography> */}
               </Box>
-              <Divider sx={{ my: 1 }} flexItem />
-              <PaymentMethod />
+              {/* <Divider sx={{ my: 1 }} flexItem /> */}
+              <CashPaymentMethod
+                selectedMethod={selectedPaymentMethod}
+                setSelectedMethod={setSelectedPaymentMethod}
+              />
+              <MomoPaymentMethod
+                selectedMethod={selectedPaymentMethod}
+                setSelectedMethod={setSelectedPaymentMethod}
+              />
+
               <Box
                 display="flex"
                 justifyContent="space-between"
@@ -180,7 +201,59 @@ function CheckoutPage() {
             </Box>
             <Divider sx={{ my: 2 }} />
             <Box display="flex" flexDirection="column" gap={2}>
-              <Box display="flex" alignItems="center" gap={1}>
+              <Box
+                display="flex"
+                flexDirection={"row"}
+                gap={1}
+                alignItems={"center"}
+                justifyContent={"space-between"}
+              >
+                <Typography variant="body1">
+                  Subtotal ({data?.totalItems} item):
+                </Typography>
+                <Typography variant="body1" sx={{ color: "black" }}>
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(data?.totalPrice)}
+                </Typography>
+              </Box>
+              <Box
+                display="flex"
+                flexDirection={"row"}
+                gap={1}
+                alignItems={"center"}
+                justifyContent={"space-between"}
+              >
+                <Typography variant="body1">Delivery fee:</Typography>
+                <Typography variant="body1" sx={{ color: "black" }}>
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(30000)}
+                </Typography>
+              </Box>
+              <Box
+                display="flex"
+                flexDirection={"row"}
+                gap={1}
+                alignItems={"center"}
+                justifyContent={"space-between"}
+              >
+                <Typography variant="body1">Coupon: </Typography>
+                <Typography variant="body1" sx={{ color: "black" }}>
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(0)}
+                </Typography>
+              </Box>
+              <Box
+                display="flex"
+                alignItems="center"
+                gap={1}
+                justifyContent={"space-between"}
+              >
                 <Typography variant="body1">
                   Total ({data?.totalItems} item):
                 </Typography>
@@ -188,10 +261,11 @@ function CheckoutPage() {
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
                     currency: "VND",
-                  }).format(data?.totalPrice)}
+                  }).format(data?.totalPrice - 30000)}
                 </Typography>
               </Box>
               <Button
+                onClick={handleSubmit}
                 sx={{
                   boxShadow: "none",
                   bgcolor: "secondary.main",
