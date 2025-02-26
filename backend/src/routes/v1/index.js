@@ -8,6 +8,7 @@ import { uploadRoute } from "./uploadRoute.js";
 import { cartRoute } from "./cartRoute.js";
 import { checkoutRoute } from "./checkoutRoute.js";
 import { addressRoute } from "./addressRoute.js";
+import { paymentRoute } from "./paymentRoute.js";
 
 const Router = express.Router();
 
@@ -22,6 +23,7 @@ Router.use("/products", productRoute);
 Router.use("/cart", cartRoute);
 Router.use("/checkout", checkoutRoute);
 Router.use("/address", addressRoute);
+Router.use("/payment", paymentRoute);
 Router.use("/upload", uploadRoute); // Use uploadRoute for handling uploads
 
 export const APIS_V1 = Router;
