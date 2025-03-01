@@ -20,6 +20,7 @@ import SearchLayout from "./pages/SearchLayout";
 import ProductDetail from "./pages/ProductDetailPage/ProductDetail";
 import CreateProduct from "./pages/Admin/CreateProduct/CreateProduct";
 import CheckoutPage from "./pages/CheckoutPage/CheckoutPage";
+import Thanks from "./pages/Thanks";
 
 function App() {
   const dispatch = useDispatch();
@@ -70,6 +71,7 @@ function App() {
         <Route element={<RequireAuth />}>
           <Route path="cart" element={<Cart />} />
           <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="thanks" element={<Thanks />} />
           <Route path="profile" element={<Profile />} />
 
           <Route element={<AdminAuth />}>

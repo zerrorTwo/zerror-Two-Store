@@ -8,19 +8,20 @@ export const checkoutSlice = apiSlice.injectEndpoints({
         url: `${CHECKOUT_URL}?userId=${userId}`,
         method: "GET",
       }),
-      providesTags: ["Cart"],
+      providesTags: ["Order"],
       keepUnusedDataFor: 5,
     }),
 
-    addToCart: builder.mutation({
-      query: (body) => ({
-        url: `${CHECKOUT_URL}/`,
+    createOrder: builder.mutation({
+      query: (userId, body) => ({
+        url: `${CHECKOUT_URL}?userId=${userId}`,
         method: "POST",
         body,
       }),
-      invalidatesTags: ["Cart"],
+      invalidatesTags: ["Order"],
     }),
   }),
 });
 
-export const { useGetProductCheckoutQuery } = checkoutSlice;
+export const { useGetProductCheckoutQuery, useCreateOrderMutation } =
+  checkoutSlice;

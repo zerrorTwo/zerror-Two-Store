@@ -8,4 +8,12 @@ const getProductCheckout = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(products);
 });
 
-export { getProductCheckout };
+const createOrder = asyncHandeler(async (req, res) => {
+  const { userId } = req.query;
+  const data = req.body;
+  const products = await checkoutService.createOrder(userId, data);
+
+  res.status(StatusCodes.OK).json(products);
+});
+
+export { getProductCheckout, createOrder };
