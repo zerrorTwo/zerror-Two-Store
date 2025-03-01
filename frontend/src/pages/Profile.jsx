@@ -1,173 +1,118 @@
 import {
+  Avatar,
   Box,
-  Button,
-  CircularProgress,
   Container,
-  Paper,
-  TextField,
+  Divider,
+  Grid2,
+  List,
   Typography,
   useTheme,
 } from "@mui/material";
-import { selectCurrentUser } from "../redux/features/auth/authSlice.js";
-import { useSelector } from "react-redux";
-import { toast } from "react-toastify";
-import { useEffect, useState } from "react";
-import { useUpdateUserMutation } from "../redux/api/userSlice.js";
+import { memo } from "react";
+import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
+import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
+import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
+import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined";
+import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
+import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import NavAdminItem from "../components/NavAdminItem";
 
 function Profile() {
-  const user = useSelector(selectCurrentUser);
-  //   console.log(user);
-
   const theme = useTheme();
-  const [updateUser, { isLoading }] = useUpdateUserMutation();
-
-  const [formData, setFormData] = useState({
-    userName: user?.userName || "",
-    email: user?.email || "",
-    number: user?.number || "",
-    password: "",
-    confirmPassword: "",
-  });
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (formData?.password !== formData?.confirmPassword) {
-      toast.error("Passwords do not match");
-      return;
-    }
-
-    try {
-      const dataToUpdate = {
-        id: user._id,
-        ...formData,
-      };
-      if (!formData.password) {
-        delete dataToUpdate.password;
-        delete dataToUpdate.confirmPassword;
-      }
-
-      await updateUser(dataToUpdate).unwrap();
-      toast.success("Profile updated successfully");
-    } catch (error) {
-      toast.error(error?.data?.message || "Update failed");
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        userName: user.userName || "",
-        email: user.email || "",
-        number: user.number || "",
-        password: "",
-        confirmPassword: "",
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const textFieldStyle = {
-    "& .MuiInputBase-input": {
-      color: theme.palette.text.blackColor,
-    },
-    "& .MuiInputLabel-root": {
-      color: theme.palette.text.primary,
-      "&.Mui-focused": {
-        color: theme.palette.text.blackColor,
-      },
-      "&.MuiInputLabel-shrink": {
-        color: theme.palette.text.blackColor,
-      },
-    },
-  };
-
+  const MemoizedNavAdminItem = memo(NavAdminItem);
   return (
-    <Container maxWidth="xs">
-      <Paper elevation={10} sx={{ marginTop: 8, padding: 2 }}>
-        <Typography
-          component="h1"
-          variant="h5"
-          sx={{ textAlign: "center", mb: 2 }}
-        >
-          Edit Profile
-        </Typography>
-        <Box component="form" noValidate sx={{ mt: 1 }} onSubmit={handleSubmit}>
-          <TextField
-            sx={textFieldStyle}
-            fullWidth
-            margin="normal"
-            label="Username"
-            name="userName"
-            value={formData.userName}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          <TextField
-            sx={textFieldStyle}
-            fullWidth
-            margin="normal"
-            label="Email"
-            name="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          <TextField
-            sx={textFieldStyle}
-            fullWidth
-            margin="normal"
-            label="Phone Number"
-            name="number"
-            value={formData.number}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          <TextField
-            sx={textFieldStyle}
-            fullWidth
-            margin="normal"
-            label="New Password"
-            name="password"
-            type="password"
-            value={formData.password}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          <TextField
-            sx={textFieldStyle}
-            fullWidth
-            margin="normal"
-            label="Confirm New Password"
-            name="confirmPassword"
-            type="password"
-            value={formData.confirmPassword}
-            onChange={handleInputChange}
-            disabled={isLoading}
-          />
-          <Button
-            type="submit"
-            variant="contained"
-            fullWidth
-            sx={{ mt: 2 }}
-            disabled={isLoading}
+    <Container sx={{ pb: 2 }}>
+      <Grid2 container spacing={2}>
+        <Grid2 size={2.5}>
+          <Box
+            sx={{ overflowY: "auto" }}
+            pt={2}
+            display={"flex"}
+            flexDirection={"column"}
+            borderRadius={2}
+            border={"1px solid"}
+            borderColor={"silver"}
+            alignItems={"center"}
           >
-            {isLoading ? (
-              <CircularProgress color="inherit" size={25} />
-            ) : (
-              "Update Profile"
-            )}
-          </Button>
-        </Box>
-      </Paper>
+            <Box display={"flex"} alignItems={"center"} gap={1} mb={2}>
+              <Avatar />
+              <Typography variant="h6">Anhnam</Typography>
+            </Box>
+            <List
+              sx={{
+                p: 0,
+                display: "flex",
+                flexDirection: "column",
+                width: "100%",
+              }}
+            >
+              <MemoizedNavAdminItem
+                isSelected
+                to="/layout"
+                icon={<DashboardOutlinedIcon />}
+                text="Dashboard"
+              />
+              <Divider
+                variant="middle"
+                sx={{ bgcolor: theme.palette.text.primary }}
+              />
+              <MemoizedNavAdminItem
+                to="/layout"
+                icon={<ShoppingCartOutlinedIcon />}
+                text="My Orders"
+              />
+              <Divider
+                variant="middle"
+                sx={{ bgcolor: theme.palette.text.primary }}
+              />
+              <MemoizedNavAdminItem
+                to="/layout"
+                icon={<FavoriteBorderOutlinedIcon />}
+                text="My Favorites"
+              />
+              <Divider
+                variant="middle"
+                sx={{ bgcolor: theme.palette.text.primary }}
+              />
+              <MemoizedNavAdminItem
+                to="/layout"
+                icon={<RateReviewOutlinedIcon />}
+                text="My Reviews"
+              />
+              <Divider
+                variant="middle"
+                sx={{ bgcolor: theme.palette.text.primary }}
+              />
+              <MemoizedNavAdminItem
+                to="/layout"
+                icon={<HistoryOutlinedIcon />}
+                text="Recently Visited"
+              />
+              <Divider
+                variant="middle"
+                sx={{ bgcolor: theme.palette.text.primary }}
+              />
+              <MemoizedNavAdminItem
+                to="/layout"
+                icon={<AccountCircleOutlinedIcon />}
+                text="My Account"
+              />
+            </List>
+          </Box>
+        </Grid2>
+        <Grid2 size={9.5}>
+          <Box
+            pt={2}
+            maxHeight={"500px"}
+            minHeight={"500px"}
+            sx={{ overflowY: "auto" }}
+            borderRadius={2}
+            height={"200px"}
+            border={"1px solid"}
+            borderColor={"silver"}
+          ></Box>
+        </Grid2>
+      </Grid2>
     </Container>
   );
 }

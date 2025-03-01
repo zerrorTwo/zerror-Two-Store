@@ -4,12 +4,16 @@ import { useEffect, useState } from "react";
 import AddressDrawer from "./AddressDrawer";
 import CheckoutProduct from "./CheckoutProduct";
 import AddLocationIcon from "@mui/icons-material/AddLocation";
-import { useGetProductCheckoutQuery } from "../../redux/api/checkoutSlice";
+import {
+  useCreateOrderMutation,
+  useGetProductCheckoutQuery,
+} from "../../redux/api/checkoutSlice";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../redux/features/auth/authSlice";
 import { useLazyGetUserAddressByIdQuery } from "../../redux/api/addressSlice";
 import CashPaymentMethod from "./CashPaymentMethod";
 import MomoPaymentMethod from "./MomoPaymentMethod";
+import { toast } from "react-toastify";
 
 function CheckoutPage() {
   const [state, setState] = useState({
@@ -24,6 +28,8 @@ function CheckoutPage() {
   const [getUserAddressById] = useLazyGetUserAddressByIdQuery();
   const [selectedAddress, setSelectedAddress] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cash");
+
+  const [createOrder, { isLoading }] = useCreateOrderMutation();
 
   useEffect(() => {
     const fetchUserAddress = async () => {
@@ -50,15 +56,21 @@ function CheckoutPage() {
     setState({ ...state, [anchor]: open });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const req = {
-      userId,
       addressId: selectedAddress._id,
       paymentMethod: selectedPaymentMethod,
-      products: data?.products,
-      coupon: 0,
+      notes: "Giao hàng vào buổi sáng.",
     };
-    console.log(req);
+    try {
+      const success = await createOrder(userId, req).unwrap();
+      console.log(success);
+      if (success) {
+        toast.success("Đặt hàng thành công!");
+      }
+    } catch (error) {
+      toast.error(error || error?.message || error?.stack);
+    }
   };
 
   return (

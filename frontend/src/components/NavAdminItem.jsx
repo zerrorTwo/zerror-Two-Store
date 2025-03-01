@@ -24,7 +24,7 @@ const NavAdminItem = ({ to, icon, text, isSelected, onClick }) => {
             right: 0,
             width: "4px",
             height: "100%",
-            bgcolor: theme.palette.button.backgroundColor,
+            bgcolor: theme.palette.secondary.main,
           }}
         />
       )}

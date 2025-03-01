@@ -6,12 +6,15 @@ import ApiError from "../utils/ApiError.js";
 const createMomoPayment = asyncHandeler(async (req, res) => {
   const amount = "50000"; // Hardcode amount
   const orderInfo = "Test payment with MoMo"; // Hardcode orderInfo
-  const redirectUrl = "https://your-website.com/return"; // Hardcode redirectUrl
-  const ipnUrl = "https://your-website.com/notify"; // Hardcode ipnUrl
+  const redirectUrl = "http://localhost:5173/thanks"; // Hardcode redirectUrl
+  const ipnUrl =
+    "https://d48c-112-197-30-44.ngrok-free.app/v1/api/payment/momo/callback"; // Hardcode ipnUrl
   const extraData = ""; // Hardcode extraData
+  const orderId = Math.random().toString(36).substr(2, 9); // Generate random orderId
 
   try {
     const response = await momoService.createMomoPayment({
+      orderId,
       amount,
       orderInfo,
       redirectUrl,
@@ -41,4 +44,36 @@ const verifyMomoPayment = asyncHandeler(async (req, res) => {
   }
 });
 
-export { createMomoPayment, verifyMomoPayment };
+const callbackMomoPayment = asyncHandeler(async (req, res) => {
+  try {
+    const result = await momoService.handleMomoCallback(req);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    console.error(error);
+    throw new ApiError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Failed to verify Momo payment"
+    );
+  }
+});
+
+const transactionStatus = asyncHandeler(async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const result = await momoService.transactionStatus(orderId);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    console.error(error);
+    throw new ApiError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      "Failed to verify Momo payment"
+    );
+  }
+});
+
+export {
+  createMomoPayment,
+  verifyMomoPayment,
+  callbackMomoPayment,
+  transactionStatus,
+};
