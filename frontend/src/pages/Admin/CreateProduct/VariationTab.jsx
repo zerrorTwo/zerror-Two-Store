@@ -255,7 +255,7 @@ function VariationTab({ formData, setFormData, onNext, onPre }) {
 
   return (
     <Box display={"flex"} flexDirection={"column"} gap={2} sx={{ flexGrow: 1 }}>
-      <Box sx={{ overflowY: "auto", maxHeight: "calc(100vh - 200px)" }}>
+      <Box sx={{ overflowY: "auto", maxHeight: "calc(100vh - 250px)" }}>
         <InputSets
           variations={categories}
           handleAddField={handleAddField}
@@ -356,11 +356,12 @@ function VariationTab({ formData, setFormData, onNext, onPre }) {
         )}
       </Box>
       <Box
-        pt={2}
         marginTop="auto"
         justifyContent={"flex-end"}
         display={"flex"}
         gap={2}
+        borderTop={"1px solid black"}
+        pt={2}
       >
         <Button
           sx={{

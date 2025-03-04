@@ -64,12 +64,17 @@ function CreateProduct() {
     });
   };
 
+  // const handleChange = (event, newValue) => {
+  //   setValue(newValue);
+  // };
+
   const handleNext = () => setValue((prev) => prev + 1);
   const handlePre = () => setValue((prev) => prev - 1);
 
   return (
     <Box sx={{ width: "100%", height: "100%" }}>
       <Tabs
+        // onChange={handleChange}
         value={value}
         textColor="secondary"
         indicatorColor="secondary"

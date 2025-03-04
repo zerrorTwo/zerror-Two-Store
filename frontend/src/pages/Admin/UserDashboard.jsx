@@ -6,6 +6,7 @@ import GenericTable from "../../components/GenericTable.jsx";
 import { useState, useCallback } from "react";
 import PopoverCom from "../../components/PopoverCom.jsx";
 import { toast } from "react-toastify";
+import { Box, Divider, Typography } from "@mui/material";
 
 const UserDashboard = () => {
   const [page, setPage] = useState(1);
@@ -67,6 +68,17 @@ const UserDashboard = () => {
 
   return (
     <>
+      <Box display={"flex"} justifyContent={"start"} mb={4}>
+        <Box display={"grid"}>
+          <Typography variant="h5">Manager Category</Typography>
+          <Divider
+            sx={{
+              width: "100%",
+              bgcolor: "red",
+            }}
+          />
+        </Box>
+      </Box>
       <GenericTable
         name="List User"
         create={false}

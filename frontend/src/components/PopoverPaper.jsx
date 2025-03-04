@@ -98,12 +98,15 @@ function PopoverPaper({
         </Box>
         {children}
         <Box sx={{ m: 2, display: "flex", justifyContent: "flex-end", gap: 1 }}>
-          <Button onClick={handleClose}>Cancel</Button>
+          <Button sx={{ color: "text.primary" }} onClick={handleClose}>
+            Cancel
+          </Button>
           {handleCreate && (
             <Button
               onClick={handleCreate}
               variant="contained"
               sx={{
+                color: "white",
                 backgroundColor: theme.palette.button.backgroundColor,
               }}
             >
@@ -119,6 +122,8 @@ function PopoverPaper({
               onClick={handleUpdate}
               variant="contained"
               sx={{
+                color: "white",
+
                 backgroundColor: theme.palette.button.backgroundColor,
               }}
             >

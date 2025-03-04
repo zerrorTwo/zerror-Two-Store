@@ -153,7 +153,7 @@ const GenericTable = ({
                         <Checkbox
                           sx={{
                             "&.Mui-checked .MuiSvgIcon-root": {
-                              color: theme.palette.text.secondary,
+                              color: theme.palette.secondary.main,
                             },
                           }}
                           color="secondary"
@@ -245,7 +245,7 @@ const GenericTable = ({
                                 backgroundColor:
                                   theme.palette.button.hoverBackgroundColor,
                               },
-                              color: theme.palette.text.secondary,
+                              color: "white",
                               backgroundColor:
                                 theme.palette.button.backgroundColor,
                             }}
@@ -262,7 +262,7 @@ const GenericTable = ({
                                   backgroundColor:
                                     theme.palette.button.hoverBackgroundColor,
                                 },
-                                color: theme.palette.text.secondary,
+                                color: "white",
                                 backgroundColor:
                                   theme.palette.button.backgroundColor,
                               }}

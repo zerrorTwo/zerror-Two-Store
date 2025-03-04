@@ -75,28 +75,55 @@ function CateDashBoard() {
 
   const prevListCate = useRef(listCate);
 
+  // Gộp các useEffect liên quan đến listCate và rows
   useEffect(() => {
     setSelected([]);
     const savedBreadcrumbItems = localStorage.getItem("breadcrumbItems");
 
-    if (savedBreadcrumbItems) {
+    if (savedBreadcrumbItems && !breadcrumbItems.length) {
       setBreadcrumbItems(JSON.parse(savedBreadcrumbItems));
     }
 
     if (!isEqual(listCate, prevListCate.current)) {
-      setRows(
-        listCate?.map((category) => ({
+      if (categoryLoading) {
+        setRows([]);
+      } else if (listCate) {
+        const newRows = listCate?.map((category) => ({
           _id: category._id,
           name: category.name,
           img: category.img,
           level: category?.level,
-        }))
-      );
-      setLvl(listCate[0]?.level);
-      prevListCate.current = listCate;
+        }));
+        setRows(newRows);
+        setLvl(listCate[0]?.level || 1);
+        prevListCate.current = listCate;
+      }
     }
-  }, [listCate]);
+  }, [listCate, categoryLoading, breadcrumbItems.length]);
 
+  // Chỉ lưu breadcrumbItems khi có thay đổi và có dữ liệu
+  useEffect(() => {
+    if (breadcrumbItems.length > 0) {
+      localStorage.setItem("breadcrumbItems", JSON.stringify(breadcrumbItems));
+    }
+  }, [breadcrumbItems]);
+
+  // Xóa useEffect trùng lặp này
+  // useEffect(() => {
+  //   if (categoryLoading) {
+  //     setRows([]);
+  //   }
+  //   if (listCate) {
+  //     setRows(
+  //       listCate?.map((category) => ({
+  //         _id: category._id,
+  //         name: category.name,
+  //         img: category.img,
+  //         level: category?.level,
+  //       }))
+  //     );
+  //   }
+  // }, [listCate, categoryLoading]);
   useEffect(() => {
     if (breadcrumbItems.length > 0) {
       localStorage.setItem("breadcrumbItems", JSON.stringify(breadcrumbItems));
