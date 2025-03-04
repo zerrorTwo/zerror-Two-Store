@@ -1,18 +1,17 @@
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
 import {
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Tooltip,
   Typography,
   Box,
 } from "@mui/material";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { useTheme } from "@mui/material/styles";
+import { Link } from "react-router-dom"; // Import Link
 
-const NavAdminItem = ({ to, icon, text, isSelected, onClick }) => {
+const NavAdminItem = ({ icon, text, isSelected, link }) => {
   const theme = useTheme();
 
   return (
@@ -28,57 +27,49 @@ const NavAdminItem = ({ to, icon, text, isSelected, onClick }) => {
           }}
         />
       )}
-      <Link to={to} style={{ textDecoration: "none", color: "inherit" }}>
-        <Tooltip title={text} placement="right">
-          <ListItemButton
-            onClick={onClick}
-            sx={{
-              minHeight: 60,
-              px: 2.5,
-              justifyContent: "flex-start",
-              //   bgcolor: isSelected ? "#333" : "transparent", // Hiệu ứng nền khi được chọn
-              //   "&:hover": {
-              //     bgcolor: "#444",
-              //   },
-            }}
-          >
-            <ListItemIcon
+      <ListItemButton
+        component={Link} // Use Link component
+        to={link} // Specify the link
+        sx={{
+          minHeight: 60,
+          px: 2.5,
+          justifyContent: "flex-start",
+        }}
+      >
+        <ListItemIcon
+          sx={{
+            color: theme.palette.text.secondary,
+            minWidth: 0,
+            justifyContent: "center",
+            mr: 3,
+          }}
+        >
+          {icon}
+        </ListItemIcon>
+        <ListItemText
+          primary={
+            <Typography
+              variant="body1"
               sx={{
-                color: theme.palette.text.secondary, // Đổi màu icon khi được chọn
-                minWidth: 0,
-                justifyContent: "center",
-                mr: 3,
+                fontWeight: isSelected ? "bold" : "normal",
+                color: theme.palette.text.secondary,
               }}
             >
-              {icon}
-            </ListItemIcon>
-            <ListItemText
-              primary={
-                <Typography
-                  variant="body1"
-                  sx={{
-                    fontWeight: isSelected ? "bold" : "normal", // Font đậm khi được chọn
-                    color: theme.palette.text.secondary, // Đổi màu text
-                  }}
-                >
-                  {text}
-                </Typography>
-              }
-            />
-            <NavigateNextIcon sx={{ color: "inherit" }} />
-          </ListItemButton>
-        </Tooltip>
-      </Link>
+              {text}
+            </Typography>
+          }
+        />
+        <NavigateNextIcon sx={{ color: "inherit" }} />
+      </ListItemButton>
     </ListItem>
   );
 };
 
 NavAdminItem.propTypes = {
-  to: PropTypes.string.isRequired,
   icon: PropTypes.element.isRequired,
   text: PropTypes.string.isRequired,
   isSelected: PropTypes.bool.isRequired,
-  onClick: PropTypes.func,
+  link: PropTypes.string.isRequired, // Add link prop
 };
 
 export default NavAdminItem;

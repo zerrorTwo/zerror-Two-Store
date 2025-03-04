@@ -137,6 +137,8 @@ function InforTab({ formData, setFormData, onNext }) {
         alignItems={"center"}
         gap={2}
         marginTop="auto"
+        borderTop={"1px solid black"}
+        pt={2}
       >
         <Button
           sx={{

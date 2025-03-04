@@ -45,7 +45,7 @@ const getAllUsers = async (req, res) => {
 
     // Lấy danh sách sản phẩm từ database với phân trang
     const users = await UserModel.find({})
-      .select("_id name email password isAdmin")
+      .select("_id userName email password isAdmin")
       .skip(skip)
       .limit(limit)
       .lean();

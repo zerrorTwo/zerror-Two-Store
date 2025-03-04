@@ -115,7 +115,6 @@ export default function HeaderLayout() {
     try {
       if (a) {
         const result = await logout().unwrap();
-        console.log(result);
         if (result) {
           dispatch(logOut());
           navigate("/");

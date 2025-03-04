@@ -39,8 +39,27 @@ const GenericTableToolbar = ({
       ]}
     >
       {numSelected > 0 ? (
+        <>
+          <Tooltip title="Delete">
+            {isLoading ? (
+              <Box sx={{ display: "flex" }}>
+                <CircularProgress />
+              </Box>
+            ) : (
+              <IconButton onClick={handleOpenDialog}>
+                <DeleteIcon sx={{ color: "white" }} />
+              </IconButton>
+            )}
+          </Tooltip>
+        </>
+      ) : (
+        <IconButton sx={{ cursor: "default" }}>
+          <FilterListIcon sx={{ color: "white" }} />
+        </IconButton>
+      )}
+      {numSelected > 0 ? (
         <Typography
-          sx={{ flex: "1 1 100%", color: theme.palette.text.secondary }}
+          sx={{ flex: "1 1 100%", color: "white" }}
           variant="subtitle1"
           component="div"
         >
@@ -48,7 +67,7 @@ const GenericTableToolbar = ({
         </Typography>
       ) : (
         <Typography
-          sx={{ flex: "1 1 100%", color: theme.palette.text.secondary }}
+          sx={{ flex: "1 1 100%", color: "white" }}
           variant="h6"
           id="tableTitle"
           component="div"
@@ -66,25 +85,6 @@ const GenericTableToolbar = ({
         >
           Create new
         </Button>
-      )}
-      {numSelected > 0 ? (
-        <>
-          <Tooltip title="Delete">
-            {isLoading ? (
-              <Box sx={{ display: "flex" }}>
-                <CircularProgress />
-              </Box>
-            ) : (
-              <IconButton onClick={handleOpenDialog}>
-                <DeleteIcon sx={{ color: theme.palette.text.secondary }} />
-              </IconButton>
-            )}
-          </Tooltip>
-        </>
-      ) : (
-        <IconButton sx={{ cursor: "default" }}>
-          <FilterListIcon sx={{ color: theme.palette.text.secondary }} />
-        </IconButton>
       )}
     </Toolbar>
   );

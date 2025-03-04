@@ -50,6 +50,8 @@ function PriceTab({ formData, setFormData, onNext, onPre }) {
         justifyContent={"flex-end"}
         display={"flex"}
         gap={2}
+        borderTop={"1px solid black"}
+        pt={2}
       >
         <Button
           sx={{

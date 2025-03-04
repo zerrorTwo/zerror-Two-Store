@@ -16,7 +16,7 @@ Router.route("/").get(getPageProducts);
 Router.route("/all").get(getAllProducts);
 Router.route("/top").get(getTopSoldProducts);
 Router.route("/:slug").get(getProductBySlug);
-Router.route("/:id").get(getProductById);
+Router.route("/select/:id").get(getProductById);
 
 Router.use(authentication, authorization);
 Router.route("/").post(createProduct);

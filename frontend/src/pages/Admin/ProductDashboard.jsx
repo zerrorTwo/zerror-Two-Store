@@ -7,8 +7,10 @@ import GenericTable from "../../components/GenericTable";
 import { useState, useCallback, useEffect } from "react";
 import { toast } from "react-toastify";
 import {
+  Backdrop,
   Box,
   Button,
+  CircularProgress,
   Divider,
   Input,
   Typography,
@@ -131,7 +133,15 @@ const ProductDashboard = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  if (isLoading || categoryLoading) return <div>Loading...</div>;
+  if (isLoading || categoryLoading)
+    return (
+      <Backdrop
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={isLoading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
+    );
   if (error || categoryError) return <div>Error loading data</div>;
 
   return (

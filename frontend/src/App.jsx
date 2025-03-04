@@ -11,8 +11,6 @@ import RequireAuth from "./pages/Auth/RequireAuth";
 import UserDashboard from "./pages/Admin/UserDashboard";
 import AdminAuth from "./pages/Auth/AdminAuth";
 import Profile from "./pages/Profile";
-import CateDashBoard from "./pages/Admin/CateDashBoard";
-import ProductDashboard from "./pages/Admin/ProductDashboard";
 import LayoutAdmin from "./pages/Admin/LayoutAdmin";
 import CategoryDashBoard from "./pages/Admin/CategoryDashBoard";
 import LayoutNew from "./pages/LayoutNew";
@@ -21,6 +19,8 @@ import ProductDetail from "./pages/ProductDetailPage/ProductDetail";
 import CreateProduct from "./pages/Admin/CreateProduct/CreateProduct";
 import CheckoutPage from "./pages/CheckoutPage/CheckoutPage";
 import Thanks from "./pages/Thanks";
+import CateDashBoard from "./pages/Admin/CateDashboard";
+import ProductDashboard from "./pages/Admin/ProductDashboard";
 
 function App() {
   const dispatch = useDispatch();
@@ -54,8 +54,9 @@ function App() {
           <Route path="admin" element={<LayoutAdmin />}>
             <Route path="cate" element={<CateDashBoard />} />
             <Route path="product" element={<ProductDashboard />} />
-            <Route path="create-product" element={<CreateProduct />} />
             <Route path="update-product/:id" element={<CreateProduct />} />
+            <Route path="create-product" element={<CreateProduct />} />
+
             <Route path="user" element={<UserDashboard />} />
           </Route>
         </Route>

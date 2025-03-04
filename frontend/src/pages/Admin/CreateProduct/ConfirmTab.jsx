@@ -57,9 +57,14 @@ function ConfirmTab({
             mainImg: mainImgUrl,
             img: imgUrls,
           };
-          await createProduct({ data: updatedFormData }).unwrap();
-          toast.success("Product created successfully");
-
+          const success = await createProduct({
+            data: updatedFormData,
+          }).unwrap();
+          if (success) {
+            toast.success("Product created successfully");
+          } else {
+            toast.error("Failed to create product");
+          }
           handleResetFormData(); // Call reset function
         } catch (error) {
           toast.error(error?.message || error?.data?.message);
@@ -101,6 +106,8 @@ function ConfirmTab({
         justifyContent={"flex-end"}
         display={"flex"}
         gap={2}
+        borderTop={"1px solid black"}
+        pt={2}
       >
         <Button
           sx={{

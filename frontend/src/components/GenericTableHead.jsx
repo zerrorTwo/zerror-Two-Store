@@ -31,7 +31,7 @@ const GenericTableHead = ({
           <Checkbox
             sx={{
               "&.Mui-checked .MuiSvgIcon-root": {
-                color: theme.palette.text.secondary,
+                color: theme.palette.secondary.main,
               },
             }}
             color="secondary"
