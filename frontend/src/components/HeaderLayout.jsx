@@ -162,7 +162,17 @@ export default function HeaderLayout() {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
+      <MenuItem onClick={handleMenuClose}>
+        <Link
+          to={"/profile"}
+          style={{
+            textDecoration: "none",
+            color: "inherit",
+          }}
+        >
+          Profile
+        </Link>
+      </MenuItem>
       <MenuItem onClick={handleMenuClose}>My account</MenuItem>
       <MenuItem onClick={handleLogout}>Logout</MenuItem>
     </Menu>

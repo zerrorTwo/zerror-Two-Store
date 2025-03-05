@@ -1,6 +1,14 @@
-import { Button, Container, Divider, Grid2, Typography } from "@mui/material";
+import {
+  Button,
+  Container,
+  Divider,
+  Grid2,
+  Typography,
+  Backdrop,
+  CircularProgress,
+} from "@mui/material"; // Import Backdrop and CircularProgress
 import Box from "@mui/material/Box";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import AddressDrawer from "./AddressDrawer";
 import CheckoutProduct from "./CheckoutProduct";
 import AddLocationIcon from "@mui/icons-material/AddLocation";
@@ -14,6 +22,7 @@ import { useLazyGetUserAddressByIdQuery } from "../../redux/api/addressSlice";
 import CashPaymentMethod from "./CashPaymentMethod";
 import MomoPaymentMethod from "./MomoPaymentMethod";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
 
 function CheckoutPage() {
   const [state, setState] = useState({
@@ -28,16 +37,18 @@ function CheckoutPage() {
   const [getUserAddressById] = useLazyGetUserAddressByIdQuery();
   const [selectedAddress, setSelectedAddress] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cash");
+  const navigate = useNavigate();
 
   const [createOrder, { isLoading }] = useCreateOrderMutation();
 
   useEffect(() => {
     const fetchUserAddress = async () => {
       try {
-        const response = await getUserAddressById(confirmAddress).unwrap(); // unwrap() để lấy data trực tiếp
+        const response = await getUserAddressById(confirmAddress).unwrap();
         setSelectedAddress(response);
       } catch (error) {
-        console.error("Lỗi khi lấy địa chỉ:", error);
+        console.error("Error fetching address:", error);
+        toast.error("Failed to fetch address.");
       }
     };
 
@@ -57,21 +68,40 @@ function CheckoutPage() {
   };
 
   const handleSubmit = async () => {
-    const req = {
+    if (!selectedAddress) {
+      toast.error("Please select a delivery address.");
+      return;
+    }
+
+    const data = {
+      userId: userId,
       addressId: selectedAddress._id,
-      paymentMethod: selectedPaymentMethod,
+      paymentMethod: selectedPaymentMethod.toUpperCase(),
       notes: "Giao hàng vào buổi sáng.",
     };
+
     try {
-      const success = await createOrder(userId, req).unwrap();
+      const success = await createOrder(data).unwrap();
       console.log(success);
-      if (success) {
-        toast.success("Đặt hàng thành công!");
+      if (success?.paymentUrl) {
+        console.log(success?.paymentUrl?.payUrl);
+        navigate(success?.paymentUrl?.payUrl);
+      } else {
+        navigate("/profile");
       }
     } catch (error) {
-      toast.error(error || error?.message || error?.stack);
+      toast.error(
+        error?.data?.message || "An error occurred while placing the order."
+      );
     }
   };
+
+  const formattedTotalPrice = useMemo(() => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(data?.totalPrice - 30000);
+  }, [data?.totalPrice]);
 
   return (
     <Container>
@@ -179,15 +209,7 @@ function CheckoutPage() {
                 <Typography fontWeight={"bold"} variant="body1">
                   Select payment method
                 </Typography>
-
-                {/* <Typography
-                  sx={{ color: "#05a", cursor: "pointer" }}
-                  variant="body1"
-                >
-                  Change methods
-                </Typography> */}
               </Box>
-              {/* <Divider sx={{ my: 1 }} flexItem /> */}
               <CashPaymentMethod
                 selectedMethod={selectedPaymentMethod}
                 setSelectedMethod={setSelectedPaymentMethod}
@@ -270,10 +292,7 @@ function CheckoutPage() {
                   Total ({data?.totalItems} item):
                 </Typography>
                 <Typography variant="h6" sx={{ color: "secondary.main" }}>
-                  {new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(data?.totalPrice - 30000)}
+                  {formattedTotalPrice}
                 </Typography>
               </Box>
               <Button
@@ -293,6 +312,12 @@ function CheckoutPage() {
           </Box>
         </Grid2>
       </Grid2>
+      <Backdrop
+        sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
+        open={isLoading}
+      >
+        <CircularProgress color="inherit" />
+      </Backdrop>
     </Container>
   );
 }
