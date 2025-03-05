@@ -7,12 +7,12 @@ import ApiError from "../utils/ApiError.js";
 import { StatusCodes } from "http-status-codes";
 import { momoService } from "./momoService.js";
 
-const createOrder = async (userId, data) => {
+const createOrder = async (data) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const { addressId, paymentMethod, notes } = data;
+    const { userId, addressId, paymentMethod, notes } = data;
 
     // Kiểm tra địa chỉ giao hàng
     const address = await AddressModel.findOne({
@@ -92,6 +92,13 @@ const createOrder = async (userId, data) => {
       { session }
     );
 
+    // Nếu thanh toán COD, hoàn tất đơn hàng
+    await CartModel.updateOne(
+      { userId },
+      { $pull: { "products.$[].variations": { checkout: true } } },
+      { session }
+    );
+
     // Nếu là thanh toán MOMO, gọi API tạo thanh toán MOMO
     if (paymentMethod === "MOMO") {
       const orderId = newOrder[0]._id.toString();
@@ -112,13 +119,6 @@ const createOrder = async (userId, data) => {
       return { success: true, message: "Redirect to MOMO", paymentUrl };
     }
 
-    // Nếu thanh toán COD, hoàn tất đơn hàng
-    await CartModel.updateOne(
-      { userId },
-      { $pull: { "products.$[].variations": { checkout: true } } },
-      { session }
-    );
-
     await session.commitTransaction();
     session.endSession();
 
@@ -130,6 +130,17 @@ const createOrder = async (userId, data) => {
   } catch (error) {
     await session.abortTransaction();
     session.endSession();
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
+const getUserOrder = async (userId) => {
+  try {
+    const orders = await OrderModel.find({ userId })
+      .populate("addressId", "fullName phoneNumber address")
+      .sort({ createdAt: -1 });
+    return orders;
+  } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
 };
@@ -266,7 +277,8 @@ const getProductCheckout = async (userId) => {
   }
 };
 
-export const checkoutService = {
+export const orderService = {
   getProductCheckout,
   createOrder,
+  getUserOrder,
 };

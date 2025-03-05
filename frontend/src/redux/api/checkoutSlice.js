@@ -13,10 +13,13 @@ export const checkoutSlice = apiSlice.injectEndpoints({
     }),
 
     createOrder: builder.mutation({
-      query: (userId, body) => ({
-        url: `${CHECKOUT_URL}?userId=${userId}`,
+      query: (data) => ({
+        url: `${CHECKOUT_URL}`,
         method: "POST",
-        body,
+        body: JSON.stringify(data), // Chuyển thành JSON
+        headers: {
+          "Content-Type": "application/json",
+        },
       }),
       invalidatesTags: ["Order"],
     }),
