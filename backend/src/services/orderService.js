@@ -19,60 +19,109 @@ const createOrder = async (data) => {
       _id: addressId,
       userId,
     }).session(session);
-    if (!address) {
+    if (!address)
       throw new ApiError(StatusCodes.NOT_FOUND, "Address not found!");
-    }
 
-    // Lấy sản phẩm đã checkout
+    // Lấy sản phẩm đã checkout từ giỏ hàng
     const cartItems = await CartModel.aggregate([
       { $match: { userId: new mongoose.Types.ObjectId(userId) } },
       { $unwind: "$products" },
-      { $unwind: "$products.variations" },
-      { $match: { "products.variations.checkout": true } },
       {
-        $group: {
-          _id: null,
-          products: {
-            $push: {
-              productId: "$products.productId",
-              variation: "$products.variations",
-            },
-          },
-          totalItems: { $sum: "$products.variations.quantity" },
-          totalPrice: {
-            $sum: {
-              $multiply: [
-                "$products.variations.price",
-                "$products.variations.quantity",
+        $project: {
+          productId: "$products.productId",
+          hasVariations: { $gt: [{ $size: "$products.variations" }, 0] },
+          variations: "$products.variations",
+          quantity: { $ifNull: ["$products.quantity", 1] },
+          price: { $ifNull: ["$products.price", 0] },
+          checkout: { $ifNull: ["$products.checkout", false] },
+        },
+      },
+      {
+        $project: {
+          productId: 1,
+          variations: {
+            $cond: {
+              if: "$hasVariations",
+              then: "$variations",
+              else: [
+                {
+                  price: "$price",
+                  quantity: "$quantity",
+                  checkout: "$checkout",
+                },
               ],
             },
           },
         },
       },
+      { $unwind: "$variations" },
+      { $match: { "variations.checkout": true } },
+      {
+        $group: {
+          _id: null,
+          products: {
+            $push: { productId: "$productId", variation: "$variations" },
+          },
+          totalItems: { $sum: "$variations.quantity" },
+          totalPrice: {
+            $sum: { $multiply: ["$variations.price", "$variations.quantity"] },
+          },
+        },
+      },
     ]).session(session);
 
-    if (cartItems.length === 0) {
+    // Kiểm tra nếu giỏ hàng rỗng
+    if (!cartItems.length)
       throw new ApiError(StatusCodes.NOT_FOUND, "Cart is empty!");
-    }
 
     const { products, totalItems, totalPrice } = cartItems[0];
 
-    // Kiểm tra stock & trừ stock
+    // Kiểm tra sản phẩm có đầy đủ thông tin không
     for (const item of products) {
-      const product = await ProductModel.findOne({
-        _id: item.productId,
-      }).session(session);
-      if (!product || product.stock < item.variation.quantity) {
+      if (!item.variation.price) {
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          `Product ${item.productId} is missing price!`
+        );
+      }
+      if (!item.variation.quantity) {
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          `Product ${item.productId} is missing quantity!`
+        );
+      }
+    }
+
+    // Kiểm tra stock & trừ stock trong một lần truy vấn
+    const productIds = products.map((item) => item.productId);
+    const productList = await ProductModel.find({
+      _id: { $in: productIds },
+    }).session(session);
+
+    // Tạo map để kiểm tra stock nhanh hơn
+    const productStockMap = new Map(
+      productList.map((p) => [p._id.toString(), p])
+    );
+
+    for (const item of products) {
+      const product = productStockMap.get(item.productId.toString());
+      if (!product) {
+        throw new ApiError(
+          StatusCodes.NOT_FOUND,
+          `Product ${item.productId} not found!`
+        );
+      }
+      if (product.stock < item.variation.quantity) {
         throw new ApiError(
           StatusCodes.BAD_REQUEST,
           `Not enough stock for product ${item.productId}`
         );
       }
-
-      // Trừ stock
       product.stock -= item.variation.quantity;
-      await product.save({ session });
     }
+
+    // Cập nhật stock trong một lần thay vì từng sản phẩm riêng lẻ
+    await Promise.all(productList.map((p) => p.save({ session })));
 
     // Tạo đơn hàng nháp
     const newOrder = await OrderModel.create(
@@ -92,14 +141,21 @@ const createOrder = async (data) => {
       { session }
     );
 
-    // Nếu thanh toán COD, hoàn tất đơn hàng
+    // Xóa các biến thể đã checkout khỏi giỏ hàng
     await CartModel.updateOne(
       { userId },
       { $pull: { "products.$[].variations": { checkout: true } } },
       { session }
     );
 
-    // Nếu là thanh toán MOMO, gọi API tạo thanh toán MOMO
+    // Xóa sản phẩm nếu không còn biến thể nào
+    await CartModel.updateMany(
+      { userId },
+      { $pull: { products: { variations: { $size: 0 } } } },
+      { session }
+    );
+
+    // Nếu thanh toán bằng MOMO, tạo link thanh toán
     if (paymentMethod === "MOMO") {
       const orderId = newOrder[0]._id.toString();
       const paymentUrl = await momoService.createMomoPayment({
@@ -108,17 +164,18 @@ const createOrder = async (data) => {
         orderInfo: "Thanh toán đơn hàng",
         redirectUrl: "http://localhost:5173/thanks",
         ipnUrl:
-          "https://d48c-112-197-30-44.ngrok-free.app/v1/api/payment/momo/callback",
+          process.env.MOMO_IPN_URL ||
+          "http://localhost:5000/v1/api/payment/momo/callback",
         extraData: "",
       });
 
-      // Commit transaction
+      // Commit transaction và trả về link thanh toán
       await session.commitTransaction();
       session.endSession();
-
       return { success: true, message: "Redirect to MOMO", paymentUrl };
     }
 
+    // Commit transaction
     await session.commitTransaction();
     session.endSession();
 

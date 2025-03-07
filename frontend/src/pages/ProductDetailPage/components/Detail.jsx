@@ -12,7 +12,7 @@ function Detail({ data, quantity, setQuantity }) {
   const [addToCart, { isLoading: isLoadingCreateNew }] = useAddToCartMutation();
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [pricing, setPricing] = useState({
-    price: data?.price,
+    price: data?.minPrice,
     stock: data?.totalStock,
   });
 

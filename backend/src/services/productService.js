@@ -126,105 +126,64 @@ const getCategoryBreadcrumb = async (categorySlug) => {
 
 const getProductBySlug = async (slug) => {
   try {
-    // Define the aggregation pipeline
-    const productsPipeline = [
-      {
-        $match: {
-          slug: slug, // Match product by slug
-        },
-      },
+    const productPipeline = [
+      { $match: { slug } },
+
+      // Tính toán minPrice từ variations.pricing nếu có
       {
         $addFields: {
-          // Calculate the minimum price across variations
-          minVariationPrice: {
-            $reduce: {
-              input: { $ifNull: ["$variations.pricing", []] },
-              initialValue: null,
-              in: {
-                $cond: [
-                  {
-                    $or: [
-                      { $eq: ["$$value", null] },
-                      { $lt: ["$$this.price", "$$value"] },
-                    ],
-                  },
-                  "$$this.price",
-                  "$$value",
-                ],
+          minPrice: {
+            $cond: {
+              if: {
+                $gt: [{ $size: { $ifNull: ["$variations.pricing", []] } }, 0],
+              },
+              then: { $min: "$variations.pricing.price" },
+              else: "$price",
+            },
+          },
+        },
+      },
+
+      // Tính tổng stock và tổng sold
+      {
+        $addFields: {
+          totalStock: {
+            $sum: {
+              $cond: {
+                if: {
+                  $gt: [{ $size: { $ifNull: ["$variations.pricing", []] } }, 0],
+                },
+                then: "$variations.pricing.stock",
+                else: "$stock",
+              },
+            },
+          },
+          totalSold: {
+            $sum: {
+              $cond: {
+                if: {
+                  $gt: [{ $size: { $ifNull: ["$variations.pricing", []] } }, 0],
+                },
+                then: "$variations.pricing.sold",
+                else: "$sold",
               },
             },
           },
         },
       },
-      {
-        $addFields: {
-          minPrice: {
-            $cond: [
-              { $ifNull: ["$minVariationPrice", false] },
-              { $min: ["$price", "$minVariationPrice"] },
-              "$price",
-            ],
-          },
-        },
-      },
-      {
-        $group: {
-          _id: "$_id",
-          name: { $first: "$name" },
-          description: { $first: "$description" },
-          price: { $first: "$price" },
-          slug: { $first: "$slug" },
-          mainImg: { $first: "$mainImg" },
-          img: { $first: "$img" },
-          stock: { $first: "$stock" },
-          sold: { $first: "$sold" },
-          variations: { $first: "$variations" },
-          minPrice: { $first: "$minPrice" },
-          // Calculate total stock from variations if available
-          totalStock: {
-            $sum: {
-              $cond: [
-                {
-                  $gt: [{ $size: { $ifNull: ["$variations.pricing", []] } }, 0], // Kiểm tra nếu mảng pricing có phần tử
-                },
-                "$variations.pricing.stock", // Nếu có giá trị trong mảng pricing, lấy stock của variations
-                "$stock", // Nếu mảng pricing rỗng, lấy stock của sản phẩm chính
-              ],
-            },
-          },
 
-          // Calculate total sold from variations if available
-          totalSold: {
-            $sum: {
-              $cond: [
-                {
-                  $gt: [{ $size: { $ifNull: ["$variations.pricing", []] } }, 0], // Kiểm tra nếu mảng pricing có phần tử
-                },
-                "$variations.pricing.sold", // Nếu có giá trị trong mảng pricing, lấy sold của variations
-                "$sold", // Nếu mảng pricing rỗng, lấy sold của sản phẩm chính
-              ],
-            },
-          },
-
-          createdAt: { $first: "$createdAt" },
-          type: { $first: "$type" },
-          status: { $first: "$status" },
-        },
-      },
+      // Kết hợp với danh mục sản phẩm
       {
         $lookup: {
-          from: "categories", // Join with categories collection
-          localField: "type", // Field in product
-          foreignField: "_id", // Field in categories collection
-          as: "type",
+          from: "categories",
+          localField: "type",
+          foreignField: "_id",
+          as: "category",
         },
       },
-      {
-        $unwind: {
-          path: "$type", // Unwind the type array
-          preserveNullAndEmptyArrays: true,
-        },
-      },
+      { $unwind: { path: "$category", preserveNullAndEmptyArrays: true } },
+
+      // Chỉ lấy các trường cần thiết
       {
         $project: {
           _id: 1,
@@ -237,39 +196,32 @@ const getProductBySlug = async (slug) => {
           stock: 1,
           sold: 1,
           variations: 1,
+          totalStock: 1,
           totalSold: 1,
           minPrice: 1,
-          totalStock: 1,
-          type: "$type.name", // Extract type name
-          categorySlug: "$type.slug", // Extract category slug (added this)
+          type: "$category.name",
+          categorySlug: "$category.slug",
           status: 1,
           createdAt: 1,
         },
       },
     ];
 
-    // Run the aggregation pipeline on the Product model
-    const product = await ProductModel.aggregate(productsPipeline).exec();
+    // Thực hiện truy vấn
+    const productResult = await ProductModel.aggregate(productPipeline);
 
-    // If the product exists, return the product, otherwise return null
-    if (product.length > 0) {
-      const currentProduct = product[0]; // Get the first product from the array
+    if (productResult.length === 0) return null;
 
-      // Lấy breadcrumb của danh mục tương ứng
-      const categoryBreadcrumb = await getCategoryBreadcrumb(
-        currentProduct.categorySlug // Use the categorySlug here
-      );
+    // Lấy breadcrumb của danh mục
+    const currentProduct = productResult[0];
+    const categoryBreadcrumb = await getCategoryBreadcrumb(
+      currentProduct.categorySlug
+    );
 
-      // Trả về thông tin sản phẩm cùng với breadcrumb
-      return {
-        ...currentProduct,
-        categoryBreadcrumb, // Thêm breadcrumb vào kết quả sản phẩm
-      };
-    } else {
-      return null; // Return null if no product is found
-    }
+    return { ...currentProduct, categoryBreadcrumb };
   } catch (error) {
-    throw error; // Handle any errors
+    console.error("Error in getProductBySlug:", error);
+    throw error;
   }
 };
 
@@ -305,25 +257,32 @@ const getAllProducts = async (req, res) => {
 
 const getPageProducts = async (page, limit, category, search, sort) => {
   try {
-    const currentCategory = category
-      ? await CategoryModel.findOne({ slug: category })
-      : null;
+    // Xác định bộ lọc danh mục
+    let categoryFilter = {};
+    if (category) {
+      const currentCategory = await CategoryModel.findOne({ slug: category });
+      if (currentCategory) {
+        categoryFilter = { type: currentCategory._id };
+      }
+    }
 
-    const categoryFilter = currentCategory
-      ? { type: { $in: [currentCategory._id] } }
-      : {};
-
+    // Xác định bộ lọc tìm kiếm
     const searchFilter = search
       ? { name: { $regex: search, $options: "i" } }
       : {};
 
-    const filters = { ...categoryFilter, ...searchFilter };
+    // Kết hợp các bộ lọc
+    const filters = {
+      ...categoryFilter,
+      ...searchFilter,
+      status: true, // Chỉ lấy sản phẩm đang hoạt động
+    };
 
+    // Tính toán skip cho phân trang
     const skip = (page - 1) * limit;
 
-    // Tạo đối tượng sort theo yêu cầu
+    // Xác định cách sắp xếp
     let sortStage = {};
-
     switch (sort) {
       case "sold-desc":
         sortStage = { totalSold: -1 };
@@ -338,79 +297,96 @@ const getPageProducts = async (page, limit, category, search, sort) => {
         sortStage = { createdAt: -1 };
         break;
       default:
-        // Nếu không có sort hợp lệ, bỏ qua giai đoạn $sort
-        sortStage = null;
+        sortStage = { createdAt: -1 }; // Mặc định: mới nhất
         break;
     }
 
+    // Pipeline cho aggregation
     const productsPipeline = [
       { $match: filters },
-      { $skip: skip },
-      { $limit: limit },
+
+      // Chuẩn hóa pricing: Nếu là object thì chuyển thành mảng
       {
-        $unwind: {
-          path: "$variations.pricing",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-      {
-        $group: {
-          _id: "$_id",
-          name: { $first: "$name" },
-          description: { $first: "$description" },
-          price: { $first: "$price" },
-          slug: { $first: "$slug" },
-          mainImg: { $first: "$mainImg" },
-          img: { $first: "$img" },
-          stock: { $first: "$stock" },
-          sold: { $first: "$sold" },
-          variations: { $first: "$variations" },
-          minPrice: {
-            $min: {
-              $cond: [
-                { $ifNull: ["$variations.pricing.price", false] },
-                "$variations.pricing.price",
-                "$price",
-              ],
+        $addFields: {
+          normalizedPricing: {
+            $cond: {
+              if: { $isArray: "$variations.pricing" },
+              then: "$variations.pricing",
+              else: {
+                $cond: {
+                  if: { $eq: [{ $type: "$variations.pricing" }, "object"] },
+                  then: [{ $ifNull: ["$variations.pricing", {}] }],
+                  else: [],
+                },
+              },
             },
           },
+        },
+      },
+
+      // Tính toán minPrice từ variations.pricing nếu có
+      {
+        $addFields: {
+          minPrice: {
+            $cond: {
+              if: {
+                $gt: [{ $size: { $ifNull: ["$normalizedPricing", []] } }, 0],
+              },
+              then: { $min: "$normalizedPricing.price" },
+              else: "$price",
+            },
+          },
+        },
+      },
+
+      // Tính toán tổng tồn kho và tổng số lượng đã bán
+      {
+        $addFields: {
           totalStock: {
             $sum: {
-              $cond: [
-                { $ifNull: ["$variations.pricing.stock", false] },
-                "$variations.pricing.stock",
-                "$stock",
-              ],
+              $map: {
+                input: "$normalizedPricing",
+                as: "variant",
+                in: { $ifNull: ["$$variant.stock", 0] },
+              },
             },
           },
           totalSold: {
             $sum: {
-              $cond: [
-                { $ifNull: ["$variations.pricing.sold", 0] },
-                "$variations.pricing.sold",
-                "$sold",
-              ],
+              $map: {
+                input: "$normalizedPricing",
+                as: "variant",
+                in: { $ifNull: ["$$variant.sold", 0] },
+              },
             },
           },
-          createdAt: { $first: "$createdAt" },
-          type: { $first: "$type" },
-          status: { $first: "$status" },
         },
       },
+
+      // Sắp xếp sau khi đã tính toán totalSold và minPrice
+      { $sort: sortStage },
+
+      // Phân trang sau khi đã sắp xếp
+      { $skip: skip },
+      { $limit: limit },
+
+      // Lookup để lấy thông tin danh mục
       {
         $lookup: {
           from: "categories",
           localField: "type",
           foreignField: "_id",
-          as: "type",
+          as: "typeInfo",
         },
       },
       {
         $unwind: {
-          path: "$type",
+          path: "$typeInfo",
           preserveNullAndEmptyArrays: true,
         },
       },
+
+      // Project để chỉ lấy các trường cần thiết
       {
         $project: {
           _id: 1,
@@ -425,22 +401,27 @@ const getPageProducts = async (page, limit, category, search, sort) => {
           totalSold: 1,
           minPrice: 1,
           totalStock: 1,
-          type: "$type.name",
+          rating: 1,
+          numReviews: 1,
+          type: {
+            _id: "$typeInfo._id",
+            name: "$typeInfo.name",
+            slug: "$typeInfo.slug",
+          },
           status: 1,
           createdAt: 1,
+          tag: 1,
         },
       },
     ];
 
-    // Thêm giai đoạn $sort nếu sortStage không phải là null
-    if (sortStage) {
-      productsPipeline.push({ $sort: sortStage });
-    }
-
+    // Thực hiện truy vấn để lấy sản phẩm
     const products = await ProductModel.aggregate(productsPipeline);
 
+    // Đếm tổng số sản phẩm phù hợp với điều kiện lọc
     const totalProducts = await ProductModel.countDocuments(filters);
 
+    // Trả về kết quả bao gồm thông tin phân trang và danh sách sản phẩm
     return {
       page,
       limit,
@@ -449,6 +430,7 @@ const getPageProducts = async (page, limit, category, search, sort) => {
       products,
     };
   } catch (error) {
+    console.error("Error in getPageProducts:", error);
     throw error;
   }
 };
@@ -456,56 +438,77 @@ const getPageProducts = async (page, limit, category, search, sort) => {
 const getTopSoldProducts = async () => {
   try {
     const products = await ProductModel.aggregate([
+      // Chuẩn hóa pricing: Nếu là object thì chuyển thành mảng
       {
-        $unwind: {
-          path: "$variations.pricing",
-          preserveNullAndEmptyArrays: true,
-        },
-      },
-
-      {
-        $group: {
-          _id: "$_id",
-          name: { $first: "$name" },
-          description: { $first: "$description" },
-          price: { $first: "$price" },
-          slug: { $first: "$slug" },
-          mainImg: { $first: "$mainImg" },
-          img: { $first: "$img" },
-          stock: { $first: "$stock" },
-          sold: { $first: "$sold" },
-          variations: { $first: "$variations" },
-          totalSold: {
-            $sum: {
-              $cond: [
-                { $ifNull: ["$variations.pricing.sold", 0] },
-                "$variations.pricing.sold",
-                "$sold",
-              ],
+        $addFields: {
+          normalizedPricing: {
+            $cond: {
+              if: { $isArray: "$variations.pricing" },
+              then: "$variations.pricing",
+              else: {
+                $cond: {
+                  if: { $eq: [{ $type: "$variations.pricing" }, "object"] },
+                  then: [{ $ifNull: ["$variations.pricing", {}] }],
+                  else: [],
+                },
+              },
             },
           },
         },
       },
 
+      // Tính minPrice và totalSold
+      {
+        $addFields: {
+          minPrice: {
+            $cond: {
+              if: {
+                $gt: [{ $size: { $ifNull: ["$normalizedPricing", []] } }, 0],
+              },
+              then: { $min: "$normalizedPricing.price" },
+              else: "$price",
+            },
+          },
+          totalSold: {
+            $add: [
+              {
+                $sum: {
+                  $map: {
+                    input: "$normalizedPricing",
+                    as: "variant",
+                    in: { $ifNull: ["$$variant.sold", 0] },
+                  },
+                },
+              },
+              "$sold",
+            ],
+          },
+        },
+      },
+
+      // Sắp xếp theo `totalSold` giảm dần
       { $sort: { totalSold: -1 } },
 
+      // Giới hạn 20 sản phẩm
       { $limit: 20 },
 
+      // Lookup để lấy thông tin danh mục
       {
         $lookup: {
           from: "categories",
           localField: "type",
           foreignField: "_id",
-          as: "type",
+          as: "typeInfo",
         },
       },
       {
         $unwind: {
-          path: "$type",
+          path: "$typeInfo",
           preserveNullAndEmptyArrays: true,
         },
       },
 
+      // Chọn các trường cần thiết
       {
         $project: {
           _id: 1,
@@ -515,16 +518,22 @@ const getTopSoldProducts = async () => {
           mainImg: 1,
           img: 1,
           price: 1,
+          minPrice: 1,
           stock: 1,
           variations: 1,
           totalSold: 1,
-          type: "$type.name",
+          type: {
+            _id: "$typeInfo._id",
+            name: "$typeInfo.name",
+            slug: "$typeInfo.slug",
+          },
         },
       },
     ]);
 
     return products;
   } catch (error) {
+    console.error("Error in getTopSoldProducts:", error);
     throw error;
   }
 };

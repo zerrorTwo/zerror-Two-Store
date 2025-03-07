@@ -4,7 +4,8 @@ import CardMedia from "@mui/material/CardMedia";
 import PropTypes from "prop-types"; // Import PropTypes
 import { PRIMITIVE_URL } from "../../redux/constants";
 
-function CheckoutProduct({ item, name, img }) {
+function CheckoutProduct({ item, name, img, price }) {
+  console.log(item);
   return (
     <Box>
       <Grid2 container sx={{ alignItems: "center" }}>
@@ -74,7 +75,7 @@ function CheckoutProduct({ item, name, img }) {
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
                     currency: "VND",
-                  }).format(item?.variation?.price || item?.price)}
+                  }).format(item?.price || price)}
                 </Typography>
               </Box>
             </Grid2>
@@ -84,7 +85,7 @@ function CheckoutProduct({ item, name, img }) {
                   Qty
                 </Typography>
                 <Typography fontWeight="bold" color="secondary.main">
-                  {item?.variation?.quantity || item?.quantity}
+                  {item?.quantity}
                 </Typography>
               </Box>
             </Grid2>
@@ -98,8 +99,7 @@ function CheckoutProduct({ item, name, img }) {
                     style: "currency",
                     currency: "VND",
                   }).format(
-                    item?.variation?.price * item?.variation?.quantity ||
-                      item?.price * item?.quantity
+                    item?.price * item?.quantity || price * item?.quantity
                   )}
                 </Typography>
               </Box>
@@ -114,6 +114,7 @@ function CheckoutProduct({ item, name, img }) {
 CheckoutProduct.propTypes = {
   item: PropTypes.object.isRequired,
   name: PropTypes.string.isRequired,
+  price: PropTypes.number.isRequired,
   img: PropTypes.string.isRequired,
 };
 

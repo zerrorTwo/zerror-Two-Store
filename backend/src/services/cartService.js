@@ -64,10 +64,10 @@ const addToCart = async (userId, products = []) => {
     }
 
     if (newProduct?.variations?.pricing.length === 0) {
+      products[0].variations[0].price = newProduct.price;
       userCart.products = [
         {
           ...products[0], // Lưu tất cả thông tin sản phẩm
-          price: newProduct.price, // Thêm giá vào sản phẩm
         },
       ];
     } else {

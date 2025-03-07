@@ -97,7 +97,7 @@ function ProductMini({ item, loading = false }) {
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
                     currency: "VND",
-                  }).format(item?.price || 10000)}
+                  }).format(item?.minPrice || item?.price || 10000)}
                 </Typography>
               )}
               {!loading && (
