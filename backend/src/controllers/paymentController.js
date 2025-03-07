@@ -4,13 +4,12 @@ import { momoService } from "../services/momoService.js";
 import ApiError from "../utils/ApiError.js";
 
 const createMomoPayment = asyncHandeler(async (req, res) => {
-  const amount = "50000"; // Hardcode amount
-  const orderInfo = "Test payment with MoMo"; // Hardcode orderInfo
-  const redirectUrl = "http://localhost:5173/thanks"; // Hardcode redirectUrl
+  const { orderId, amount, orderInfo } = req.body;
+  const redirectUrl = "http://localhost:5173/thanks";
   const ipnUrl =
-    "https://d48c-112-197-30-44.ngrok-free.app/v1/api/payment/momo/callback"; // Hardcode ipnUrl
-  const extraData = ""; // Hardcode extraData
-  const orderId = Math.random().toString(36).substr(2, 9); // Generate random orderId
+    process.env.MOMO_IPN_URL ||
+    "https://93b5-125-235-232-178.ngrok-free.app/v1/api/payment/momo/callback";
+  const extraData = "";
 
   try {
     const response = await momoService.createMomoPayment({

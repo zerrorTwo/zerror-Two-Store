@@ -25,7 +25,7 @@ function Cart() {
   const userId = useSelector(selectCurrentUser)?._id;
   const { data, refetch } = useGetAllCartQuery(userId);
   const navigate = useNavigate();
-  const [updateAllCheckout, { isLoading }] = useUpdateAllCheckoutMutation(); // ✅ Dùng isLoading
+  const [updateAllCheckout, { isLoading }] = useUpdateAllCheckoutMutation();
 
   const [allChecked, setAllChecked] = useState(false);
 
@@ -55,7 +55,7 @@ function Cart() {
   return (
     <Container>
       <Typography variant="h6" gutterBottom>
-        Your Shopping Cart ({data?.totalItems})
+        Your Shopping Cart
       </Typography>
       <Grid2 container spacing={2}>
         <Grid2 size={8.5}>
@@ -127,6 +127,7 @@ function Cart() {
                       key={`${product.productId}-${index}`}
                       productId={product?.productId}
                       productName={product?.productName}
+                      productPrice={product?.price}
                       productSlug={product?.productSlug}
                       productImages={product?.productImages}
                       checkout={variation?.checkout}

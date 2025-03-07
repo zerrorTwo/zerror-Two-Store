@@ -13,7 +13,7 @@ const CommentCom = lazy(() => import("./components/CommentCom"));
 
 function ProductDetail() {
   const { slug } = useParams();
-  const { data, isLoading, error } = useGetProductBySlugQuery(slug); // Include isLoading and error
+  const { data, isLoading, error } = useGetProductBySlugQuery(slug); // Include isLoading and error\
 
   // Handle breadcrumb click
   function handleClick(event) {

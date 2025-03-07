@@ -9,19 +9,19 @@ export const checkoutSlice = apiSlice.injectEndpoints({
         method: "GET",
       }),
       providesTags: ["Order"],
-      keepUnusedDataFor: 5,
+      keepUnusedDataFor: 1,
     }),
 
     createOrder: builder.mutation({
       query: (data) => ({
         url: `${CHECKOUT_URL}`,
         method: "POST",
-        body: JSON.stringify(data), // Chuyển thành JSON
+        body: data,
         headers: {
           "Content-Type": "application/json",
         },
       }),
-      invalidatesTags: ["Order"],
+      invalidatesTags: ["Order", "Cart"],
     }),
   }),
 });

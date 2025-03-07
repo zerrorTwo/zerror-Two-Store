@@ -80,14 +80,15 @@ const createMomoPayment = async ({
 const verifyMomoPayment = (data) => {
   try {
     const { signature, ...params } = data;
-    const signatureRaw = Object.keys(params)
-      .sort()
-      .map((key) => `${key}=${params[key]}`)
-      .join("&");
+
+    const rawSignature = `accessKey=${accessKey}&amount=${params.amount}&extraData=${params.extraData}&message=${params.message}&orderId=${params.orderId}&orderInfo=${params.orderInfo}&orderType=${params.orderType}&partnerCode=${params.partnerCode}&payType=${params.payType}&requestId=${params.requestId}&responseTime=${params.responseTime}&resultCode=${params.resultCode}&transId=${params.transId}`;
+
+    // Generate signature
     const genSignature = crypto
       .createHmac("sha256", secretKey)
-      .update(signatureRaw)
+      .update(rawSignature)
       .digest("hex");
+
     return genSignature === signature;
   } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
@@ -96,8 +97,11 @@ const verifyMomoPayment = (data) => {
 
 const handleMomoCallback = async (req) => {
   try {
-    const { orderId, resultCode, signature } = req.body;
-    if (!verifyMomoPayment({ orderId, resultCode, signature })) {
+    const { orderId, resultCode } = req.body;
+    console.log(req.body);
+
+    if (!verifyMomoPayment(req.body)) {
+      console.log(123);
       return { success: false, message: "Invalid signature" };
     }
 
@@ -122,7 +126,6 @@ const handleMomoCallback = async (req) => {
 const transactionStatus = async (orderId) => {
   try {
     const requestId = `${partnerCode}-${Date.now()}`;
-    const endpoint = "https://test-payment.momo.vn/v2/gateway/api/query";
 
     // Tạo rawSignature theo yêu cầu của Momo
     const rawSignature = `accessKey=${accessKey}&orderId=${orderId}&partnerCode=${partnerCode}&requestId=${requestId}`;

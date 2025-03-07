@@ -9,7 +9,7 @@ export const cartApiSlice = apiSlice.injectEndpoints({
         method: "GET",
       }),
       providesTags: ["Cart"],
-      keepUnusedDataFor: 5,
+      keepUnusedDataFor: 1,
     }),
 
     getMiniCart: builder.query({
@@ -18,7 +18,7 @@ export const cartApiSlice = apiSlice.injectEndpoints({
         method: "GET",
       }),
       providesTags: ["Cart"],
-      keepUnusedDataFor: 5,
+      keepUnusedDataFor: 1,
     }),
 
     addToCart: builder.mutation({

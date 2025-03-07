@@ -39,6 +39,8 @@ function CheckoutPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cash");
   const navigate = useNavigate();
 
+  console.log(data);
+
   const [createOrder, { isLoading }] = useCreateOrderMutation();
 
   useEffect(() => {
@@ -84,8 +86,7 @@ function CheckoutPage() {
       const success = await createOrder(data).unwrap();
       console.log(success);
       if (success?.paymentUrl) {
-        console.log(success?.paymentUrl?.payUrl);
-        navigate(success?.paymentUrl?.payUrl);
+        window.location.href = success?.paymentUrl?.payUrl;
       } else {
         navigate("/profile");
       }
@@ -100,7 +101,7 @@ function CheckoutPage() {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
-    }).format(data?.totalPrice - 30000);
+    }).format(data?.totalPrice + 30000);
   }, [data?.totalPrice]);
 
   return (
@@ -180,6 +181,7 @@ function CheckoutPage() {
                   <CheckoutProduct
                     name={product?.productName}
                     img={product?.productImages}
+                    price={product?.price}
                     item={variation}
                   />
                 </Box>

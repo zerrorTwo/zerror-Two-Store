@@ -29,6 +29,7 @@ import QuantityGroupWithAPI from "../QuantityGroupApi";
 function CartDetailItem({
   productId,
   productName,
+  productPrice,
   productSlug,
   productImages,
   checkout,
@@ -206,7 +207,7 @@ function CartDetailItem({
                 {new Intl.NumberFormat("vi-VN", {
                   style: "currency",
                   currency: "VND",
-                }).format(variation.price)}
+                }).format(variation.price || productPrice)}
               </Typography>
             </Grid2>
             <Grid2 size={5}>
@@ -248,6 +249,7 @@ function CartDetailItem({
 CartDetailItem.propTypes = {
   productId: PropTypes.string.isRequired,
   productName: PropTypes.string.isRequired,
+  productPrice: PropTypes.number.isRequired,
   productSlug: PropTypes.string.isRequired,
   productImages: PropTypes.string.isRequired,
   checkout: PropTypes.bool.isRequired,
