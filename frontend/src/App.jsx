@@ -21,6 +21,8 @@ import CheckoutPage from "./pages/CheckoutPage/CheckoutPage";
 import Thanks from "./pages/Thanks";
 import CateDashBoard from "./pages/Admin/CateDashboard";
 import ProductDashboard from "./pages/Admin/ProductDashboard";
+import ProfileDashBoard from "./pages/ProfilePage/ProfileDasBoard";
+import MyOrder from "./pages/ProfilePage/MyOrder";
 
 function App() {
   const dispatch = useDispatch();
@@ -73,11 +75,16 @@ function App() {
           <Route path="cart" element={<Cart />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="thanks" element={<Thanks />} />
-          <Route path="profile" element={<Profile />} />
+          <Route path="profile" element={<Profile />}>
+            <Route index element={<ProfileDashBoard />} />{" "}
+            {/* Route mặc định */}
+            <Route path="dashboard" element={<ProfileDashBoard />} />
+            <Route path="my-order" element={<MyOrder />} />
+          </Route>
 
           <Route element={<AdminAuth />}>
             <Route path="user" element={<UserDashboard />} />
-            <Route path="category" element={<CategoryDashBoard />} />
+            <Route path="category" index element={<CategoryDashBoard />} />
           </Route>
         </Route>
       </Route>

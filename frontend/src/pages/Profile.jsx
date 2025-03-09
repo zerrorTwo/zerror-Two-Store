@@ -8,7 +8,7 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import { memo } from "react";
+import { memo, useEffect, useState } from "react";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
@@ -16,10 +16,23 @@ import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import NavAdminItem from "../components/NavAdminItem";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../redux/features/auth/authSlice";
+import { Outlet } from "react-router";
+import { useLocation } from "react-router";
 
 function Profile() {
   const theme = useTheme();
   const MemoizedNavAdminItem = memo(NavAdminItem);
+  const user = useSelector(selectCurrentUser);
+  const location = useLocation(); // Get the current location
+  const [selectedItem, setSelectedItem] = useState("");
+
+  useEffect(() => {
+    const path = location.pathname.split("/")[2] || "dashboard";
+    setSelectedItem(path);
+  }, [location]);
+
   return (
     <Container sx={{ pb: 2 }}>
       <Grid2 container spacing={2}>
@@ -34,9 +47,26 @@ function Profile() {
             borderColor={"silver"}
             alignItems={"center"}
           >
-            <Box display={"flex"} alignItems={"center"} gap={1} mb={2}>
+            <Box
+              display={"flex"}
+              alignItems={"center"}
+              gap={1}
+              mb={2}
+              px={2}
+              flexDirection={"column"}
+            >
               <Avatar />
-              <Typography variant="h6">Anhnam</Typography>
+              <Typography
+                variant="body1"
+                sx={{
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  maxWidth: "200px", // Đặt giới hạn chiều rộng phù hợp
+                }}
+              >
+                {user?.userName}
+              </Typography>
             </Box>
             <List
               sx={{
@@ -47,8 +77,8 @@ function Profile() {
               }}
             >
               <MemoizedNavAdminItem
-                isSelected
-                to="/layout"
+                isSelected={selectedItem === "dashboard"}
+                link="/profile/dashboard"
                 icon={<DashboardOutlinedIcon />}
                 text="Dashboard"
               />
@@ -57,7 +87,8 @@ function Profile() {
                 sx={{ bgcolor: theme.palette.text.primary }}
               />
               <MemoizedNavAdminItem
-                to="/layout"
+                link="/profile/my-order"
+                isSelected={selectedItem === "my-order"}
                 icon={<ShoppingCartOutlinedIcon />}
                 text="My Orders"
               />
@@ -66,7 +97,7 @@ function Profile() {
                 sx={{ bgcolor: theme.palette.text.primary }}
               />
               <MemoizedNavAdminItem
-                to="/layout"
+                link="/profile"
                 icon={<FavoriteBorderOutlinedIcon />}
                 text="My Favorites"
               />
@@ -75,7 +106,7 @@ function Profile() {
                 sx={{ bgcolor: theme.palette.text.primary }}
               />
               <MemoizedNavAdminItem
-                to="/layout"
+                link="/profile"
                 icon={<RateReviewOutlinedIcon />}
                 text="My Reviews"
               />
@@ -84,7 +115,7 @@ function Profile() {
                 sx={{ bgcolor: theme.palette.text.primary }}
               />
               <MemoizedNavAdminItem
-                to="/layout"
+                link="/profile"
                 icon={<HistoryOutlinedIcon />}
                 text="Recently Visited"
               />
@@ -93,7 +124,16 @@ function Profile() {
                 sx={{ bgcolor: theme.palette.text.primary }}
               />
               <MemoizedNavAdminItem
-                to="/layout"
+                link="/profile"
+                icon={<AccountCircleOutlinedIcon />}
+                text="My Account"
+              />
+              <Divider
+                variant="middle"
+                sx={{ bgcolor: theme.palette.text.primary }}
+              />
+              <MemoizedNavAdminItem
+                link="/layout"
                 icon={<AccountCircleOutlinedIcon />}
                 text="My Account"
               />
@@ -102,15 +142,14 @@ function Profile() {
         </Grid2>
         <Grid2 size={9.5}>
           <Box
-            pt={2}
-            maxHeight={"500px"}
-            minHeight={"500px"}
+            minHeight={"100%"}
             sx={{ overflowY: "auto" }}
             borderRadius={2}
-            height={"200px"}
             border={"1px solid"}
             borderColor={"silver"}
-          ></Box>
+          >
+            <Outlet />
+          </Box>
         </Grid2>
       </Grid2>
     </Container>

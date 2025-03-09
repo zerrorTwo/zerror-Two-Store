@@ -74,6 +74,8 @@ const orderSchema = new mongoose.Schema(
 
     // Ghi chú đơn hàng
     notes: { type: String, default: "" },
+
+    paymentUrl: { type: String },
   },
   { timestamps: true }
 );
