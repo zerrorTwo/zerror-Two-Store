@@ -12,6 +12,15 @@ export const checkoutSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 1,
     }),
 
+    getUserTotalOrder: builder.query({
+      query: ({ userId, time }) => ({
+        url: `${CHECKOUT_URL}/get-total/?userId=${userId}&time=${time}`,
+        method: "GET",
+      }),
+      providesTags: ["Order"],
+      keepUnusedDataFor: 5,
+    }),
+
     createOrder: builder.mutation({
       query: (data) => ({
         url: `${CHECKOUT_URL}`,
@@ -26,5 +35,8 @@ export const checkoutSlice = apiSlice.injectEndpoints({
   }),
 });
 
-export const { useGetProductCheckoutQuery, useCreateOrderMutation } =
-  checkoutSlice;
+export const {
+  useGetProductCheckoutQuery,
+  useCreateOrderMutation,
+  useLazyGetUserTotalOrderQuery,
+} = checkoutSlice;

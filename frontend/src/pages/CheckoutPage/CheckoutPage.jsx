@@ -85,11 +85,7 @@ function CheckoutPage() {
     try {
       const success = await createOrder(data).unwrap();
       console.log(success);
-      if (success?.paymentUrl) {
-        window.location.href = success?.paymentUrl?.payUrl;
-      } else {
-        navigate("/profile");
-      }
+      navigate("/profile/my-order");
     } catch (error) {
       toast.error(
         error?.data?.message || "An error occurred while placing the order."

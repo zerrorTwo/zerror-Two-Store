@@ -68,8 +68,8 @@ const NavAdminItem = ({ icon, text, isSelected, link }) => {
 NavAdminItem.propTypes = {
   icon: PropTypes.element.isRequired,
   text: PropTypes.string.isRequired,
-  isSelected: PropTypes.bool.isRequired,
-  link: PropTypes.string.isRequired, // Add link prop
+  isSelected: PropTypes.bool,
+  link: PropTypes.string,
 };
 
 export default NavAdminItem;

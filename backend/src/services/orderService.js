@@ -156,24 +156,26 @@ const createOrder = async (data) => {
     );
 
     // Nếu thanh toán bằng MOMO, tạo link thanh toán
-    if (paymentMethod === "MOMO") {
-      const orderId = newOrder[0]._id.toString();
-      const paymentUrl = await momoService.createMomoPayment({
-        orderId,
-        amount: newOrder[0].finalTotal,
-        orderInfo: "Thanh toán đơn hàng",
-        redirectUrl: "http://localhost:5173/thanks",
-        ipnUrl:
-          process.env.MOMO_IPN_URL ||
-          "http://localhost:5000/v1/api/payment/momo/callback",
-        extraData: "",
-      });
+    // if (paymentMethod === "MOMO") {
+    //   const orderId = newOrder[0]._id.toString();
+    //   const paymentUrl = await momoService.createMomoPayment({
+    //     orderId,
+    //     amount: newOrder[0].finalTotal,
+    //     orderInfo: "Thanh toán đơn hàng",
+    //     redirectUrl: "http://localhost:5173/thanks",
+    //     ipnUrl:
+    //       process.env.MOMO_IPN_URL ||
+    //       "http://localhost:5000/v1/api/payment/momo/callback",
+    //     extraData: "",
+    //   });
 
-      // Commit transaction và trả về link thanh toán
-      await session.commitTransaction();
-      session.endSession();
-      return { success: true, message: "Redirect to MOMO", paymentUrl };
-    }
+    //   newOrder[0].paymentUrl = paymentUrl;
+
+    //   // Commit transaction và trả về link thanh toán
+    //   await session.commitTransaction();
+    //   session.endSession();
+    //   return { success: true, message: "Redirect to MOMO", paymentUrl };
+    // }
 
     // Commit transaction
     await session.commitTransaction();
@@ -197,6 +199,71 @@ const getUserOrder = async (userId) => {
       .populate("addressId", "fullName phoneNumber address")
       .sort({ createdAt: -1 });
     return orders;
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
+const getUserTotalOrder = async (userId, time) => {
+  try {
+    let startDate, endDate;
+    const now = new Date();
+
+    if (time === "year") {
+      startDate = new Date(now.getFullYear(), 0, 1);
+      endDate = new Date(now.getFullYear() + 1, 0, 1);
+    } else if (time === "month") {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    } else if (time === "day") {
+      startDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        0,
+        0,
+        0
+      );
+      endDate = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        23,
+        59,
+        59
+      );
+    } else {
+      throw new Error('Invalid time parameter. Use "day", "month", or "year".');
+    }
+
+    // Truy vấn đơn hàng theo thời gian và userId
+    const orders = await OrderModel.find({
+      userId,
+      createdAt: { $gte: startDate, $lt: endDate },
+    })
+      .select("finalTotal totalItems")
+      .lean();
+
+    // Tổng số đơn hàng
+    const totalOrders = orders.length;
+
+    // Tổng số sản phẩm đã đặt
+    const totalProducts = orders.reduce(
+      (sum, order) => sum + order.totalItems,
+      0
+    );
+
+    // Tổng số tiền đã mua
+    const totalAmountSpent = orders.reduce(
+      (sum, order) => sum + order.finalTotal,
+      0
+    );
+
+    return {
+      totalOrders,
+      totalProducts,
+      totalAmountSpent,
+    };
   } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
@@ -337,5 +404,6 @@ const getProductCheckout = async (userId) => {
 export const orderService = {
   getProductCheckout,
   createOrder,
+  getUserTotalOrder,
   getUserOrder,
 };

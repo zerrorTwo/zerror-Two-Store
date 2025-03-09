@@ -4,13 +4,13 @@ import dotenv from "dotenv";
 import ApiError from "../utils/ApiError.js";
 import { StatusCodes } from "http-status-codes";
 import OrderModel from "../models/orderModel.js";
+import MomoTransaction from "../models/momoModel.js";
 
 dotenv.config();
 
 const partnerCode = process.env.MOMO_PARTNER_CODE;
 const accessKey = process.env.MOMO_ACCESS_KEY;
 const secretKey = process.env.MOMO_SECRET_KEY;
-const momoEndpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
 
 const createMomoPayment = async ({
   orderId,
@@ -97,11 +97,19 @@ const verifyMomoPayment = (data) => {
 
 const handleMomoCallback = async (req) => {
   try {
-    const { orderId, resultCode } = req.body;
-    console.log(req.body);
+    const {
+      orderId,
+      transId,
+      amount,
+      partnerCode,
+      payType,
+      resultCode,
+      message,
+      responseTime,
+      extraData,
+    } = req.body;
 
     if (!verifyMomoPayment(req.body)) {
-      console.log(123);
       return { success: false, message: "Invalid signature" };
     }
 
@@ -113,6 +121,19 @@ const handleMomoCallback = async (req) => {
     order.paymentStatus = resultCode === 0 ? "PAID" : "FAILED";
     order.state = resultCode === 0 ? "CONFIRMED" : "FAILED";
     await order.save();
+
+    // Lưu thông tin giao dịch MoMo vào database
+    await MomoTransaction.create({
+      orderId,
+      transId,
+      amount,
+      partnerCode,
+      payType,
+      resultCode,
+      message,
+      responseTime,
+      extraData,
+    });
 
     return {
       success: true,

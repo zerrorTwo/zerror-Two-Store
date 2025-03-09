@@ -10,6 +10,7 @@ import connectDB from "./src/config/db.js";
 import { errorHandlingMiddleware } from "./src/middlewares/errorMiddleware.js";
 import passportMiddleware from "./src/auth/AuthStrategy/googleStategy.js";
 import { corsOptions } from "./src/config/corsCofig.js";
+// import "./src/jobs/momoJob.js"; // Import file cron job
 
 dotenv.config();
 

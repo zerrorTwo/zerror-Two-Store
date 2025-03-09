@@ -318,8 +318,8 @@ export default function HeaderLayout() {
 
                 {cartPopoverVisible && (
                   <CartPopover
-                    data={data || []}
-                    error={cartError}
+                    data={data || {}}
+                    error={!!cartError}
                     loading={cartLoading}
                     onMouseEnter={handlePopoverOpen}
                     onMouseLeave={handlePopoverClose}

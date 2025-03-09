@@ -63,6 +63,7 @@ function Cart() {
             {/* Cart Header */}
             <Box
               sx={{
+                display: data?.products?.length === 0 ? "none" : "block",
                 border: "1px solid silver",
                 p: 1.5,
                 borderRadius: 1,
