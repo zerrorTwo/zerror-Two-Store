@@ -54,7 +54,7 @@ function QuantityGroup({ quantity, setQuantity }) {
         sx={{
           width: "50px", // Adjust width
           height: "40px",
-          color: theme.palette.secondary.main,
+          // color: theme.palette.secondary.main,
           backgroundColor: "white", // White background for input
           "& .MuiOutlinedInput-root": {
             height: "100%",
@@ -70,7 +70,7 @@ function QuantityGroup({ quantity, setQuantity }) {
             textAlign: "center",
             px: 0,
             fontSize: "0.875rem",
-            color: theme.palette.secondary.main,
+            // color: theme.palette.secondary.main,
           },
           "& .MuiOutlinedInput-notchedOutline": {
             borderColor: alpha(theme.palette.common.black, 0.2), // Default border color

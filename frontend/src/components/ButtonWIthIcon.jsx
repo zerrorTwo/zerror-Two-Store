@@ -5,7 +5,7 @@ import PropTypes from "prop-types"; // Import PropTypes for prop validation
 function ButtonWithIcon({ text, icon, link }) {
   return (
     <Link to={link} style={{ textDecoration: "none" }}>
-      <Button variant="contained" startIcon={<img src={icon} alt="icon" />}>
+      <Button sx={{border: '1px solid silver', color: 'common.black', bgcolor: 'inherit', boxShadow: 'none', '&:hover': {boxShadow: 'none'}}} variant="contained" startIcon={<img src={icon} alt="icon" />}>
         {text}
       </Button>
     </Link>

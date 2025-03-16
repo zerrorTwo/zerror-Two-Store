@@ -10,10 +10,9 @@ import MenuItem from "@mui/material/MenuItem";
 import Menu from "@mui/material/Menu";
 import SearchIcon from "@mui/icons-material/Search";
 import AccountCircle from "@mui/icons-material/AccountCircle";
-import LoginIcon from "@mui/icons-material/Login";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import MoreIcon from "@mui/icons-material/MoreVert";
-import { CardMedia, Container } from "@mui/material";
+import { Button, CardMedia, Container } from "@mui/material";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CartPopover from "./Cart/CartPopover";
@@ -293,7 +292,7 @@ export default function HeaderLayout() {
               sx={{
                 display: { xs: "none", md: "flex" },
                 alignItems: "center",
-                gap: 2,
+                gap: 1,
                 flexGrow: 1,
                 justifyContent: "flex-end",
               }}
@@ -328,29 +327,29 @@ export default function HeaderLayout() {
               </Box>
 
               {!a ? (
-                <Box
-                  mx={1}
-                  px={1}
-                  py={0.5}
-                  border={"1px solid #999"}
-                  borderRadius={2}
-                  display={"flex"}
-                  alignItems={"center"}
-                  gap={1}
-                  sx={{
-                    cursor: "pointer",
-                  }}
-                >
-                  <Typography
+                // <Box
+                //   mx={1}
+                //   px={1}
+                //   py={0.5}
+                //   border={"1px solid #999"}
+                //   borderRadius={2}
+                //   display={"flex"}
+                //   alignItems={"center"}
+                //   gap={1}
+                //   sx={{
+                //     cursor: "pointer",
+                //   }}
+                // >
+                  <Button
                     onClick={() => {
                       navigate("/login");
                     }}
-                    sx={{ display: "inline-block" }}
+                    sx={{ display: "inline-block", textTransform: "none" }}
+                    variant="outlined"
                   >
                     Login
-                  </Typography>
-                  <LoginIcon />
-                </Box>
+                  </Button>
+                // </Box>
               ) : (
                 <IconButton
                   size="large"
@@ -362,12 +361,12 @@ export default function HeaderLayout() {
                   color="inherit"
                   sx={{
                     mr: 0,
-                    bgcolor: "common.white",
+                    // bgcolor: "common.white",
                     borderRadius: 6,
                     py: 1,
-                    "&:hover": {
-                      backgroundColor: "common.white",
-                    },
+                    // "&:hover": {
+                    //   backgroundColor: "common.white",
+                    // },
                   }}
                 >
                   <AccountCircle />

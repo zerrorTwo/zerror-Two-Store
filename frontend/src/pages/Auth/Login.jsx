@@ -89,27 +89,36 @@ function Login() {
     >
       <Container maxWidth="xs">
         <Paper elevation={10} sx={{ padding: 2 }}>
-          <Avatar
-            sx={{
-              bgcolor: theme.palette.common.black,
-              mx: "auto",
-              textAlign: "center",
-              mb: 1,
-              "& .MuiSvgIcon-root": {
-                color: "white",
-              },
-            }}
-          />
-          <Typography
-            component="h1"
-            variant="h5"
-            sx={{
-              fontWeight: "bold",
-              textAlign: "center",
-            }}
-          >
-            Sign In
-          </Typography>
+         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+            <Avatar
+              sx={{
+                bgcolor: 'silver',
+                width: 56,
+                height: 56,
+                mb: 2,
+                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+              }}
+            >
+            </Avatar>
+            <Typography
+              component="h1"
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                color: theme.palette.primary.main,
+                mb: 1,
+              }}
+            >
+              Welcome Back
+            </Typography>
+            <Typography
+              variant="body1"
+              color="text.secondary"
+              align="center"
+            >
+              Sign in to continue to your account
+            </Typography>
+          </Box>
           <Box
             onSubmit={handleSubmit}
             component="form"
@@ -151,7 +160,7 @@ function Login() {
                   sx={{
                     "& .MuiSvgIcon-root": {
                       color: theme.palette.common.black,
-                    },
+                    }
                   }}
                   value="remember"
                   color="primary"
@@ -165,7 +174,7 @@ function Login() {
               fullWidth
               sx={{
                 mt: 1,
-                bgcolor: theme.palette.secondary.main,
+                // bgcolor: theme.palette.secondary.main,
                 color: theme.palette.common.white,
               }}
             >

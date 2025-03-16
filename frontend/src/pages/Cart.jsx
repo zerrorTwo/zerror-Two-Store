@@ -18,7 +18,7 @@ import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../redux/features/auth/authSlice";
 import CartEmpty from "../components/Cart/CartEmpty";
 import { toast } from "react-toastify";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 
 function Cart() {
@@ -28,6 +28,36 @@ function Cart() {
   const [updateAllCheckout, { isLoading }] = useUpdateAllCheckoutMutation();
 
   const [allChecked, setAllChecked] = useState(false);
+  
+  // Kiểm tra xem có bất kỳ sản phẩm nào được check không
+  const hasCheckedItems = useMemo(() => {
+    if (!data?.products?.length) return false;
+    
+    return data.products.some(product => 
+      product.cartVariations.some(variation => variation.checkout)
+    );
+  }, [data]);
+
+  // Tính tổng giá và số lượng cho các sản phẩm đã được checked
+  const { checkedTotalPrice, checkedTotalItems } = useMemo(() => {
+    if (!data?.products?.length) return { checkedTotalPrice: 0, checkedTotalItems: 0 };
+    
+    let totalPrice = 0;
+    let totalItems = 0;
+    
+    data.products.forEach(product => {
+      product.cartVariations.forEach(variation => {
+        if (variation.checkout) {
+          // Sử dụng giá của biến thể nếu có, nếu không thì sử dụng giá của sản phẩm
+          const itemPrice = variation.price || product.price;
+          totalPrice += itemPrice * variation.quantity;
+          totalItems += variation.quantity;
+        }
+      });
+    });
+    
+    return { checkedTotalPrice: totalPrice, checkedTotalItems: totalItems };
+  }, [data]);
 
   // Cập nhật trạng thái "Select All" dựa vào dữ liệu giỏ hàng
   useEffect(() => {
@@ -91,7 +121,6 @@ function Cart() {
                   <Grid2 container>
                     <Grid2 size={4} textAlign={"center"}>
                       <Typography
-                        sx={{ color: "text.secondary" }}
                         variant="body1"
                       >
                         Unit Price
@@ -99,7 +128,6 @@ function Cart() {
                     </Grid2>
                     <Grid2 size={5} textAlign={"center"}>
                       <Typography
-                        sx={{ color: "text.secondary" }}
                         variant="body1"
                       >
                         Quantity
@@ -107,7 +135,6 @@ function Cart() {
                     </Grid2>
                     <Grid2 size={3} textAlign={"center"}>
                       <Typography
-                        sx={{ color: "text.secondary" }}
                         variant="body1"
                       >
                         Actions
@@ -176,27 +203,28 @@ function Cart() {
             <Box display={"flex"} flexDirection={"column"} gap={2}>
               <Box display={"flex"} alignItems={"center"} gap={1}>
                 <Typography variant="body1">
-                  Total ({data?.totalItems || 0} items):
+                  Total ({checkedTotalItems || 0} selected items):
                 </Typography>
-                <Typography variant="h6" sx={{ color: "secondary.main" }}>
+                <Typography variant="h6" sx={{ color: "primary.main" }}>
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
                     currency: "VND",
-                  }).format(data?.totalPrice || 0)}
+                  }).format(checkedTotalPrice || 0)}
                 </Typography>
               </Box>
               <Button
                 onClick={() => navigate("/checkout")}
                 sx={{
                   boxShadow: "none",
-                  bgcolor: "secondary.main",
                   color: "white",
                   px: 5,
+                  opacity: !hasCheckedItems ? 0.7 : 1,
                 }}
                 fullWidth
                 variant="contained"
+                disabled={!hasCheckedItems}
               >
-                Check out
+                {hasCheckedItems ? "Check out" : "Please select products"}
               </Button>
             </Box>
           </Box>

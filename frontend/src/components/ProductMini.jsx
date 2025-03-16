@@ -18,8 +18,10 @@ function ProductMini({ item, loading = false }) {
   return (
     <Box>
       <Card
+
         sx={{
           maxWidth: "100%",
+          boxShadow: " rgba(0, 0, 0, 0.16) 0px 1px 4px;",
           "&:hover": {
             boxShadow:
               "rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px",
@@ -60,7 +62,6 @@ function ProductMini({ item, loading = false }) {
           )}
           <CardContent
             sx={{
-              bgcolor: theme.palette.primary.main,
               p: 1,
               pb: "10px !important",
             }}
