@@ -1,29 +1,48 @@
-import { Box, Container, Grid2, CircularProgress } from "@mui/material";
+import {
+  Box,
+  Container,
+  Grid2,
+  CircularProgress,
+  useTheme,
+} from "@mui/material";
 import Typography from "@mui/material/Typography";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Link from "@mui/material/Link";
 import { useState, Suspense, lazy } from "react";
-import { useGetProductBySlugQuery } from "../../redux/api/productSlice";
+import {
+  useGetProductBySlugQuery,
+  useGetTopSoldQuery,
+} from "../../redux/api/productSlice";
 import { useParams } from "react-router";
 import ProductDetailCarousel from "../../components/Carousel/ProductDetailCarousel";
 import Detail from "./components/Detail";
+import CustomTabPanel from "../../components/CustomTabPanel";
+import { Tabs, Tab } from "@mui/material";
+import a11yProps from "../../../utils/a11yProps";
+import FlashSale from "../../components/Carousel/FlashSale";
 const Specification = lazy(() => import("./components/Specification"));
 const Description = lazy(() => import("./components/Description"));
 const CommentCom = lazy(() => import("./components/CommentCom"));
 
 function ProductDetail() {
+  const theme = useTheme();
   const { slug } = useParams();
-  const { data, isLoading, error } = useGetProductBySlugQuery(slug); // Include isLoading and error\
+  const { data, isLoading, error } = useGetProductBySlugQuery(slug);
 
-  // Handle breadcrumb click
   function handleClick(event) {
     event.preventDefault();
     console.info("You clicked a breadcrumb.");
   }
 
-  const [quantity, setQuantity] = useState(1);
+  const { data: listTopSoldProducts } = useGetTopSoldQuery();
 
-  // If the data is loading or there's an error, return loading or error state
+  const [quantity, setQuantity] = useState(1);
+  const [value, setValue] = useState(0);
+
+  const handleChange = (event, newValue) => {
+    setValue(newValue);
+  };
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -54,7 +73,7 @@ function ProductDetail() {
         px={2}
         py={2}
       >
-        <Grid2 container spacing={2}>
+        <Grid2 container spacing={6}>
           <Grid2 size={5}>
             {data?.img ? (
               <Suspense fallback={<CircularProgress />}>
@@ -76,20 +95,56 @@ function ProductDetail() {
         </Grid2>
       </Box>
 
-      {/* Product specifications */}
-      <Suspense fallback={<CircularProgress />}>
-        <Specification handleClick={handleClick} />
-      </Suspense>
+      <Tabs
+        value={value}
+        onChange={handleChange}
+        aria-label="basic tabs example"
+        sx={{
+          maxWidth: "500px",
+          "& .Mui-selected": {
+            color: `${theme.palette.secondary.main} !important`,
+          },
+          "& .MuiTabs-indicator": {
+            backgroundColor: "secondary.main",
+          },
+          "& .MuiTab-root": {
+            minWidth: 0,
+            flex: 1,
+            textTransform: "none",
+          },
+        }}
+      >
+        <Tab
+          sx={{ fontSize: "16px" }}
+          label="Specifications"
+          {...a11yProps(0)}
+        />
+        <Tab sx={{ fontSize: "16px" }} label="Descriptions" {...a11yProps(1)} />
+        <Tab sx={{ fontSize: "16px" }} label="Comments" {...a11yProps(2)} />
+      </Tabs>
 
-      {/* Product descriptions */}
-      <Suspense fallback={<CircularProgress />}>
-        <Description description={data?.description} />
-      </Suspense>
-
-      {/* Product comment */}
-      <Suspense fallback={<CircularProgress />}>
-        <CommentCom />
-      </Suspense>
+      <Box sx={{ padding: 0, mb: 2 }}>
+        <CustomTabPanel value={value} index={0}>
+          <Suspense fallback={<CircularProgress />}>
+            <Specification handleClick={handleClick} />
+          </Suspense>
+        </CustomTabPanel>
+        <CustomTabPanel value={value} index={1}>
+          <Suspense fallback={<CircularProgress />}>
+            <Description description={data?.description} />
+          </Suspense>
+        </CustomTabPanel>
+        <CustomTabPanel value={value} index={2}>
+          <Suspense fallback={<CircularProgress />}>
+            <CommentCom />
+          </Suspense>
+        </CustomTabPanel>
+        <Box sx={{ padding: 0, my: 2 }}>
+        <Suspense fallback={<CircularProgress />}>
+          <FlashSale listItem={listTopSoldProducts} />
+        </Suspense>
+        </Box>
+      </Box>
     </Container>
   );
 }

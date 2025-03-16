@@ -5,7 +5,6 @@ import {
   Typography,
   useTheme,
 } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
 import { Link } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Grid, Pagination, Navigation } from "swiper/modules";
@@ -23,9 +22,21 @@ export default function CategoryTable({ itemData, isLoading }) {
 
   return (
     <>
-      <Box display={"flex"} gap={1} alignItems={"center"} mb={1}>
-        <MenuIcon />
-        <Typography variant="h5">List category</Typography>
+      <Box
+        justifyContent={"center"}
+        display={"flex"}
+        flexDirection={"column"}
+        gap={1}
+        alignItems={"center"}
+        mb={1}
+      >
+        <Typography color="primary.main" variant="h4">
+          Shop by Category
+        </Typography>
+
+        <Typography variant="subtitle1">
+          Browse our wide selection of products across various categories
+        </Typography>
       </Box>
 
       <Box overflow={"visible"} position={"relative"}>

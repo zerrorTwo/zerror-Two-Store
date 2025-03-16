@@ -172,10 +172,12 @@ const signInByGG = async (req, res) => {
 const logout = async (req, res) => {
   try {
     const id = req.headers[HEADER.CLIENT_ID];
+    console.log(id);
 
     if (!id) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid client id");
     }
+
     // console.log(req.headers[HEADER.CLIENT_ID]);
 
     // Xóa refresh token từ cơ sở dữ liệu

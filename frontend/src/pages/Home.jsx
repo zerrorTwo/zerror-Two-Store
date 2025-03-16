@@ -4,6 +4,7 @@ import {
   CircularProgress,
   AlertTitle,
   Alert,
+  CardMedia,
 } from "@mui/material";
 import Carousel from "../components/Carousel/Carousel";
 import CategoryTable from "../components/Home/CategoryTable";
@@ -14,6 +15,7 @@ import {
   useGetPageProductQuery,
   useGetTopSoldQuery,
 } from "../redux/api/productSlice";
+import { Link } from "react-router";
 
 // Lazy-load các component
 const FlashSale = React.lazy(() => import("../components/Carousel/FlashSale"));
@@ -79,7 +81,7 @@ function Home() {
         </Box>
 
         {/* Box content */}
-        <Box my={5}>
+        <Box mt={5}>
           {/* FlashSale */}
           <Box ref={flashSaleRef}>
             {topSoldError ? (
@@ -92,7 +94,13 @@ function Home() {
                 <FlashSale listItem={listTopSoldProducts} />
               </Suspense>
             ) : (
-              <CircularProgress />
+              <Box
+                display={"flex"}
+                justifyContent={"center"}
+                alignItems={"center"}
+              >
+                <CircularProgress />
+              </Box>
             )}
           </Box>
 
@@ -103,8 +111,120 @@ function Home() {
                 <Banner />
               </Suspense>
             ) : (
-              <CircularProgress />
+              <Box
+                display={"flex"}
+                justifyContent={"center"}
+                alignItems={"center"}
+              >
+                <CircularProgress />
+              </Box>
             )}
+          </Box>
+
+          {/* Banner */}
+          <Box
+            my={5}
+            display={"flex"}
+            justifyContent={"center"}
+            alignItems={"center"}
+            gap={2}
+          >
+            <Link
+              to="/"
+              style={{
+                textDecoration: "none", // Bỏ gạch chân
+                width: "100%",
+                height: "250px",
+                display: "block", // Đảm bảo `Link` bao phủ toàn bộ item
+              }}
+            >
+              <CardMedia
+                component="img"
+                sx={{
+                  height: "100%",
+                  width: "100%",
+                  objectFit: "cover", // Đảm bảo hình ảnh hiển thị đẹp
+                  borderRadius: "8px", // Thêm bo góc nếu cần
+                }}
+                alt="Banner image"
+                image={
+                  "https://shop.huanghanlian.com/_next/image?url=http%3A%2F%2Fhuanghanzhilian-test.oss-cn-beijing.aliyuncs.com%2Fshop%2Fupload%2Fimage%2Fbanners%2FgbharyCRH4P2CIQaZvDGq.jpeg&w=1920&q=100"
+                }
+                loading="lazy"
+              />
+            </Link>
+            <Link
+              to="/"
+              style={{
+                textDecoration: "none", // Bỏ gạch chân
+                width: "100%",
+                height: "250px",
+                display: "block", // Đảm bảo `Link` bao phủ toàn bộ item
+              }}
+            >
+              <CardMedia
+                component="img"
+                sx={{
+                  height: "100%",
+                  width: "100%",
+                  objectFit: "cover", // Đảm bảo hình ảnh hiển thị đẹp
+                  borderRadius: "8px", // Thêm bo góc nếu cần
+                }}
+                alt="Banner image"
+                image={
+                  "https://shop.huanghanlian.com/_next/image?url=http%3A%2F%2Fhuanghanzhilian-test.oss-cn-beijing.aliyuncs.com%2Fshop%2Fupload%2Fimage%2Fbanners%2Fb9ZiyMDRD0W-dBVkWF1L6.jpeg&w=1920&q=100"
+                }
+                loading="lazy"
+              />
+            </Link>
+            <Link
+              to="/"
+              style={{
+                textDecoration: "none", // Bỏ gạch chân
+                width: "100%",
+                height: "250px",
+                display: "block", // Đảm bảo `Link` bao phủ toàn bộ item
+              }}
+            >
+              <CardMedia
+                component="img"
+                sx={{
+                  height: "100%",
+                  width: "100%",
+                  objectFit: "cover", // Đảm bảo hình ảnh hiển thị đẹp
+                  borderRadius: "8px", // Thêm bo góc nếu cần
+                }}
+                alt="Banner image"
+                image={
+                  "https://shop.huanghanlian.com/_next/image?url=http%3A%2F%2Fhuanghanzhilian-test.oss-cn-beijing.aliyuncs.com%2Fshop%2Fupload%2Fimage%2Fbanners%2FH_1mJBnX8_RrdfoEHCby2.jpeg&w=1920&q=100"
+                }
+                loading="lazy"
+              />
+            </Link>
+            <Link
+              to="/"
+              style={{
+                textDecoration: "none", // Bỏ gạch chân
+                width: "100%",
+                height: "250px",
+                display: "block", // Đảm bảo `Link` bao phủ toàn bộ item
+              }}
+            >
+              <CardMedia
+                component="img"
+                sx={{
+                  height: "100%",
+                  width: "100%",
+                  objectFit: "cover", // Đảm bảo hình ảnh hiển thị đẹp
+                  borderRadius: "8px", // Thêm bo góc nếu cần
+                }}
+                alt="Banner image"
+                image={
+                  "https://shop.huanghanlian.com/_next/image?url=http%3A%2F%2Fhuanghanzhilian-test.oss-cn-beijing.aliyuncs.com%2Fshop%2Fupload%2Fimage%2Fbanners%2FtX_L0mZwdm5SNNyKF4gD_.jpeg&w=1920&q=100"
+                }
+                loading="lazy"
+              />
+            </Link>
           </Box>
 
           {/* Suggest */}
@@ -120,7 +240,13 @@ function Home() {
                 <Suggest listProducts={listProducts} />
               </Suspense>
             ) : (
-              <CircularProgress />
+              <Box
+                display={"flex"}
+                justifyContent={"center"}
+                alignItems={"center"}
+              >
+                <CircularProgress />
+              </Box>
             )}
           </Box>
         </Box>

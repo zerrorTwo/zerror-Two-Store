@@ -155,7 +155,7 @@ function Detail({ data, quantity, setQuantity }) {
 
       {/* Price */}
       <Box display={"flex"} gap={2} alignItems={"center"} my={2}>
-        <Typography variant="h4" color="secondary.main">
+        <Typography variant="h4" color="primary.main">
           {new Intl.NumberFormat("en-US").format(pricing.price)}đ
         </Typography>
         <Typography

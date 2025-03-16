@@ -18,7 +18,6 @@ function ProductMini({ item, loading = false }) {
   return (
     <Box>
       <Card
-
         sx={{
           maxWidth: "100%",
           boxShadow: " rgba(0, 0, 0, 0.16) 0px 1px 4px;",
@@ -63,6 +62,7 @@ function ProductMini({ item, loading = false }) {
           <CardContent
             sx={{
               p: 1,
+              bgcolor: "common.white",
               pb: "10px !important",
             }}
           >
@@ -93,7 +93,7 @@ function ProductMini({ item, loading = false }) {
               ) : (
                 <Typography
                   variant="h6"
-                  sx={{ color: theme.palette.secondary.main }}
+                  sx={{ color: theme.palette.primary.main }}
                 >
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",

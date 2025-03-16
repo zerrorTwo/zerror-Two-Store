@@ -51,9 +51,10 @@ function Footer() {
               <Box display={"flex"}>
                 <CardMedia
                   component="img"
-                  image="/Assets/logo.png"
+                  image="/Assets/haha.png"
                   alt="Logo"
                   sx={{
+                    borderRadius: "50%",
                     height: { xs: "30px", md: "30px" },
                     width: "auto",
                     mr: 1,
@@ -241,7 +242,7 @@ function Footer() {
                       fontSize="large"
                       sx={{
                         pt: 1,
-                        fill: theme.palette.text.primary,
+                        fill: "#1DA1F2", // Màu xanh của Twitter
                       }}
                     />
                   </Link>
@@ -250,7 +251,7 @@ function Footer() {
                       fontSize="large"
                       sx={{
                         pt: 1,
-                        fill: theme.palette.text.primary,
+                        fill: "#0077B5", // Màu xanh của LinkedIn
                       }}
                     />
                   </Link>
@@ -259,7 +260,7 @@ function Footer() {
                       fontSize="large"
                       sx={{
                         pt: 1,
-                        fill: theme.palette.text.primary,
+                        fill: "#1877F2", // Màu xanh của Facebook
                       }}
                     />
                   </Link>
@@ -268,7 +269,7 @@ function Footer() {
                       fontSize="large"
                       sx={{
                         pt: 1,
-                        fill: theme.palette.text.primary,
+                        fill: "#333", // Màu đen của GitHub
                       }}
                     />
                   </Link>
