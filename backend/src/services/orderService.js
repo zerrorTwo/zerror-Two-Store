@@ -14,6 +14,7 @@ const createOrder = async (data) => {
   try {
     const { userId, addressId, paymentMethod, notes } = data;
 
+
     // Kiểm tra địa chỉ giao hàng
     const address = await AddressModel.findOne({
       _id: addressId,
@@ -76,15 +77,16 @@ const createOrder = async (data) => {
 
     const { products, totalItems, totalPrice } = cartItems[0];
 
+
     // Kiểm tra sản phẩm có đầy đủ thông tin không
     for (const item of products) {
-      if (!item?.variation?.price) {
+      if (!item.variation.price) {
         throw new ApiError(
           StatusCodes.BAD_REQUEST,
           `Product ${item.productId} is missing price!`
         );
       }
-      if (!item?.variation?.quantity) {
+      if (!item.variation.quantity) {
         throw new ApiError(
           StatusCodes.BAD_REQUEST,
           `Product ${item.productId} is missing quantity!`
@@ -105,75 +107,32 @@ const createOrder = async (data) => {
 
     for (const item of products) {
       const product = productStockMap.get(item.productId.toString());
-      
       if (!product) {
         throw new ApiError(
           StatusCodes.NOT_FOUND,
           `Product ${item.productId} not found!`
         );
       }
-
-      if (item.variation.type) {
-        // Xử lý cho sản phẩm có variation
-        const typeStr = Object.values(item.variation.type).join(", ");
-        const miniVar = typeStr.split(", ");
-
-        const productVar = product.variations?.pricing;
-
-        // Tìm index của variation cần cập nhật
-        const matchingIndex = productVar.findIndex((item) =>
-          miniVar.every((val) => Object.values(item).includes(val))
+      if (product.stock < item.variation.quantity) {
+        throw new ApiError(
+          StatusCodes.BAD_REQUEST,
+          `Not enough stock for product ${item.productId}`
         );
-
-        if (matchingIndex === -1) {
-          throw new ApiError(
-            StatusCodes.NOT_FOUND,
-            `Pricing variation with specified type not found for product ${item.productId}`
-          );
-        }
-
-        const matchingProduct = productVar[matchingIndex];
-
-        if (matchingProduct.stock < item.variation.quantity) {
-          throw new ApiError(
-            StatusCodes.BAD_REQUEST,
-            `Not enough stock for variation of product ${item.productId}`
-          );
-        }
-
-        // Cập nhật stock trong variation
-        matchingProduct.stock -= item.variation.quantity;
-        matchingProduct.sold += item.variation.quantity;
-        
-        // Cập nhật trực tiếp vào mảng pricing
-        product.variations.pricing[matchingIndex] = matchingProduct;
-
-        // Đánh dấu trường variations là đã thay đổi để Mongoose biết cần update
-        product.markModified('variations');
-
-      } else {
-        // Xử lý cho sản phẩm không có variation
-        if (product.stock < item.variation.quantity) {
-          throw new ApiError(
-            StatusCodes.BAD_REQUEST,
-            `Not enough stock for product ${item.productId}`
-          );
-        }
-        product.stock -= item.variation.quantity;
-        product.sold += item.variation.quantity;
       }
+      product.stock -= item.variation.quantity;
     }
 
+    // Cập nhật stock trong một lần thay vì từng sản phẩm riêng lẻ
     await Promise.all(productList.map((p) => p.save({ session })));
 
-
+    // Tạo đơn hàng nháp
     const newOrder = await OrderModel.create(
       [
         {
           userId,
           products: products.map((p) => ({
             productId: p.productId,
-            variations: [p.variation], // Đưa vào mảng để đúng schema
+            variations: [p.variation],
           })),
           addressId,
           paymentMethod,
@@ -181,12 +140,10 @@ const createOrder = async (data) => {
           totalItems,
           totalPrice,
           finalTotal: totalPrice + 30000,
-          paymentStatus: paymentMethod === "MOMO" ? "UNPAID" : "PAID",
         },
       ],
       { session }
     );
-    
 
 
     // Xóa các biến thể đã checkout khỏi giỏ hàng
@@ -241,16 +198,110 @@ const createOrder = async (data) => {
   }
 };
 
-const getUserOrder = async (userId) => {
+const getUserOrder = async (userId, page = 1, limit = 2) => {
+  page = parseInt(page) || 1;
+  limit = parseInt(limit) || 2;
+
   try {
-    const orders = await OrderModel.find({ userId })
-      .populate("addressId", "fullName phoneNumber address")
-      .sort({ createdAt: -1 });
-    return orders;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      throw new Error("Invalid userId");
+    }
+
+    // Bước 1: Phân trang trước khi lấy sản phẩm
+    const paginatedOrders = await OrderModel.aggregate([
+      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+      { $sort: { updatedAt: -1 } }, // Sắp xếp trước khi lấy danh sách đơn hàng
+      { $skip: (page - 1) * limit },
+      { $limit: limit },
+    ]);
+
+    const orderIds = paginatedOrders.map((order, index) => ({
+      _id: order._id,
+      sortIndex: index, // Ghi nhớ thứ tự ban đầu để sắp xếp lại sau
+    }));
+
+    if (orderIds.length === 0) {
+      return { orders: [], hasMore: false };
+    }
+
+    // Bước 2: Lấy thông tin đơn hàng + sản phẩm
+    const orders = await OrderModel.aggregate([
+      { $match: { _id: { $in: orderIds.map(o => o._id) } } },
+      { $sort: { updatedAt: -1 } }, // Giữ nguyên thứ tự theo thời gian cập nhật
+
+      {
+        $lookup: {
+          from: "products",
+          localField: "products.productId",
+          foreignField: "_id",
+          as: "productDetails",
+        },
+      },
+      
+      { $unwind: "$products" },
+
+      {
+        $lookup: {
+          from: "products",
+          localField: "products.productId",
+          foreignField: "_id",
+          as: "productInfo",
+        },
+      },
+
+      {
+        $addFields: {
+          "products.name": { $arrayElemAt: ["$productInfo.name", 0] },
+          "products.mainImg": { $arrayElemAt: ["$productInfo.mainImg", 0] },
+          sortIndex: {
+            $indexOfArray: [orderIds.map(o => o._id), "$_id"], // Ghi nhớ vị trí của đơn hàng
+          },
+        },
+      },
+
+      {
+        $project: {
+          productDetails: 0,
+          productInfo: 0,
+        },
+      },
+
+      {
+        $group: {
+          _id: "$_id",
+          userId: { $first: "$userId" },
+          state: { $first: "$state" },
+          deliveryState: { $first: "$deliveryState" },
+          createdAt: { $first: "$createdAt" },
+          updatedAt: { $first: "$updatedAt" },
+          paymentMethod: { $first: "$paymentMethod" },
+          paymentStatus: { $first: "$paymentStatus" },
+          deliveryFee: { $first: "$deliveryFee" },
+          totalPrice: { $first: "$totalPrice" },
+          finalTotal: { $first: "$finalTotal" },
+          products: { $push: "$products" },
+          sortIndex: { $first: "$sortIndex" }, // Giữ lại thứ tự ban đầu
+        },
+      },
+
+      { $sort: { sortIndex: 1 } }, // Sắp xếp lại theo thứ tự gốc
+    ]);
+
+    // Kiểm tra còn dữ liệu không
+    const totalOrders = await OrderModel.countDocuments({
+      userId: new mongoose.Types.ObjectId(userId),
+    });
+
+    return {
+      orders,
+      hasMore: page * limit < totalOrders,
+    };
   } catch (error) {
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+    throw new Error(error.message);
   }
 };
+
+
 
 const getUserTotalOrder = async (userId, time) => {
   try {

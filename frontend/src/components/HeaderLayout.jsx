@@ -344,8 +344,8 @@ export default function HeaderLayout() {
                     onClick={() => {
                       navigate("/login");
                     }}
-                    sx={{ display: "inline-block", textTransform: "none" }}
-                    variant="outlined"
+                    sx={{ display: "inline-block", textTransform: "none", color: "common.white" }}
+                    variant="contained"
                   >
                     Login
                   </Button>

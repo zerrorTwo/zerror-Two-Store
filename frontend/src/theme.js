@@ -232,7 +232,6 @@ const theme = createTheme({
           padding: "8px 22px",
         },
         contained: {
-          // backgroundColor: 'red',
           boxShadow: "0 4px 10px 0 rgba(201, 74, 0, 0.25)",
           "&:hover": {
             boxShadow: "0 6px 15px 0 rgba(201, 74, 0, 0.35)",
@@ -242,7 +241,6 @@ const theme = createTheme({
           borderColor: primaryColor,
           color: primaryColor,
           "&:hover": {
-            backgroundColor: "rgba(201, 74, 0, 0.04)",
             borderColor: primaryColor,
           },
         },
