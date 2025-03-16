@@ -8,7 +8,7 @@ function CartPopoverItem({ item }) {
 
   return (
     <Link
-      to={item?.productSlug}
+      to={`/products/${item?.productSlug}`}
       style={{
         textDecoration: "none",
         display: "block",
@@ -62,7 +62,7 @@ function CartPopoverItem({ item }) {
         <Box>
           <Typography
             variant="body2"
-            sx={{ color: theme.palette.secondary.main }}
+            sx={{ color: theme.palette.primary.main }}
           >
             {new Intl.NumberFormat("vi-VN", {
               style: "currency",

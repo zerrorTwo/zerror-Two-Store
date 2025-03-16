@@ -1,17 +1,40 @@
 import HeaderLayout from "../components/HeaderLayout.jsx";
 import { Box, CircularProgress } from "@mui/material";
 import { Outlet } from "react-router";
-import { lazy, Suspense } from "react";
-import { useInView } from "react-intersection-observer";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 
 // Lazy load Footer
 const Footer = lazy(() => import("../components/Footer.jsx"));
 
 function LayoutNew() {
-  const { ref, inView } = useInView({
-    triggerOnce: true, // Chỉ kích hoạt một lần khi Footer vào viewport
-    threshold: 0.5, // Kích hoạt khi ít nhất 50% Footer vào viewport
-  });
+  const footerRef = useRef(null);
+  const [isFooterInView, setIsFooterInView] = useState(false);
+
+  useEffect(() => {
+    const currentFooterRef = footerRef.current; // Lưu trữ giá trị của ref vào biến
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsFooterInView(true);
+          observer.disconnect(); // Ngắt kết nối sau khi đã vào viewport
+        }
+      },
+      {
+        threshold: 0.5, // Kích hoạt khi ít nhất 50% Footer vào viewport
+      }
+    );
+
+    if (currentFooterRef) {
+      observer.observe(currentFooterRef);
+    }
+
+    return () => {
+      if (currentFooterRef) {
+        observer.unobserve(currentFooterRef);
+      }
+    };
+  }, []);
 
   return (
     <>
@@ -26,7 +49,7 @@ function LayoutNew() {
           <CircularProgress sx={{ display: "block", margin: "auto" }} />
         }
       >
-        <div ref={ref}>{inView && <Footer />}</div>
+        <div ref={footerRef}>{isFooterInView && <Footer />}</div>
       </Suspense>
     </>
   );

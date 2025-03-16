@@ -64,6 +64,9 @@ function ProfileDashBoard() {
                 "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
                   borderColor: "black",
                 },
+                "& .MuiSvgIcon-root": {
+                  color: "black",
+                },
               }}
             >
               <MenuItem value="year" sx={{ color: "black" }}>

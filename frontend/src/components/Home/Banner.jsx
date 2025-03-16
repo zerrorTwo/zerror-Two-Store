@@ -2,10 +2,10 @@ import { CardMedia, ImageList, ImageListItem } from "@mui/material";
 import { Link } from "react-router-dom"; // Đúng import từ react-router-dom
 
 const itemData = [
-  "https://cf.shopee.vn/file/sg-11134258-7ra21-m53ulphtuzim81_xhdpi",
-  "https://cf.shopee.vn/file/sg-11134258-7ra1b-m54676okjkao59_xhdpi",
-  "https://img.pikbest.com/origin/10/01/82/867pIkbEsTAIq.png!w700wp",
-  "https://cf.shopee.vn/file/sg-11134258-7ra21-m53ulphtuzim81_xhdpi",
+  "https://shop.huanghanlian.com/_next/image?url=http%3A%2F%2Fhuanghanzhilian-test.oss-cn-beijing.aliyuncs.com%2Fshop%2Fupload%2Fimage%2Fbanners%2FAAR1hdzMBEfpYKym3njGU.jpeg&w=1920&q=100",
+  "https://shop.huanghanlian.com/_next/image?url=http%3A%2F%2Fhuanghanzhilian-test.oss-cn-beijing.aliyuncs.com%2Fshop%2Fupload%2Fimage%2Fbanners%2FtHzPZwswSaFdD_3TpdPCt.jpeg&w=1920&q=100",
+  "https://shop.huanghanlian.com/_next/image?url=http%3A%2F%2Fhuanghanzhilian-test.oss-cn-beijing.aliyuncs.com%2Fshop%2Fupload%2Fimage%2Fbanners%2FluBUyOForM7vLS8SMMORT.jpeg&w=1920&q=100",
+  "https://shop.huanghanlian.com/_next/image?url=http%3A%2F%2Fhuanghanzhilian-test.oss-cn-beijing.aliyuncs.com%2Fshop%2Fupload%2Fimage%2Fbanners%2FAG8T4X-3pFnHc1O2XEeN5.jpeg&w=1920&q=100",
 ];
 
 function Banner() {
@@ -13,7 +13,7 @@ function Banner() {
     <ImageList
       sx={{
         width: "100%",
-        height: "308px",
+        height: "100%",
       }}
       cols={2}
       gap={8} // Thêm khoảng cách giữa các item
@@ -25,7 +25,7 @@ function Banner() {
             style={{
               textDecoration: "none", // Bỏ gạch chân
               width: "100%",
-              height: "150px",
+              height: "250px",
               display: "block", // Đảm bảo `Link` bao phủ toàn bộ item
             }}
           >

@@ -31,7 +31,7 @@ const theme = createTheme({
       contrastText: "#FFFFFF",
     },
     error: {
-      main: "#FE0032",
+      main: "#cc0000",
       light: "#FF3D64",
       dark: "#D10029",
       contrastText: "#FFFFFF",
@@ -209,7 +209,7 @@ const theme = createTheme({
       styleOverrides: {
         maxWidthLg: {
           maxWidth: "1356px !important",
-          '@media (min-width: 1200px)': {
+          "@media (min-width: 1200px)": {
             maxWidth: "1356px",
           },
         },
@@ -220,6 +220,13 @@ const theme = createTheme({
         root: {
           background: `linear-gradient(135deg, ${primaryColor} 0%, ${secondaryColor} 100%)`,
           boxShadow: "0 4px 20px 0 rgba(0,0,0,0.1)",
+        },
+      },
+    },
+    MuiBox: {
+      styleOverrides: {
+        root: {
+          padding: 0,
         },
       },
     },

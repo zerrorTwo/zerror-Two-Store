@@ -161,19 +161,33 @@ export default function HeaderLayout() {
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleMenuClose}>
-        <Link
-          to={"/profile"}
-          style={{
-            textDecoration: "none",
-            color: "inherit",
-          }}
-        >
-          Profile
-        </Link>
-      </MenuItem>
-      <MenuItem onClick={handleMenuClose}>My account</MenuItem>
-      <MenuItem onClick={handleLogout}>Logout</MenuItem>
+      <Link
+        to={"/profile"}
+        style={{
+          textDecoration: "none",
+          color: "inherit",
+        }}
+      >
+        <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
+      </Link>
+      <Link
+        to={"/profile/my-order"}
+        style={{
+          textDecoration: "none",
+          color: "inherit",
+        }}
+      >
+        <MenuItem onClick={handleMenuClose}>My order</MenuItem>
+      </Link>
+      <Link
+        to={"/logout"}
+        style={{
+          textDecoration: "none",
+          color: "inherit",
+        }}
+      >
+        <MenuItem onClick={handleLogout}>Logout</MenuItem>
+      </Link>
     </Menu>
   );
 
@@ -262,6 +276,7 @@ export default function HeaderLayout() {
               id="Search"
               sx={{
                 bgcolor: "common.white",
+                color: "common.black",
                 width: "100% !important",
                 mx: { xs: "10px", sm: "20px" },
               }}
@@ -340,17 +355,21 @@ export default function HeaderLayout() {
                 //     cursor: "pointer",
                 //   }}
                 // >
-                  <Button
-                    onClick={() => {
-                      navigate("/login");
-                    }}
-                    sx={{ display: "inline-block", textTransform: "none", color: "common.white" }}
-                    variant="contained"
-                  >
-                    Login
-                  </Button>
-                // </Box>
+                <Button
+                  onClick={() => {
+                    navigate("/login");
+                  }}
+                  sx={{
+                    display: "inline-block",
+                    textTransform: "none",
+                    color: "common.white",
+                  }}
+                  variant="contained"
+                >
+                  Login
+                </Button>
               ) : (
+                // </Box>
                 <IconButton
                   size="large"
                   edge="end"
@@ -361,12 +380,12 @@ export default function HeaderLayout() {
                   color="inherit"
                   sx={{
                     mr: 0,
-                    // bgcolor: "common.white",
+                    bgcolor: "primary.main",
                     borderRadius: 6,
                     py: 1,
-                    // "&:hover": {
-                    //   backgroundColor: "common.white",
-                    // },
+                    "&:hover": {
+                      backgroundColor: "primary.dark",
+                    },
                   }}
                 >
                   <AccountCircle />

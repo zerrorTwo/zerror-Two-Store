@@ -4,11 +4,9 @@ import Link from "@mui/material/Link";
 
 function Specification({ handleClick }) {
   return (
-    <>
       <Box
-        my={2}
         px={2}
-        py={3}
+        py={2}
         boxShadow={"rgba(149, 157, 165, 0.2) 0px 8px 24px"}
       >
         <Box>
@@ -84,7 +82,6 @@ function Specification({ handleClick }) {
           </Box>
         </Box>
       </Box>
-    </>
   );
 }
 

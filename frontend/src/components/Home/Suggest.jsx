@@ -14,7 +14,7 @@ function Suggest({ listProducts }) {
   const theme = useTheme();
 
   return (
-    <Box pt={2} pb={5}>
+    <Box  pb={5}>
       {/* Header */}
       <Box
         sx={{
@@ -23,7 +23,7 @@ function Suggest({ listProducts }) {
           textAlign: "center",
           //   top: "72px",
           //   position: "sticky",
-          bgcolor: theme.palette.primary.main,
+          // bgcolor: theme.palette.primary.main,
           zIndex: 10000,
         }}
       >
