@@ -21,6 +21,30 @@ export const checkoutSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
 
+    getUserOrder: builder.query({
+      query: ({ userId, page, limit }) => ({
+        url: `${CHECKOUT_URL}/get-all/?userId=${userId}&page=${page}&limit=${limit}`,
+        method: "GET",
+      }),
+      serializeQueryArgs: ({ endpointName }) => {
+        return endpointName;
+      },
+      merge: (currentCache, newItems) => {
+        if (!currentCache) {
+          return newItems;
+        }
+        return {
+          orders: [...currentCache.orders, ...newItems.orders],
+          hasMore: newItems.hasMore
+        };
+      },
+      forceRefetch({ currentArg, previousArg }) {
+        return currentArg?.page !== previousArg?.page;
+      },
+      providesTags: ["Order"],
+      keepUnusedDataFor: 0,
+    }),
+
     createOrder: builder.mutation({
       query: (data) => ({
         url: `${CHECKOUT_URL}`,
@@ -39,4 +63,5 @@ export const {
   useGetProductCheckoutQuery,
   useCreateOrderMutation,
   useLazyGetUserTotalOrderQuery,
+  useGetUserOrderQuery
 } = checkoutSlice;
