@@ -39,7 +39,6 @@ function CheckoutPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cash");
   const navigate = useNavigate();
 
-  console.log(data);
 
   const [createOrder, { isLoading }] = useCreateOrderMutation();
 

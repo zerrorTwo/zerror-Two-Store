@@ -78,13 +78,13 @@ const createOrder = async (data) => {
 
     // Kiểm tra sản phẩm có đầy đủ thông tin không
     for (const item of products) {
-      if (!item.variation.price) {
+      if (!item?.variation?.price) {
         throw new ApiError(
           StatusCodes.BAD_REQUEST,
           `Product ${item.productId} is missing price!`
         );
       }
-      if (!item.variation.quantity) {
+      if (!item?.variation?.quantity) {
         throw new ApiError(
           StatusCodes.BAD_REQUEST,
           `Product ${item.productId} is missing quantity!`
@@ -105,30 +105,76 @@ const createOrder = async (data) => {
 
     for (const item of products) {
       const product = productStockMap.get(item.productId.toString());
+      
       if (!product) {
         throw new ApiError(
           StatusCodes.NOT_FOUND,
           `Product ${item.productId} not found!`
         );
       }
-      if (product.stock < item.variation.quantity) {
-        throw new ApiError(
-          StatusCodes.BAD_REQUEST,
-          `Not enough stock for product ${item.productId}`
+
+      if (item.variation.type) {
+        // Xử lý cho sản phẩm có variation
+        const typeStr = Object.values(item.variation.type).join(", ");
+        const miniVar = typeStr.split(", ");
+
+        const productVar = product.variations?.pricing;
+
+        // Tìm index của variation cần cập nhật
+        const matchingIndex = productVar.findIndex((item) =>
+          miniVar.every((val) => Object.values(item).includes(val))
         );
+
+        if (matchingIndex === -1) {
+          throw new ApiError(
+            StatusCodes.NOT_FOUND,
+            `Pricing variation with specified type not found for product ${item.productId}`
+          );
+        }
+
+        const matchingProduct = productVar[matchingIndex];
+
+        if (matchingProduct.stock < item.variation.quantity) {
+          throw new ApiError(
+            StatusCodes.BAD_REQUEST,
+            `Not enough stock for variation of product ${item.productId}`
+          );
+        }
+
+        // Cập nhật stock trong variation
+        matchingProduct.stock -= item.variation.quantity;
+        matchingProduct.sold += item.variation.quantity;
+        
+        // Cập nhật trực tiếp vào mảng pricing
+        product.variations.pricing[matchingIndex] = matchingProduct;
+
+        // Đánh dấu trường variations là đã thay đổi để Mongoose biết cần update
+        product.markModified('variations');
+
+      } else {
+        // Xử lý cho sản phẩm không có variation
+        if (product.stock < item.variation.quantity) {
+          throw new ApiError(
+            StatusCodes.BAD_REQUEST,
+            `Not enough stock for product ${item.productId}`
+          );
+        }
+        product.stock -= item.variation.quantity;
+        product.sold += item.variation.quantity;
       }
-      product.stock -= item.variation.quantity;
     }
 
-    // Cập nhật stock trong một lần thay vì từng sản phẩm riêng lẻ
     await Promise.all(productList.map((p) => p.save({ session })));
 
-    // Tạo đơn hàng nháp
+
     const newOrder = await OrderModel.create(
       [
         {
           userId,
-          products,
+          products: products.map((p) => ({
+            productId: p.productId,
+            variations: [p.variation], // Đưa vào mảng để đúng schema
+          })),
           addressId,
           paymentMethod,
           notes,
@@ -140,6 +186,8 @@ const createOrder = async (data) => {
       ],
       { session }
     );
+    
+
 
     // Xóa các biến thể đã checkout khỏi giỏ hàng
     await CartModel.updateOne(

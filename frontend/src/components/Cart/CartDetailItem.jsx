@@ -203,7 +203,7 @@ function CartDetailItem({
         <Grid2 size={6}>
           <Grid2 container justifyContent="center" alignItems="center">
             <Grid2 size={4} textAlign="center">
-              <Typography fontWeight="bold" color="secondary.main">
+              <Typography fontWeight="bold" >
                 {new Intl.NumberFormat("vi-VN", {
                   style: "currency",
                   currency: "VND",
