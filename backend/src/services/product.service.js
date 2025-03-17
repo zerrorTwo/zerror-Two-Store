@@ -1,9 +1,8 @@
 import { StatusCodes } from "http-status-codes";
 import slugify from "slugify";
-import ApiError from "../utils/ApiError.js";
-import ProductModel from "../models/productModel.js";
-import CategoryModel from "../models/categoryModel.js";
-
+import ApiError from "../utils/api.error.js";
+import ProductModel from "../models/product.model.js";
+import CategoryModel from "../models/category.model.js";
 const createProduct = async (data) => {
   try {
     const existingProduct = await ProductModel.findOne({ name: data.name });

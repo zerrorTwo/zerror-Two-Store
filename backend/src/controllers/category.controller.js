@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import asyncHandeler from "../middlewares/asyncHandler.js";
-import { categoryService } from "../services/categoryService.js";
+import asyncHandeler from "../middlewares/async.handler.js";
+import { categoryService } from "../services/category.service.js";
 
 const getAllCategories = asyncHandeler(async (req, res) => {
   const categories = await categoryService.getAllCategories(req, res);

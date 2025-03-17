@@ -8,8 +8,8 @@ import {
   getAllCategories,
   getAllCategoriesTree,
   getCommonCategories,
-} from "../../controllers/categoryController.js";
-import { authentication, authorization } from "../../auth/authUtil.js";
+} from "../../controllers/category.controller.js";
+import { authentication, authorization } from "../../auth/auth.util.js";
 
 const Router = express.Router();
 

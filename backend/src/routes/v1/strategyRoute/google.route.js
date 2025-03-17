@@ -1,6 +1,6 @@
 import express from "express";
 import passport from "passport";
-import { signInGGController } from "../../../controllers/accessController.js";
+import { signInGGController } from "../../../controllers/access.controller.js";
 const router = express.Router();
 
 // Route đăng nhập bằng Google

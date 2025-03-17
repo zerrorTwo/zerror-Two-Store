@@ -1,11 +1,11 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import asyncHandeler from "../middlewares/asyncHandler.js";
-import { HEADER, COOKIE } from "../constants/headerContans.js";
-import ApiError from "../utils/ApiError.js";
+import asyncHandeler from "../middlewares/async.handler.js";
+import { HEADER, COOKIE } from "../constants/header.constants.js";
+import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
-import { findByUserId } from "../services/keyTokenService.js";
-import { findRoleByUserId } from "../services/accessService.js";
+import { findByUserId } from "../services/key.token.service.js";
+import { findRoleByUserId } from "../services/access.service.js";
 
 const generateRSAKeyPair = () =>
   crypto.generateKeyPairSync("rsa", {

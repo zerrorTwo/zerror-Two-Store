@@ -1,7 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import asyncHandeler from "../middlewares/asyncHandler.js";
-// import { productService } from "../services/productService.js";
-import { productService } from "../services/productService.js";
+import asyncHandeler from "../middlewares/async.handler.js";
+import { productService } from "../services/product.service.js";
 
 const createProduct = asyncHandeler(async (req, res) => {
   const data = req.body;

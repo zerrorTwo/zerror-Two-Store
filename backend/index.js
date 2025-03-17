@@ -7,9 +7,9 @@ import cors from "cors";
 import path from "path";
 import { APIS_V1 } from "./src/routes/v1/index.js";
 import connectDB from "./src/config/db.js";
-import { errorHandlingMiddleware } from "./src/middlewares/errorMiddleware.js";
-import passportMiddleware from "./src/auth/AuthStrategy/googleStategy.js";
-import { corsOptions } from "./src/config/corsCofig.js";
+import { errorHandlingMiddleware } from "./src/middlewares/error.middleware.js";
+import passportMiddleware from "./src/auth/AuthStrategy/google.strategy.js";
+import { corsOptions } from "./src/config/cors.config.js";
 // import "./src/jobs/momoJob.js"; // Import file cron job
 
 dotenv.config();

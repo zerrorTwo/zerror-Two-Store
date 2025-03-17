@@ -1,11 +1,11 @@
 import express from "express";
-import { authentication } from "../../auth/authUtil.js";
+import { authentication } from "../../auth/auth.util.js";
 import {
   createOrder,
   getProductCheckout,
   getUserOrder,
   getUserTotalOrder,
-} from "../../controllers/orderController.js";
+} from "../../controllers/order.controller.js";
 
 const Router = express.Router();
 

@@ -4,10 +4,10 @@ import {
   signInController,
   logoutController,
   refreshTokenController,
-} from "../../controllers/accessController.js";
-import { authenticationRefresh } from "../../auth/authUtil.js";
-import asyncHandeler from "../../middlewares/asyncHandler.js";
-import { googleAuth } from "./strategyRoute/googleRoute.js";
+} from "../../controllers/access.controller.js";
+import { authenticationRefresh } from "../../auth/auth.util.js";
+import asyncHandeler from "../../middlewares/async.handler.js";
+import { googleAuth } from "./strategyRoute/google.route.js";
 
 const Router = express.Router();
 

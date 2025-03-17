@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import asyncHandeler from "../middlewares/asyncHandler.js";
-import { orderService } from "../services/orderService.js";
+import asyncHandeler from "../middlewares/async.handler.js";
+import { orderService } from "../services/order.service.js";
 
 const getProductCheckout = asyncHandeler(async (req, res) => {
   const { userId } = req.query;

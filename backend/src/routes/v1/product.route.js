@@ -8,8 +8,8 @@ import {
   getProductBySlug,
   getTopSoldProducts,
   updateProduct,
-} from "../../controllers/productController.js";
-import { authentication, authorization } from "../../auth/authUtil.js";
+} from "../../controllers/product.controller.js";
+import { authentication, authorization } from "../../auth/auth.util.js";
 
 const Router = express.Router();
 Router.route("/").get(getPageProducts);

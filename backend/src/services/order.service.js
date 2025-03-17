@@ -1,11 +1,11 @@
 import mongoose from "mongoose";
-import CartModel from "../models/cartModel.js";
-import ProductModel from "../models/productModel.js";
-import OrderModel from "../models/orderModel.js";
-import AddressModel from "../models/addressModel.js";
-import ApiError from "../utils/ApiError.js";
+import OrderModel from "../models/order.model.js";
+import CartModel from "../models/cart.model.js";
+import ProductModel from "../models/product.model.js";
+import AddressModel from "../models/address.model.js";
+import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
-import { momoService } from "./momoService.js";
+import { momoService } from "./momo.service.js";
 
 const createOrder = async (data) => {
   const session = await mongoose.startSession();
@@ -13,7 +13,6 @@ const createOrder = async (data) => {
 
   try {
     const { userId, addressId, paymentMethod, notes } = data;
-
 
     // Kiểm tra địa chỉ giao hàng
     const address = await AddressModel.findOne({
@@ -65,7 +64,9 @@ const createOrder = async (data) => {
           },
           totalItems: { $sum: "$variations.quantity" },
           totalPrice: {
-            $sum: { $multiply: ["$variations.price", "$variations.quantity"] },
+            $sum: {
+              $multiply: ["$variations.price", "$variations.quantity"],
+            },
           },
         },
       },
@@ -76,7 +77,6 @@ const createOrder = async (data) => {
       throw new ApiError(StatusCodes.NOT_FOUND, "Cart is empty!");
 
     const { products, totalItems, totalPrice } = cartItems[0];
-
 
     // Kiểm tra sản phẩm có đầy đủ thông tin không
     for (const item of products) {
@@ -144,7 +144,6 @@ const createOrder = async (data) => {
       ],
       { session }
     );
-
 
     // Xóa các biến thể đã checkout khỏi giỏ hàng
     await CartModel.updateOne(
@@ -226,7 +225,7 @@ const getUserOrder = async (userId, page = 1, limit = 2) => {
 
     // Bước 2: Lấy thông tin đơn hàng + sản phẩm
     const orders = await OrderModel.aggregate([
-      { $match: { _id: { $in: orderIds.map(o => o._id) } } },
+      { $match: { _id: { $in: orderIds.map((o) => o._id) } } },
       { $sort: { updatedAt: -1 } }, // Giữ nguyên thứ tự theo thời gian cập nhật
 
       {
@@ -237,7 +236,7 @@ const getUserOrder = async (userId, page = 1, limit = 2) => {
           as: "productDetails",
         },
       },
-      
+
       { $unwind: "$products" },
 
       {
@@ -254,7 +253,7 @@ const getUserOrder = async (userId, page = 1, limit = 2) => {
           "products.name": { $arrayElemAt: ["$productInfo.name", 0] },
           "products.mainImg": { $arrayElemAt: ["$productInfo.mainImg", 0] },
           sortIndex: {
-            $indexOfArray: [orderIds.map(o => o._id), "$_id"], // Ghi nhớ vị trí của đơn hàng
+            $indexOfArray: [orderIds.map((o) => o._id), "$_id"], // Ghi nhớ vị trí của đơn hàng
           },
         },
       },
@@ -300,8 +299,6 @@ const getUserOrder = async (userId, page = 1, limit = 2) => {
     throw new Error(error.message);
   }
 };
-
-
 
 const getUserTotalOrder = async (userId, time) => {
   try {

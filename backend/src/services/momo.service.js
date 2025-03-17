@@ -1,10 +1,10 @@
 import crypto from "crypto";
 import https from "https";
 import dotenv from "dotenv";
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
-import OrderModel from "../models/orderModel.js";
-import MomoTransaction from "../models/momoModel.js";
+import OrderModel from "../models/order.model.js";
+import MomoModel from "../models/momo.model.js";
 
 dotenv.config();
 
@@ -123,7 +123,7 @@ const handleMomoCallback = async (req) => {
     await order.save();
 
     // Lưu thông tin giao dịch MoMo vào database
-    await MomoTransaction.create({
+    await MomoModel.create({
       orderId,
       transId,
       amount,

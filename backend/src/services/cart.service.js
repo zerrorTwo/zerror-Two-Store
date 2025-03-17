@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
-import CartModel from "../models/cartModel.js";
-import ApiError from "../utils/ApiError.js";
+import CartModel from "../models/cart.model.js";
+import ProductModel from "../models/product.model.js";
+import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
-import ProductModel from "../models/productModel.js";
 
 const validateVariation = (newProduct, variations) => {
   const { type, quantity } = variations[0]; // Lấy thông tin variation từ tham số `variations`

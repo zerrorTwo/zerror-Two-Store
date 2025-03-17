@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
-import UserModel from "../models/userModel.js";
-import ApiError from "../utils/ApiError.js";
-import bcyptPassword from "../utils/bcryptPassword.js";
+import UserModel from "../models/user.model.js";
+import ApiError from "../utils/api.error.js";
+import bcyptPassword from "../utils/bcrypt.password.js";
 
 const getCurrentUserProfile = async (req, res) => {
   const userId = req.user;

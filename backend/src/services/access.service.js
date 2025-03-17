@@ -1,13 +1,13 @@
-import ApiError from "../utils/ApiError.js";
-import UserModel from "../models/userModel.js";
+import UserModel from "../models/user.model.js";
+import { keyTokenService } from "./key.token.service.js";
+import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
-import { keyTokenService, removeKeyByUserId } from "./keyTokenService.js";
-import { HEADER } from "../constants/headerContans.js";
-import { generateRSAKeyPair, generateToken } from "../auth/authUtil.js";
+import { HEADER } from "../constants/header.constants.js";
+import { generateRSAKeyPair, generateToken } from "../auth/auth.util.js";
 import bcrypt from "bcryptjs";
-import bcryptPassword from "../utils/bcryptPassword.js";
-import { COOKIE } from "../constants/headerContans.js";
-import KeyModel from "../models/keyModel.js";
+import bcryptPassword from "../utils/bcrypt.password.js";
+import { COOKIE } from "../constants/header.constants.js";
+import KeyModel from "../models/key.model.js";
 
 const signUp = async (req, res) => {
   const { userName, email, password } = req.body;

@@ -1,7 +1,7 @@
-import { WHITELIST_DOMAINS } from "../constants/whiteList.js";
+import { WHITELIST_DOMAINS } from "../constants/white.list.js";
 import dotenv from "dotenv";
 import { StatusCodes } from "http-status-codes";
-import ApiError from "../utils/ApiError.js";
+import ApiError from "../utils/api.error.js";
 
 dotenv.config();
 
