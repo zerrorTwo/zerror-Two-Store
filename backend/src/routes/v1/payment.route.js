@@ -1,12 +1,12 @@
 import express from "express";
 
-import { authentication } from "../../auth/authUtil.js";
+import { authentication } from "../../auth/auth.util.js";
 import {
   callbackMomoPayment,
   createMomoPayment,
   transactionStatus,
   verifyMomoPayment,
-} from "../../controllers/paymentController.js";
+} from "../../controllers/payment.controller.js";
 
 const Router = express.Router();
 // Tạo yêu cầu thanh toán MoMo (yêu cầu xác thực)

@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import asyncHandeler from "../middlewares/asyncHandler.js";
-import { userService } from "../services/userService.js";
+import asyncHandeler from "../middlewares/async.handler.js";
+import { userService } from "../services/user.service.js";
 import { log } from "console";
 
 const getCurrentUserProfile = asyncHandeler(async (req, res) => {

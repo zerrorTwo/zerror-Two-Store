@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import KeyModel from "../models/keyModel.js";
+import KeyModel from "../models/key.model.js";
 
 const keyTokenService = async ({ userId, publicKey, refreshToken }) => {
   try {

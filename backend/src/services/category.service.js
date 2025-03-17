@@ -1,8 +1,7 @@
-import ApiError from "../utils/ApiError.js";
+import CategoryModel from "../models/category.model.js";
+import ApiError from "../utils/api.error.js";
 import slugtify from "slugify";
 import { StatusCodes } from "http-status-codes";
-import CategoryModel from "../models/categoryModel.js";
-import slugify from "slugify";
 import mongoose from "mongoose";
 
 const getCategoryTree = async (parent = null) => {
@@ -170,7 +169,7 @@ const updateCategory = async (id, data) => {
       );
     }
     category.name = data.name.trim().toUpperCase();
-    category.slug = slugify(data.name, { lower: true, strict: true });
+    category.slug = slugtify(data.name, { lower: true, strict: true });
   }
   // Cập nhật các trường khác nếu có
   if (data.img) category.img = data.img;

@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import asyncHandeler from "../middlewares/asyncHandler.js";
-import { cartService } from "../services/cartService.js";
+import asyncHandeler from "../middlewares/async.handler.js";
+import { cartService } from "../services/cart.service.js";
 
 const createCart = asyncHandeler(async (req, res) => {
   const { userId, products } = req.body;

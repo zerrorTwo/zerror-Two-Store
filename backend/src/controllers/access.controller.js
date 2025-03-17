@@ -4,8 +4,8 @@ import {
   logout,
   refreshToken,
   signInByGG,
-} from "../services/accessService.js";
-import asyncHandler from "../middlewares/asyncHandler.js";
+} from "../services/access.service.js";
+import asyncHandler from "../middlewares/async.handler.js";
 import { StatusCodes } from "http-status-codes";
 
 const signUpController = asyncHandler(async (req, res, next) => {

@@ -1,6 +1,6 @@
 import { StatusCodes } from "http-status-codes";
-import asyncHandeler from "../middlewares/asyncHandler.js";
-import { addressService } from "../services/addressService.js";
+import asyncHandeler from "../middlewares/async.handler.js";
+import { addressService } from "../services/address.service.js";
 
 const getAllCity = asyncHandeler(async (req, res) => {
   const cities = await addressService.getAllCity();

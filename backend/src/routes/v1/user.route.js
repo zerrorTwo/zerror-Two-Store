@@ -1,5 +1,5 @@
 import express from "express";
-import { authentication, authorization } from "../../auth/authUtil.js";
+import { authentication, authorization } from "../../auth/auth.util.js";
 import {
   deleteManyUsers,
   deleteUserById,
@@ -8,7 +8,7 @@ import {
   getUserById,
   updateCurrentUserProfile,
   updateUserById,
-} from "../../controllers/userCotroller.js";
+} from "../../controllers/user.controller.js";
 
 const Router = express.Router();
 

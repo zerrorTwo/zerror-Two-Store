@@ -1,7 +1,7 @@
 import { StatusCodes } from "http-status-codes";
-import asyncHandeler from "../middlewares/asyncHandler.js";
-import { momoService } from "../services/momoService.js";
-import ApiError from "../utils/ApiError.js";
+import asyncHandeler from "../middlewares/async.handler.js";
+import { momoService } from "../services/momo.service.js";
+import ApiError from "../utils/api.error.js";
 
 const createMomoPayment = asyncHandeler(async (req, res) => {
   const { orderId, orderInfo } = req.body;

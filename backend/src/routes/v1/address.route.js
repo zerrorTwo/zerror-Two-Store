@@ -6,8 +6,8 @@ import {
   getAllUserAddress,
   getAllWard,
   getUserAddressById,
-} from "../../controllers/addressController.js";
-import { authentication } from "../../auth/authUtil.js";
+} from "../../controllers/address.controller.js";
+import { authentication } from "../../auth/auth.util.js";
 
 const Router = express.Router();
 

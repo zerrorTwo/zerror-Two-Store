@@ -7,6 +7,7 @@ import {
   Typography,
   useTheme,
   Skeleton,
+  Divider,
 } from "@mui/material";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
@@ -59,6 +60,7 @@ function ProductMini({ item, loading = false }) {
               loading="lazy"
             />
           )}
+          <Divider />
           <CardContent
             sx={{
               p: 1,
@@ -105,7 +107,8 @@ function ProductMini({ item, loading = false }) {
                 <Typography
                   variant="caption"
                   sx={{
-                    color: theme.palette.text.primary,
+                    color: theme.palette.text.secondary,
+                    fontWeight: "bold",
                     textDecoration: "line-through",
                   }}
                 >

@@ -1,10 +1,10 @@
-import AddressModel from "../models/addressModel.js";
-import CityModel from "../models/cityModel.js";
-import DistrictModel from "../models/districtModel.js";
-import WardModel from "../models/wardModel.js";
-import ApiError from "../utils/ApiError.js";
+import CityModel from "../models/city.model.js";
+import DistrictModel from "../models/district.model.js";
+import WardModel from "../models/ward.model.js";
+import AddressModel from "../models/address.model.js";
+import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
-import UserModel from "../models/userModel.js";
+import UserModel from "../models/user.model.js";
 
 const getAllCity = async () => {
   try {

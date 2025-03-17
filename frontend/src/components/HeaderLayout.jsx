@@ -168,7 +168,9 @@ export default function HeaderLayout() {
           color: "inherit",
         }}
       >
-        <MenuItem onClick={handleMenuClose}>Profile</MenuItem>
+        <MenuItem sx={{ px: 4, py: 1 }} onClick={handleMenuClose}>
+          Profile
+        </MenuItem>
       </Link>
       <Link
         to={"/profile/my-order"}
@@ -177,7 +179,9 @@ export default function HeaderLayout() {
           color: "inherit",
         }}
       >
-        <MenuItem onClick={handleMenuClose}>My order</MenuItem>
+        <MenuItem sx={{ px: 4, py: 1 }} onClick={handleMenuClose}>
+          My order
+        </MenuItem>
       </Link>
       <Link
         to={"/logout"}
@@ -186,7 +190,9 @@ export default function HeaderLayout() {
           color: "inherit",
         }}
       >
-        <MenuItem onClick={handleLogout}>Logout</MenuItem>
+        <MenuItem sx={{ px: 4, py: 1 }} onClick={handleLogout}>
+          Logout
+        </MenuItem>
       </Link>
     </Menu>
   );
