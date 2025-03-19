@@ -124,7 +124,7 @@ function Profile() {
                 sx={{ bgcolor: theme.palette.text.primary }}
               />
               <MemoizedNavAdminItem
-                link="/profile"
+                link="/profile/my-account"
                 icon={<AccountCircleOutlinedIcon />}
                 text="My Account"
               />

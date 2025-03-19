@@ -49,7 +49,6 @@ const baseQueryWithAuth = async (args, api, extraOptions) => {
       result.error &&
       result.error.status === 401
     ) {
-      api.dispatch(logOut());
       if (!window.isRefreshing) {
         window.isRefreshing = true;
 
@@ -85,7 +84,8 @@ const baseQueryWithAuth = async (args, api, extraOptions) => {
             api.dispatch(logOut());
             return result;
           }
-        } catch {
+        } catch (refreshError) {
+          console.error("Error during token refresh:", refreshError);
           window.isRefreshing = false;
           api.dispatch(logOut());
           return result;

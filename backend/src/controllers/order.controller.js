@@ -15,8 +15,8 @@ const createOrder = asyncHandeler(async (req, res) => {
 });
 
 const getUserOrder = asyncHandeler(async (req, res) => {
-  const { userId, page, limit } = req.query;
-  const orders = await orderService.getUserOrder(userId, page, limit);
+  const { userId, page, limit, filter } = req.query;
+  const orders = await orderService.getUserOrder(userId, page, limit, filter);
   res.status(StatusCodes.OK).json(orders);
 });
 

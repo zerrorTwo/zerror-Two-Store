@@ -45,9 +45,10 @@
 .swiper-button-next::after,
 .swiper-button-prev::after {
   font-size: 20px;
+  color: inherit;
 }
 
 .swiper-button-next:hover,
 .swiper-button-prev:hover {
-  color: white;
+  color: #888 !important;
 }

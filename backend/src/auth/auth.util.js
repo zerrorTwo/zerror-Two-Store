@@ -97,18 +97,18 @@ const authentication = asyncHandeler(async (req, res, next) => {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Token does not match");
     }
 
-    if (!decodedUser.isAdmin) {
-      const userQuery = req.query;
-      const userParams = req.params;
-      if (userQuery) {
-        if (userQuery !== userId)
-          throw new ApiError(StatusCodes.UNAUTHORIZED, "Not authenticated");
-      }
-      if (userParams) {
-        if (userParams !== userId)
-          throw new ApiError(StatusCodes.UNAUTHORIZED, "Not authenticated");
-      }
-    }
+    // if (!decodedUser.isAdmin) {
+    //   const userQuery = req.query;
+    //   const userParams = req.params;
+    //   if (userQuery) {
+    //     if (userQuery !== userId)
+    //       throw new ApiError(StatusCodes.UNAUTHORIZED, "Not authenticated");
+    //   }
+    //   if (userParams) {
+    //     if (userParams !== userId)
+    //       throw new ApiError(StatusCodes.UNAUTHORIZED, "Not authenticated");
+    //   }
+    // }
 
     const refreshToken = req.cookies[COOKIE.JWT];
     req.id = keyStore._id;

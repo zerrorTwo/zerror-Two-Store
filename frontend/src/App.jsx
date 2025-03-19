@@ -22,29 +22,43 @@ import Thanks from "./pages/Thanks";
 import CateDashBoard from "./pages/Admin/CateDashboard";
 import ProductDashboard from "./pages/Admin/ProductDashboard";
 import ProfileDashBoard from "./pages/ProfilePage/ProfileDasBoard";
-import MyOrder from "./pages/ProfilePage/MyOrder";
+import MyOrder from "./pages/ProfilePage/MyOrder/MyOrder";
+import MyAccount from "./pages/ProfilePage/MyAccount";
 
 function App() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const tokenData = JSON.parse(localStorage.getItem("token"));
-    const userData = JSON.parse(localStorage.getItem("userInfo"));
+    const checkAuth = () => {
+      try {
+        const tokenData = localStorage.getItem("token")
+          ? JSON.parse(localStorage.getItem("token"))
+          : null;
+        const userData = localStorage.getItem("userInfo")
+          ? JSON.parse(localStorage.getItem("userInfo"))
+          : null;
 
-    if (tokenData && userData) {
-      const { token, expires: tokenExpires } = tokenData;
-      const { user, expires: userExpires } = userData;
+        if (tokenData && userData) {
+          const { token, expires: tokenExpires } = tokenData;
+          const { user, expires: userExpires } = userData;
 
-      if (
-        new Date().getTime() < tokenExpires &&
-        new Date().getTime() < userExpires
-      ) {
-        dispatch(setCredentials({ user, accessToken: token }));
-      } else {
+          const now = new Date().getTime();
+          if (now < tokenExpires && now < userExpires) {
+            // Chỉ dispatch nếu đang không có user trong state
+            dispatch(setCredentials({ user, accessToken: token }));
+          } else {
+            localStorage.removeItem("userInfo");
+            localStorage.removeItem("token");
+          }
+        }
+      } catch (error) {
+        console.error("Error parsing auth data:", error);
         localStorage.removeItem("userInfo");
         localStorage.removeItem("token");
       }
-    }
+    };
+
+    checkAuth();
   }, [dispatch]);
 
   return (
@@ -76,15 +90,15 @@ function App() {
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="thanks" element={<Thanks />} />
           <Route path="profile" element={<Profile />}>
-            <Route index element={<ProfileDashBoard />} />{" "}
-            {/* Route mặc định */}
+            <Route index element={<ProfileDashBoard />} />
             <Route path="dashboard" element={<ProfileDashBoard />} />
             <Route path="my-order" element={<MyOrder />} />
+            <Route path="my-account" element={<MyAccount />} />
           </Route>
 
           <Route element={<AdminAuth />}>
             <Route path="user" element={<UserDashboard />} />
-            <Route path="category" index element={<CategoryDashBoard />} />
+            <Route path="category" element={<CategoryDashBoard />} />
           </Route>
         </Route>
       </Route>

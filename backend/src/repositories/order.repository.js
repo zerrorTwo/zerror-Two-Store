@@ -88,10 +88,55 @@ const updateCartAfterOrder = async (userId, session) => {
   );
 };
 
-const findPaginatedOrders = async (userId, page, limit) => {
+const findPaginatedOrders = async (userId, page, limit, filter = "All") => {
   const skip = (page - 1) * limit;
+  const matchStage = { userId: new mongoose.Types.ObjectId(userId) };
+
+  switch (filter?.toLowerCase()) {
+    case "topay":
+      matchStage.$and = [
+        { paymentStatus: "UNPAID" },
+        { state: { $ne: "CANCELLED" } },
+      ];
+      break;
+
+    case "toconfirm":
+      matchStage.$and = [{ state: "PENDING" }, { paymentStatus: "PAID" }];
+      break;
+
+    case "toship":
+      matchStage.$and = [
+        { state: "CONFIRMED" },
+        { deliveryState: { $in: ["PROCESSING", "SHIPPED", "IN_TRANSIT"] } },
+      ];
+      break;
+
+    case "completed":
+      matchStage.$and = [
+        { state: "COMPLETED" },
+        { deliveryState: "DELIVERED" },
+      ];
+      break;
+
+    case "cancelled":
+      matchStage.state = "CANCELLED";
+      break;
+
+    case "return":
+      matchStage.$and = [
+        { deliveryState: "RETURNED" },
+        { state: { $ne: "CANCELLED" } },
+      ];
+      break;
+
+    case "all":
+    default:
+      // Không thêm bộ lọc, lấy tất cả đơn hàng của user
+      break;
+  }
+
   return await OrderModel.aggregate([
-    { $match: { userId: new mongoose.Types.ObjectId(userId) } },
+    { $match: matchStage },
     { $sort: { updatedAt: -1 } },
     { $skip: skip },
     { $limit: limit },

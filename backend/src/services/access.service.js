@@ -1,5 +1,5 @@
 import UserModel from "../models/user.model.js";
-import { keyTokenService } from "./key.token.service.js";
+import { keyTokenService, removeKeyByUserId } from "./key.token.service.js";
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
 import { HEADER } from "../constants/header.constants.js";
@@ -54,7 +54,7 @@ const signUp = async (req, res) => {
     // console.log(tokens);
     res.cookie(COOKIE.JWT, tokens.refreshToken.toString(), {
       httpOnly: true,
-      sercure: true,
+      secure: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -90,6 +90,7 @@ const signIn = async (req, res) => {
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password);
+
     if (!isValidPassword) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid email or password");
     }
@@ -109,7 +110,7 @@ const signIn = async (req, res) => {
 
     res.cookie(COOKIE.JWT, tokens.refreshToken.toString(), {
       httpOnly: true,
-      sercure: true,
+      secure: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -144,7 +145,7 @@ const signInByGG = async (req, res) => {
 
     res.cookie(COOKIE.JWT, tokens.refreshToken.toString(), {
       httpOnly: true,
-      sercure: true,
+      secure: true,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });

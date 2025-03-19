@@ -44,25 +44,8 @@ function Login() {
     try {
       const data = await login({ email: gmail, password }).unwrap();
 
+      console.log(data);
       dispatch(setCredentials(data));
-      const { user, accessToken } = data;
-      const expires = new Date().getTime() + 30 * 24 * 60 * 60 * 1000; // 30 days from now
-
-      // Store user info with expiration timestamp
-      localStorage.setItem(
-        "userInfo",
-        JSON.stringify({
-          user,
-          expires,
-        })
-      );
-      localStorage.setItem(
-        "token",
-        JSON.stringify({
-          token: accessToken,
-          expires,
-        })
-      );
       navigate("/");
     } catch (err) {
       toast.error(
@@ -89,17 +72,23 @@ function Login() {
     >
       <Container maxWidth="xs">
         <Paper elevation={10} sx={{ padding: 2 }}>
-         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              mb: 3,
+            }}
+          >
             <Avatar
               sx={{
-                bgcolor: 'silver',
+                bgcolor: "silver",
                 width: 56,
                 height: 56,
                 mb: 2,
-                boxShadow: '0 4px 8px rgba(0, 0, 0, 0.15)',
+                boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
               }}
-            >
-            </Avatar>
+            ></Avatar>
             <Typography
               component="h1"
               variant="h4"
@@ -111,11 +100,7 @@ function Login() {
             >
               Welcome Back
             </Typography>
-            <Typography
-              variant="body1"
-              color="text.secondary"
-              align="center"
-            >
+            <Typography variant="body1" color="text.secondary" align="center">
               Sign in to continue to your account
             </Typography>
           </Box>
@@ -160,7 +145,7 @@ function Login() {
                   sx={{
                     "& .MuiSvgIcon-root": {
                       color: theme.palette.common.black,
-                    }
+                    },
                   }}
                   value="remember"
                   color="primary"
