@@ -91,7 +91,7 @@ const UserDashboard = () => {
         isDeleteLoading={isDeleteLoading}
         page={page - 1}
         rowsPerPage={rowsPerPage}
-        totalPages={totalPages}
+        totalPages={Math.ceil(totalPages / rowsPerPage)}
         onPageChange={(_, newPage) => setPage(newPage + 1)}
         onRowsPerPageChange={(event) => {
           setRowsPerPage(parseInt(event.target.value, 10));

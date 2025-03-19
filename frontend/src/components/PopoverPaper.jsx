@@ -86,7 +86,7 @@ function PopoverPaper({
           sx={{
             display: "flex",
             height: 40,
-            bgcolor: theme.palette.button.backgroundColor,
+            bgcolor: "primary.main",
             alignItems: "center",
             justifyContent: "center",
             cursor: "move",
@@ -107,7 +107,7 @@ function PopoverPaper({
               variant="contained"
               sx={{
                 color: "white",
-                backgroundColor: theme.palette.button.backgroundColor,
+                backgroundColor: "primary.main",
               }}
             >
               {isLoading ? (
@@ -123,8 +123,7 @@ function PopoverPaper({
               variant="contained"
               sx={{
                 color: "white",
-
-                backgroundColor: theme.palette.button.backgroundColor,
+                backgroundColor: "primary.main",
               }}
             >
               {isLoadingUpdate ? (

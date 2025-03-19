@@ -21,7 +21,6 @@ function ProfileDashBoard() {
 
   const [triggerGetTotalOrder, { data, isLoading }] =
     useLazyGetUserTotalOrderQuery();
-  console.log(time);
 
   useEffect(() => {
     triggerGetTotalOrder({ userId, time });

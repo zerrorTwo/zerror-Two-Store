@@ -39,7 +39,6 @@ function CheckoutPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cash");
   const navigate = useNavigate();
 
-
   const [createOrder, { isLoading }] = useCreateOrderMutation();
 
   useEffect(() => {
@@ -83,8 +82,13 @@ function CheckoutPage() {
 
     try {
       const success = await createOrder(data).unwrap();
-      console.log(success);
-      navigate("/profile/my-order");
+      if (success) {
+        navigate("/profile/my-order");
+      } else {
+        toast.error(
+          success?.data?.message || "An error occurred while placing the order."
+        );
+      }
     } catch (error) {
       toast.error(
         error?.data?.message || "An error occurred while placing the order."

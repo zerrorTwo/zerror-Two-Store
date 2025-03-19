@@ -1,14 +1,20 @@
 import { StatusCodes } from "http-status-codes";
-import UserModel from "../models/user.model.js";
 import ApiError from "../utils/api.error.js";
 import bcyptPassword from "../utils/bcrypt.password.js";
+import {
+  findUserById,
+  updateUser,
+  findPaginatedUsers,
+  countUsers,
+  findUserByIdWithDetails,
+  deleteUser,
+  deleteManyUsersRepo,
+  saveUser,
+} from "../repositories/user.repository.js";
 
 const getCurrentUserProfile = async (req, res) => {
   const userId = req.user;
-  const user = UserModel.findById(userId)
-    .select("_id name email password isAdmin")
-    .lean();
-  return user;
+  return await findUserById(userId);
 };
 
 const updateCurrentUserProfile = async (req, res) => {
@@ -16,10 +22,12 @@ const updateCurrentUserProfile = async (req, res) => {
   if (!userId) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
-  const user = await UserModel.findById(userId);
+
+  const user = await findUserByIdWithDetails(userId);
   if (!user) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "Unauthorized");
   }
+
   user.userName = req.body.userName || user.userName;
   user.email = req.body.email || user.email;
 
@@ -27,33 +35,23 @@ const updateCurrentUserProfile = async (req, res) => {
     if (req.body.password !== req.body.comfirmPassword) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Passwords do not match");
     }
-    const bcryptPassword = await bcyptPassword(password);
+    const bcryptPassword = await bcyptPassword(req.body.password);
     user.password = bcryptPassword;
   }
-  const updatedUser = await user.save();
+
+  const updatedUser = await saveUser(user);
   const { password, ...userWithoutPassword } = updatedUser.toObject();
   return userWithoutPassword;
 };
 
 const getAllUsers = async (req, res) => {
   try {
-    const page = parseInt(req.query.page) || 1; // Mặc định là trang 1
-    const limit = parseInt(req.query.limit) || 10; // Mặc định là 10 sản phẩm mỗi trang
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
 
-    // Tính số sản phẩm cần skip
-    const skip = (page - 1) * limit;
+    const users = await findPaginatedUsers(page, limit);
+    const totalUsers = await countUsers();
 
-    // Lấy danh sách sản phẩm từ database với phân trang
-    const users = await UserModel.find({})
-      .select("_id userName email password isAdmin")
-      .skip(skip)
-      .limit(limit)
-      .lean();
-
-    // Tính tổng số sản phẩm
-    const totalUsers = await UserModel.countDocuments({});
-
-    // Tạo response với dữ liệu phân trang
     return {
       page,
       limit,
@@ -72,7 +70,7 @@ const getUserById = async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "UserId not found");
   }
 
-  const user = await UserModel.findById(userId);
+  const user = await findUserByIdWithDetails(userId);
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
@@ -85,8 +83,7 @@ const updateUserById = async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "UserId not found");
   }
 
-  const user = await UserModel.findById(userId);
-
+  const user = await findUserByIdWithDetails(userId);
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
@@ -99,10 +96,11 @@ const updateUserById = async (req, res) => {
   }
 
   if (req.body?.password) {
-    const bcryptPassword = await bcyptPassword(password);
+    const bcryptPassword = await bcyptPassword(req.body.password);
     user.password = bcryptPassword;
   }
-  const updatedUser = await user.save();
+
+  const updatedUser = await saveUser(user);
   const { password, ...userWithoutPassword } = updatedUser.toObject();
   return userWithoutPassword;
 };
@@ -113,24 +111,25 @@ const deleteUserById = async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "UserId not found");
   }
 
-  const user = await UserModel.findById(userId);
+  const user = await findUserByIdWithDetails(userId);
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
+
   const userName = user.userName;
-  await UserModel.deleteOne(user);
+  await deleteUser(userId);
   return { message: `User ${userName} deleted successfully` };
 };
 
 const deleteManyUsers = async (req, res) => {
-  const users = req.body;
+  const userIds = req.body;
 
-  if (!users) {
+  if (!userIds) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Users not found");
   }
-  const respone = await UserModel.deleteMany(users);
 
-  if (!respone) {
+  const response = await deleteManyUsersRepo(userIds);
+  if (!response) {
     throw new ApiError(
       StatusCodes.INTERNAL_SERVER_ERROR,
       "Failed to delete users"

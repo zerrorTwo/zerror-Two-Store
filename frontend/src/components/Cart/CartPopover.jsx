@@ -48,12 +48,12 @@ function CartPopover({ data, error, loading, onMouseEnter, onMouseLeave }) {
         ) : (
           <>
             {error ? (
-              <Typography>{error}</Typography>
+              <Typography key="error">{error}</Typography>
             ) : loading ? (
-              <Typography>Loading...</Typography>
+              <Typography key="loading">Loading...</Typography>
             ) : (
-              data?.products?.map((item) => (
-                <CartPopoverItem key={item._id} item={item} />
+              data?.products?.map((item, index) => (
+                <CartPopoverItem key={index} item={item} />
               ))
             )}
           </>

@@ -7,7 +7,12 @@ import { generateRSAKeyPair, generateToken } from "../auth/auth.util.js";
 import bcrypt from "bcryptjs";
 import bcryptPassword from "../utils/bcrypt.password.js";
 import { COOKIE } from "../constants/header.constants.js";
-import KeyModel from "../models/key.model.js";
+import {
+  findByEmail,
+  findRoleByUserId,
+  findUserById,
+  findKeyStoreById,
+} from "../repositories/access.repository.js";
 
 const signUp = async (req, res) => {
   const { userName, email, password } = req.body;
@@ -75,11 +80,6 @@ const signUp = async (req, res) => {
 };
 
 const signIn = async (req, res) => {
-  //  1.Check email
-  //  2.Check password
-  //  3. Generate PK and PK
-  //  4. Generate tokens
-  //  5. Get data
   try {
     const { email, password } = req.body;
 
@@ -95,8 +95,6 @@ const signIn = async (req, res) => {
     }
 
     const { publicKey, privateKey } = generateRSAKeyPair();
-
-    // console.log(publicKey, privateKey);
 
     const tokens = await generateToken(
       {
@@ -115,8 +113,6 @@ const signIn = async (req, res) => {
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-
-    // console.log(tokens);
 
     await keyTokenService({
       refreshToken: tokens.refreshToken,
@@ -172,23 +168,34 @@ const signInByGG = async (req, res) => {
 const logout = async (req, res) => {
   try {
     const id = req.headers[HEADER.CLIENT_ID];
-    console.log(id);
 
+    // Nếu không có client ID, chỉ xóa cookie
     if (!id) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid client id");
+      res.clearCookie(COOKIE.JWT, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+      });
+      if (req.cookies && req.cookies["connect.sid"]) {
+        res.clearCookie("connect.sid");
+      }
+      return { message: "Logged out successfully" };
     }
-
-    // console.log(req.headers[HEADER.CLIENT_ID]);
 
     // Xóa refresh token từ cơ sở dữ liệu
     const delKey = await removeKeyByUserId(id);
 
     if (!delKey) {
-      // Nếu không tìm thấy hoặc xóa key thất bại
-      throw new ApiError(
-        StatusCodes.BAD_REQUEST,
-        "Failed to remove refresh token from database"
-      );
+      // Nếu không tìm thấy hoặc xóa key thất bại, vẫn xóa cookie
+      res.clearCookie(COOKIE.JWT, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+      });
+      if (req.cookies && req.cookies["connect.sid"]) {
+        res.clearCookie("connect.sid");
+      }
+      return { message: "Logged out successfully" };
     }
 
     // Xóa cookie refresh token
@@ -198,14 +205,12 @@ const logout = async (req, res) => {
       sameSite: "strict",
     });
     if (req.cookies && req.cookies["connect.sid"]) {
-      res.clearCookie("connect.sid"); // Xóa cookie nếu tồn tại
+      res.clearCookie("connect.sid");
     }
 
-    // Trả về kết quả xóa key thành công
-    return delKey;
+    return { message: "Logged out successfully" };
   } catch (error) {
     console.log(error);
-    // Nếu có lỗi xảy ra trong quá trình logout
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, "Failed to log out");
   }
 };
@@ -213,13 +218,13 @@ const logout = async (req, res) => {
 const refreshToken = async (req, res) => {
   try {
     const { id, userId } = req;
-    const keyStore = await KeyModel.findOne({ _id: id });
+    const keyStore = await findKeyStoreById(id);
 
     if (!keyStore) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid key store");
     }
 
-    const user = await UserModel.findOne({ _id: userId });
+    const user = await findUserById(userId);
 
     const { publicKey, privateKey } = generateRSAKeyPair();
 
@@ -245,37 +250,10 @@ const refreshToken = async (req, res) => {
       return res.status(StatusCodes.OK).json(tokens.accessToken.toString());
     }
 
-    // If saveKey fails, respond with an error
     throw new ApiError(StatusCodes.BAD_REQUEST, "Save key failed");
   } catch (err) {
     throw err;
   }
 };
 
-const findByEmail = async ({
-  email,
-  select = {
-    userName: 1,
-    email: 1,
-    password: 1,
-    isAdmin: 1,
-    number: 1,
-    googleId: 1,
-  },
-}) => {
-  return await UserModel.findOne({ email: email }).select(select).lean();
-};
-
-const findRoleByUserId = async (userId) => {
-  return await UserModel.findOne({ _id: userId }).select("-password").lean();
-};
-
-export {
-  signUp,
-  signIn,
-  signInByGG,
-  logout,
-  refreshToken,
-  findByEmail,
-  findRoleByUserId,
-};
+export { signUp, signIn, signInByGG, logout, refreshToken, findRoleByUserId };

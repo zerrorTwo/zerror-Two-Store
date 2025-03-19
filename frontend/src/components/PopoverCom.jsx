@@ -181,7 +181,7 @@ function PopoverCom({ anchorEl = null, handleClose, row = null }) {
             <Button
               onClick={handleSubmit}
               variant="contained"
-              sx={{ backgroundColor: theme.palette.button.backgroundColor }}
+              // sx={{ backgroundColor: theme.palette.button.backgroundColor }}
               disabled={isLoading}
             >
               Save

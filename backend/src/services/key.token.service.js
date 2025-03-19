@@ -1,16 +1,17 @@
-import { Types } from "mongoose";
-import KeyModel from "../models/key.model.js";
+import {
+  findKeyByUserId,
+  findKeyById,
+  createOrUpdateKeyToken,
+  removeKeyByUserIdRepo,
+} from "../repositories/key.token.repository.js";
 
 const keyTokenService = async ({ userId, publicKey, refreshToken }) => {
   try {
-    const filter = { user: userId };
-    const update = {
+    const token = await createOrUpdateKeyToken({
+      userId,
       publicKey,
-      refreshToken, // Thêm refreshToken vào mảng
-    };
-    const options = { upsert: true, new: true }; // Nếu không tồn tại, tạo mới
-
-    const token = await KeyModel.findOneAndUpdate(filter, update, options);
+      refreshToken,
+    });
     return token;
   } catch (error) {
     // console.error("Error in keyTokenService:", error);
@@ -19,27 +20,16 @@ const keyTokenService = async ({ userId, publicKey, refreshToken }) => {
 };
 
 const findByUserId = async (userId) => {
-  return await KeyModel.findOne({ user: new Types.ObjectId(userId) }).lean();
+  return await findKeyByUserId(userId);
 };
 
 const findById = async (id) => {
-  return await KeyModel.findOne({ _id: new Types.ObjectId(id) }).lean();
+  return await findKeyById(id);
 };
 
 const removeKeyByUserId = async (userId) => {
   try {
-    if (!userId) {
-      throw new Error("Invalid userId");
-    }
-
-    const key = await KeyModel.findOne({ user: userId });
-
-    if (!key) {
-      return { message: "User key not found." }; // Trả về thay vì ném lỗi
-    }
-
-    await KeyModel.deleteOne({ _id: key._id });
-    return { message: "Delete successfully" };
+    return await removeKeyByUserIdRepo(userId);
   } catch (error) {
     throw new Error(`Failed to remove token: ${error.message}`);
   }

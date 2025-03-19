@@ -119,7 +119,7 @@ const ProductDashboard = () => {
   const handleSearch = () => {
     setSearch(inputSearch || "");
     setSelectedCategory(inputCategory);
-    setPage(1); // Reset page to 1 when performing a new search
+    setPage(0); // Reset page to 0 when performing a new search
   };
 
   useEffect(() => {
@@ -152,7 +152,7 @@ const ProductDashboard = () => {
           <Divider
             sx={{
               width: "100%",
-              bgcolor: theme.palette.button.backgroundColor,
+              bgcolor: "primary.main",
             }}
           />
         </Box>
@@ -197,21 +197,20 @@ const ProductDashboard = () => {
 
       <GenericTable
         name="List Product"
-        create={true}
         rows={processedRows}
         headCells={headCells}
-        handleUpdateClick={handleUpdateClick} // Pass the updated function
+        handleUpdateClick={handleUpdateClick}
         selected={selected}
         setSelected={setSelected}
         onDeleteConfirm={handleDeleteConfirm}
         isDeleteLoading={isDeleteLoading}
-        page={page - 1}
+        page={page}
         rowsPerPage={rowsPerPage}
         totalPages={totalPages}
-        onPageChange={(_, newPage) => setPage(newPage + 1)}
+        onPageChange={(_, newPage) => setPage(newPage)}
         onRowsPerPageChange={(event) => {
           setRowsPerPage(parseInt(event.target.value, 10));
-          setPage(1);
+          setPage(0);
         }}
       />
     </>

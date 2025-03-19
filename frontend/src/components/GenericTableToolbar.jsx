@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import FilterListIcon from "@mui/icons-material/FilterList";
-import { useTheme } from "@mui/material/styles";
 import AddCircleIcon from "@mui/icons-material/AddCircle";
 
 const GenericTableToolbar = ({
@@ -22,20 +21,19 @@ const GenericTableToolbar = ({
   handleOpenDialog,
   isLoading,
 }) => {
-  const theme = useTheme();
-
   return (
     <Toolbar
       sx={[
         {
-          backgroundColor: theme.palette.button.backgroundColor,
+          // backgroundColor: theme.palette.button.backgroundColor,
           minHeight: "auto !important",
           pl: { sm: 2 },
           pr: { xs: 1, sm: 1 },
         },
-        numSelected > 0 && {
-          bgcolor: (theme) => theme.palette.button.backgroundColor,
-        },
+        numSelected > 0 &&
+          {
+            // bgcolor: (theme) => theme.palette.button.backgroundColor,
+          },
       ]}
     >
       {numSelected > 0 ? (
@@ -47,19 +45,19 @@ const GenericTableToolbar = ({
               </Box>
             ) : (
               <IconButton onClick={handleOpenDialog}>
-                <DeleteIcon sx={{ color: "white" }} />
+                <DeleteIcon sx={{ color: "error.main" }} />
               </IconButton>
             )}
           </Tooltip>
         </>
       ) : (
         <IconButton sx={{ cursor: "default" }}>
-          <FilterListIcon sx={{ color: "white" }} />
+          <FilterListIcon />
         </IconButton>
       )}
       {numSelected > 0 ? (
         <Typography
-          sx={{ flex: "1 1 100%", color: "white" }}
+          sx={{ flex: "1 1 100%", color: "error.main" }}
           variant="subtitle1"
           component="div"
         >
@@ -67,7 +65,7 @@ const GenericTableToolbar = ({
         </Typography>
       ) : (
         <Typography
-          sx={{ flex: "1 1 100%", color: "white" }}
+          sx={{ flex: "1 1 100%", color: "" }}
           variant="h6"
           id="tableTitle"
           component="div"

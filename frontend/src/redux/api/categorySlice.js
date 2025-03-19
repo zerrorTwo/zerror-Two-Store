@@ -26,6 +26,18 @@ export const categoryApiSlice = apiSlice.injectEndpoints({
         url: `${BASE_URL}/category/tree`,
         method: "GET",
       }),
+      transformResponse: (response) => {
+        return Array.isArray(response)
+          ? response.map((category) => ({
+              _id: category._id || "",
+              name: category.name || "",
+              slug: category.slug || "",
+              children: Array.isArray(category.children)
+                ? category.children
+                : [],
+            }))
+          : [];
+      },
       providesTags: ["Category"],
       keepUnusedDataFor: 5,
     }),

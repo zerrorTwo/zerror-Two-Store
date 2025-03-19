@@ -5,6 +5,7 @@ import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
 import OrderModel from "../models/order.model.js";
 import MomoModel from "../models/momo.model.js";
+import { findOrderById } from "../repositories/order.repository.js";
 
 dotenv.config();
 
@@ -113,7 +114,7 @@ const handleMomoCallback = async (req) => {
       return { success: false, message: "Invalid signature" };
     }
 
-    const order = await OrderModel.findById(orderId);
+    const order = await findOrderById(orderId);
     if (!order) {
       return { success: false, message: "Order not found" };
     }
