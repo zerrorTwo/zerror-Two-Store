@@ -5,7 +5,6 @@ import PropTypes from "prop-types"; // Import PropTypes
 import { PRIMITIVE_URL } from "../../redux/constants";
 
 function CheckoutProduct({ item, name, img, price }) {
-  console.log(item);
   return (
     <Box>
       <Grid2 container sx={{ alignItems: "center" }}>

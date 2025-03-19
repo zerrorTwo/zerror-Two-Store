@@ -1,11 +1,19 @@
 import mongoose from "mongoose";
-import OrderModel from "../models/order.model.js";
-import CartModel from "../models/cart.model.js";
-import ProductModel from "../models/product.model.js";
-import AddressModel from "../models/address.model.js";
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
 import { momoService } from "./momo.service.js";
+import {
+  findAddressById,
+  findCartItemsByUserId,
+  findProductsByIds,
+  createNewOrder,
+  updateCartAfterOrder,
+  findPaginatedOrders,
+  findOrdersWithDetails,
+  countUserOrders,
+  findOrdersByTimeRange,
+  findCartCheckoutItems,
+} from "../repositories/order.repository.js";
 
 const createOrder = async (data) => {
   const session = await mongoose.startSession();
@@ -15,62 +23,12 @@ const createOrder = async (data) => {
     const { userId, addressId, paymentMethod, notes } = data;
 
     // Kiểm tra địa chỉ giao hàng
-    const address = await AddressModel.findOne({
-      _id: addressId,
-      userId,
-    }).session(session);
+    const address = await findAddressById(addressId, userId, session);
     if (!address)
       throw new ApiError(StatusCodes.NOT_FOUND, "Address not found!");
 
     // Lấy sản phẩm đã checkout từ giỏ hàng
-    const cartItems = await CartModel.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-      { $unwind: "$products" },
-      {
-        $project: {
-          productId: "$products.productId",
-          hasVariations: { $gt: [{ $size: "$products.variations" }, 0] },
-          variations: "$products.variations",
-          quantity: { $ifNull: ["$products.quantity", 1] },
-          price: { $ifNull: ["$products.price", 0] },
-          checkout: { $ifNull: ["$products.checkout", false] },
-        },
-      },
-      {
-        $project: {
-          productId: 1,
-          variations: {
-            $cond: {
-              if: "$hasVariations",
-              then: "$variations",
-              else: [
-                {
-                  price: "$price",
-                  quantity: "$quantity",
-                  checkout: "$checkout",
-                },
-              ],
-            },
-          },
-        },
-      },
-      { $unwind: "$variations" },
-      { $match: { "variations.checkout": true } },
-      {
-        $group: {
-          _id: null,
-          products: {
-            $push: { productId: "$productId", variation: "$variations" },
-          },
-          totalItems: { $sum: "$variations.quantity" },
-          totalPrice: {
-            $sum: {
-              $multiply: ["$variations.price", "$variations.quantity"],
-            },
-          },
-        },
-      },
-    ]).session(session);
+    const cartItems = await findCartItemsByUserId(userId, session);
 
     // Kiểm tra nếu giỏ hàng rỗng
     if (!cartItems.length)
@@ -96,9 +54,7 @@ const createOrder = async (data) => {
 
     // Kiểm tra stock & trừ stock trong một lần truy vấn
     const productIds = products.map((item) => item.productId);
-    const productList = await ProductModel.find({
-      _id: { $in: productIds },
-    }).session(session);
+    const productList = await findProductsByIds(productIds, session);
 
     // Tạo map để kiểm tra stock nhanh hơn
     const productStockMap = new Map(
@@ -126,60 +82,25 @@ const createOrder = async (data) => {
     await Promise.all(productList.map((p) => p.save({ session })));
 
     // Tạo đơn hàng nháp
-    const newOrder = await OrderModel.create(
-      [
-        {
-          userId,
-          products: products.map((p) => ({
-            productId: p.productId,
-            variations: [p.variation],
-          })),
-          addressId,
-          paymentMethod,
-          notes,
-          totalItems,
-          totalPrice,
-          finalTotal: totalPrice + 30000,
-        },
-      ],
-      { session }
+    const newOrder = await createNewOrder(
+      {
+        userId,
+        products: products.map((p) => ({
+          productId: p.productId,
+          variations: [p.variation],
+        })),
+        addressId,
+        paymentMethod,
+        notes,
+        totalItems,
+        totalPrice,
+        finalTotal: totalPrice + 30000,
+      },
+      session
     );
 
-    // Xóa các biến thể đã checkout khỏi giỏ hàng
-    await CartModel.updateOne(
-      { userId },
-      { $pull: { "products.$[].variations": { checkout: true } } },
-      { session }
-    );
-
-    // Xóa sản phẩm nếu không còn biến thể nào
-    await CartModel.updateMany(
-      { userId },
-      { $pull: { products: { variations: { $size: 0 } } } },
-      { session }
-    );
-
-    // Nếu thanh toán bằng MOMO, tạo link thanh toán
-    // if (paymentMethod === "MOMO") {
-    //   const orderId = newOrder[0]._id.toString();
-    //   const paymentUrl = await momoService.createMomoPayment({
-    //     orderId,
-    //     amount: newOrder[0].finalTotal,
-    //     orderInfo: "Thanh toán đơn hàng",
-    //     redirectUrl: "http://localhost:5173/thanks",
-    //     ipnUrl:
-    //       process.env.MOMO_IPN_URL ||
-    //       "http://localhost:5000/v1/api/payment/momo/callback",
-    //     extraData: "",
-    //   });
-
-    //   newOrder[0].paymentUrl = paymentUrl;
-
-    //   // Commit transaction và trả về link thanh toán
-    //   await session.commitTransaction();
-    //   session.endSession();
-    //   return { success: true, message: "Redirect to MOMO", paymentUrl };
-    // }
+    // Cập nhật giỏ hàng sau khi tạo đơn hàng
+    await updateCartAfterOrder(userId, session);
 
     // Commit transaction
     await session.commitTransaction();
@@ -207,16 +128,11 @@ const getUserOrder = async (userId, page = 1, limit = 2) => {
     }
 
     // Bước 1: Phân trang trước khi lấy sản phẩm
-    const paginatedOrders = await OrderModel.aggregate([
-      { $match: { userId: new mongoose.Types.ObjectId(userId) } },
-      { $sort: { updatedAt: -1 } }, // Sắp xếp trước khi lấy danh sách đơn hàng
-      { $skip: (page - 1) * limit },
-      { $limit: limit },
-    ]);
+    const paginatedOrders = await findPaginatedOrders(userId, page, limit);
 
     const orderIds = paginatedOrders.map((order, index) => ({
       _id: order._id,
-      sortIndex: index, // Ghi nhớ thứ tự ban đầu để sắp xếp lại sau
+      sortIndex: index,
     }));
 
     if (orderIds.length === 0) {
@@ -224,72 +140,10 @@ const getUserOrder = async (userId, page = 1, limit = 2) => {
     }
 
     // Bước 2: Lấy thông tin đơn hàng + sản phẩm
-    const orders = await OrderModel.aggregate([
-      { $match: { _id: { $in: orderIds.map((o) => o._id) } } },
-      { $sort: { updatedAt: -1 } }, // Giữ nguyên thứ tự theo thời gian cập nhật
-
-      {
-        $lookup: {
-          from: "products",
-          localField: "products.productId",
-          foreignField: "_id",
-          as: "productDetails",
-        },
-      },
-
-      { $unwind: "$products" },
-
-      {
-        $lookup: {
-          from: "products",
-          localField: "products.productId",
-          foreignField: "_id",
-          as: "productInfo",
-        },
-      },
-
-      {
-        $addFields: {
-          "products.name": { $arrayElemAt: ["$productInfo.name", 0] },
-          "products.mainImg": { $arrayElemAt: ["$productInfo.mainImg", 0] },
-          sortIndex: {
-            $indexOfArray: [orderIds.map((o) => o._id), "$_id"], // Ghi nhớ vị trí của đơn hàng
-          },
-        },
-      },
-
-      {
-        $project: {
-          productDetails: 0,
-          productInfo: 0,
-        },
-      },
-
-      {
-        $group: {
-          _id: "$_id",
-          userId: { $first: "$userId" },
-          state: { $first: "$state" },
-          deliveryState: { $first: "$deliveryState" },
-          createdAt: { $first: "$createdAt" },
-          updatedAt: { $first: "$updatedAt" },
-          paymentMethod: { $first: "$paymentMethod" },
-          paymentStatus: { $first: "$paymentStatus" },
-          deliveryFee: { $first: "$deliveryFee" },
-          totalPrice: { $first: "$totalPrice" },
-          finalTotal: { $first: "$finalTotal" },
-          products: { $push: "$products" },
-          sortIndex: { $first: "$sortIndex" }, // Giữ lại thứ tự ban đầu
-        },
-      },
-
-      { $sort: { sortIndex: 1 } }, // Sắp xếp lại theo thứ tự gốc
-    ]);
+    const orders = await findOrdersWithDetails(orderIds);
 
     // Kiểm tra còn dữ liệu không
-    const totalOrders = await OrderModel.countDocuments({
-      userId: new mongoose.Types.ObjectId(userId),
-    });
+    const totalOrders = await countUserOrders(userId);
 
     return {
       orders,
@@ -333,12 +187,7 @@ const getUserTotalOrder = async (userId, time) => {
     }
 
     // Truy vấn đơn hàng theo thời gian và userId
-    const orders = await OrderModel.find({
-      userId,
-      createdAt: { $gte: startDate, $lt: endDate },
-    })
-      .select("finalTotal totalItems")
-      .lean();
+    const orders = await findOrdersByTimeRange(userId, startDate, endDate);
 
     // Tổng số đơn hàng
     const totalOrders = orders.length;
@@ -367,114 +216,7 @@ const getUserTotalOrder = async (userId, time) => {
 
 const getProductCheckout = async (userId) => {
   try {
-    const cart = await CartModel.aggregate([
-      // Lọc giỏ hàng theo userId và trạng thái ACTIVE
-      {
-        $match: {
-          userId: new mongoose.Types.ObjectId(userId),
-          state: "ACTIVE",
-        },
-      },
-
-      // Unwind để tách từng sản phẩm trong giỏ hàng
-      { $unwind: "$products" },
-
-      // **Lọc các sản phẩm có ít nhất một biến thể có checkout: true**
-      {
-        $match: {
-          "products.variations.checkout": true,
-        },
-      },
-
-      // Lookup để lấy thông tin chi tiết sản phẩm từ collection products
-      {
-        $lookup: {
-          from: "products",
-          localField: "products.productId",
-          foreignField: "_id",
-          as: "productDetails",
-        },
-      },
-
-      // Unwind để lấy chi tiết sản phẩm từ lookup
-      { $unwind: "$productDetails" },
-
-      // **Chỉ giữ lại các biến thể có checkout = true**
-      {
-        $set: {
-          "products.variations": {
-            $filter: {
-              input: "$products.variations",
-              as: "variation",
-              cond: { $eq: ["$$variation.checkout", true] },
-            },
-          },
-        },
-      },
-
-      // Chỉ lấy sản phẩm nếu sau khi lọc vẫn còn biến thể hợp lệ
-      {
-        $match: {
-          "products.variations": { $ne: [] },
-        },
-      },
-
-      // Project để chọn các trường cần thiết
-      {
-        $project: {
-          _id: 0,
-          productId: "$products.productId",
-          cartQuantity: "$products.quantity",
-          cartVariations: "$products.variations", // Chỉ chứa các biến thể có checkout: true
-          productName: "$productDetails.name",
-          productImages: "$productDetails.mainImg",
-          productSlug: "$productDetails.slug",
-          stock: "$productDetails.stock",
-          sold: "$productDetails.sold",
-          status: "$productDetails.status",
-          type: "$productDetails.type",
-          rating: "$productDetails.rating",
-          productVariations: "$productDetails.variations",
-          price: "$productDetails.price",
-          createdAt: "$products.createdAt",
-        },
-      },
-
-      // Sắp xếp theo ngày thêm vào giỏ hàng mới nhất
-      { $sort: { createdAt: -1 } },
-
-      // Gom nhóm lại để tính tổng giá trị giỏ hàng
-      {
-        $group: {
-          _id: null,
-          products: { $push: "$$ROOT" },
-          totalItems: { $sum: { $size: "$cartVariations" } }, // Tổng số biến thể được chọn
-          totalPrice: {
-            $sum: {
-              $reduce: {
-                input: "$cartVariations",
-                initialValue: 0,
-                in: {
-                  $add: [
-                    "$$value",
-                    { $multiply: ["$$this.price", "$$this.quantity"] },
-                  ],
-                },
-              },
-            },
-          },
-        },
-      },
-
-      // Chọn ra kết quả cuối cùng
-      {
-        $project: {
-          products: 1,
-          totalItems: 1,
-          totalPrice: 1,
-        },
-      },
-    ]);
+    const cart = await findCartCheckoutItems(userId);
 
     // Nếu không có sản phẩm nào, trả về giỏ hàng rỗng
     if (!cart.length) {

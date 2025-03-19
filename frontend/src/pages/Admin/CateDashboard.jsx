@@ -21,7 +21,6 @@ import FormBase from "../../components/FormBase";
 import PopoverPaper from "../../components/PopoverPaper";
 import { PRIMITIVE_URL } from "../../redux/constants";
 import { useNavigate, useSearchParams } from "react-router";
-import { isEqual } from "lodash";
 
 // Wrap GenericTable and PopoverPaper with memo
 const MemoizedGenericTable = memo(GenericTable);
@@ -33,6 +32,11 @@ function CateDashBoard() {
   const parent = searchParams.get("parent") || null;
 
   const navigate = useNavigate();
+
+  // Thêm useEffect để cập nhật parentId khi URL thay đổi
+  useEffect(() => {
+    setParentId(parent);
+  }, [parent]);
 
   const headCells = [
     { id: "name", numeric: false, disablePadding: false, label: "Name" },
@@ -73,62 +77,49 @@ function CateDashBoard() {
 
   const formRef = useRef(null);
 
-  const prevListCate = useRef(listCate);
-
-  // Gộp các useEffect liên quan đến listCate và rows
+  // Sửa lại useEffect cho breadcrumbItems
   useEffect(() => {
-    setSelected([]);
-    const savedBreadcrumbItems = localStorage.getItem("breadcrumbItems");
-
-    if (savedBreadcrumbItems && !breadcrumbItems.length) {
-      setBreadcrumbItems(JSON.parse(savedBreadcrumbItems));
+    if (!parent) {
+      setBreadcrumbItems([]);
+      localStorage.removeItem("breadcrumbItems");
+      return;
     }
 
-    if (!isEqual(listCate, prevListCate.current)) {
-      if (categoryLoading) {
-        setRows([]);
-      } else if (listCate) {
-        const newRows = listCate?.map((category) => ({
-          _id: category._id,
-          name: category.name,
-          img: category.img,
-          level: category?.level,
-        }));
-        setRows(newRows);
-        setLvl(listCate[0]?.level || 1);
-        prevListCate.current = listCate;
+    const savedBreadcrumbItems = localStorage.getItem("breadcrumbItems");
+    if (savedBreadcrumbItems) {
+      const parsedItems = JSON.parse(savedBreadcrumbItems);
+      // Chỉ set breadcrumbItems nếu parent thay đổi
+      if (parent !== parsedItems[parsedItems.length - 1]?.id) {
+        setBreadcrumbItems(parsedItems);
       }
     }
-  }, [listCate, categoryLoading, breadcrumbItems.length]);
+  }, [parent]); // Chỉ phụ thuộc vào parent
 
-  // Chỉ lưu breadcrumbItems khi có thay đổi và có dữ liệu
+  // Sửa lại useEffect cho rows và lvl
+  useEffect(() => {
+    if (listCate && listCate.length > 0) {
+      const newRows = listCate.map((category) => ({
+        _id: category._id,
+        name: category.name,
+        img: category.img,
+        level: category?.level,
+      }));
+      setRows(newRows);
+      setLvl(listCate[0]?.level || 1);
+    }
+  }, [listCate]); // Chỉ phụ thuộc vào listCate
+
+  // Sửa lại useEffect cho selected
+  useEffect(() => {
+    setSelected([]);
+  }, [parentId]); // Chỉ phụ thuộc vào parentId
+
+  // Sửa lại useEffect cho breadcrumbItems
   useEffect(() => {
     if (breadcrumbItems.length > 0) {
       localStorage.setItem("breadcrumbItems", JSON.stringify(breadcrumbItems));
     }
-  }, [breadcrumbItems]);
-
-  // Xóa useEffect trùng lặp này
-  // useEffect(() => {
-  //   if (categoryLoading) {
-  //     setRows([]);
-  //   }
-  //   if (listCate) {
-  //     setRows(
-  //       listCate?.map((category) => ({
-  //         _id: category._id,
-  //         name: category.name,
-  //         img: category.img,
-  //         level: category?.level,
-  //       }))
-  //     );
-  //   }
-  // }, [listCate, categoryLoading]);
-  useEffect(() => {
-    if (breadcrumbItems.length > 0) {
-      localStorage.setItem("breadcrumbItems", JSON.stringify(breadcrumbItems));
-    }
-  }, [breadcrumbItems]);
+  }, [breadcrumbItems]); // Chỉ phụ thuộc vào breadcrumbItems
 
   const handleMoreClick = (row) => {
     setRows([]);
@@ -143,22 +134,6 @@ function CateDashBoard() {
     });
     navigate(`/admin/cate?parent=${row._id}`);
   };
-
-  useEffect(() => {
-    if (categoryLoading) {
-      setRows([]);
-    }
-    if (listCate) {
-      setRows(
-        listCate?.map((category) => ({
-          _id: category._id,
-          name: category.name,
-          img: category.img,
-          level: category?.level,
-        }))
-      );
-    }
-  }, [listCate, categoryLoading]);
 
   const handleBreadcrumbClick = (id, index) => {
     setBreadcrumbItems((prev) => prev.slice(0, index + 1));
@@ -223,32 +198,49 @@ function CateDashBoard() {
   const handleSubmitCreate = async () => {
     try {
       const formData = formRef.current.getFormData();
-      if (selectedImage) {
-        const formDataWithImage = new FormData();
-        formDataWithImage.append("image", selectedImage);
-        const uploadResult = await uploadCategoryImage(
-          formDataWithImage
-        ).unwrap();
-        formData.img = uploadResult.image;
-      }
 
-      if (!formData.name || !formData.img) {
+      if (!formData.name) {
         toast.error("Category name is required");
         return;
       }
 
-      formData.parent = parentId;
-      formData.level = lvl;
+      let imageUrl = formData.img;
 
-      const newCate = await createNew(formData);
+      if (selectedImage) {
+        const formDataWithImage = new FormData();
+        formDataWithImage.append("image", selectedImage);
+
+        try {
+          const uploadResult = await uploadCategoryImage(
+            formDataWithImage
+          ).unwrap();
+          console.log("Upload result:", uploadResult);
+          imageUrl = uploadResult.image;
+        } catch (error) {
+          console.error("Upload error:", error);
+          toast.error(
+            "Lỗi khi upload ảnh: " + (error.data?.message || error.message)
+          );
+          return;
+        }
+      }
+
+      const categoryData = {
+        name: formData.name,
+        img: imageUrl,
+        parent: parentId || null,
+        level: lvl,
+      };
+
+      const newCate = await createNew(categoryData).unwrap();
       if (newCate?.error) {
         toast.error(newCate?.error?.data?.message);
         return;
       }
 
       toast.success("Category created successfully");
-      formData.img = null;
       setImagePreview(null);
+      setSelectedImage(null);
       handleCloseDialog();
     } catch (error) {
       toast.error("Error creating category: " + error.message);
@@ -258,26 +250,57 @@ function CateDashBoard() {
   const handleUpdateSubmit = async () => {
     try {
       const formData = formRef.current.getFormData();
-      if (selectedImage) {
-        const formDataWithImage = new FormData();
-        formDataWithImage.append("image", selectedImage);
-        const uploadResult = await uploadCategoryImage(formDataWithImage);
-        formData.img = uploadResult.image;
-      }
 
-      formData.img = formData.img || selectedRow?.img;
-
-      if (!formData.name || !formData.img) {
+      if (!formData.name) {
         toast.error("Category name is required");
         return;
       }
 
-      const updatedCate = await update({ id: selectedRow._id, body: formData });
+      let imageUrl = formData.img || selectedRow?.img;
+
+      if (selectedImage) {
+        const formDataWithImage = new FormData();
+        formDataWithImage.append("image", selectedImage);
+
+        // Log thông tin file trước khi upload
+        console.log("File to upload:", selectedImage);
+        console.log(
+          "File size:",
+          (selectedImage.size / (1024 * 1024)).toFixed(2),
+          "MB"
+        );
+        console.log("File type:", selectedImage.type);
+        console.log("File name:", selectedImage.name);
+
+        try {
+          const uploadResult = await uploadCategoryImage(
+            formDataWithImage
+          ).unwrap();
+          imageUrl = uploadResult.image;
+        } catch (error) {
+          toast.error(
+            "Lỗi khi upload ảnh: " + (error.data?.message || error.message)
+          );
+          return;
+        }
+      }
+
+      const updatedCate = await update({
+        id: selectedRow._id,
+        body: {
+          ...formData,
+          img: imageUrl,
+        },
+      }).unwrap();
+
       if (updatedCate?.error) {
         toast.error(updatedCate?.error?.data?.message);
         return;
       }
+
       toast.success("Category updated successfully");
+      setImagePreview(null);
+      setSelectedImage(null);
       handleCloseDialog();
     } catch (error) {
       toast.error("Error updating category: " + error.message);
@@ -302,7 +325,7 @@ function CateDashBoard() {
           <Divider
             sx={{
               width: "100%",
-              bgcolor: theme.palette.button.backgroundColor,
+              // bgcolor: theme.palette.button.backgroundColor,
             }}
           />
         </Box>

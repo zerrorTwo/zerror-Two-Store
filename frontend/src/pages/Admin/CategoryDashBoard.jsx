@@ -133,6 +133,8 @@ function CategoryDashBoard() {
     };
   }, [debouncedSearch]);
 
+  console.log(category);
+
   return (
     <Box sx={{ flexGrow: 1, m: 3 }}>
       <Box>
@@ -215,7 +217,7 @@ function CategoryDashBoard() {
           </Box>
         </Box>
 
-        <Divider sx={{ backgroundColor: theme.palette.text.primary, my: 4 }} />
+        <Divider sx={{ my: 4 }} />
         <Box component="form" mb={2}>
           <TextField
             sx={{

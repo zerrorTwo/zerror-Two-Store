@@ -1,6 +1,12 @@
 import React, { memo, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { Box, CircularProgress, Typography, Card } from "@mui/material";
+import {
+  Box,
+  CircularProgress,
+  Typography,
+  Card,
+  TextField,
+} from "@mui/material";
 import ButtonOutLined from "./ButtonOutLined.jsx";
 import PopoverPaper from "../components/PopoverPaper.jsx";
 import {
@@ -9,21 +15,22 @@ import {
   useUploadCategoryImageMutation,
 } from "../redux/api/categorySlice.js";
 import { toast } from "react-toastify";
-import FormBase from "./FormBase.jsx";
 import { PRIMITIVE_URL } from "../redux/constants.js";
 
 const CategoryList = memo(({ category, isLoading }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedItem, setSelectedItem] = useState(null);
-  const [selectedImage, setSelectedImage] = useState(null); // State for selected image
-  const [imagePreview, setImagePreview] = useState(null); // State for image preview
-  const formRef = useRef(null);
-  const [updateCategory, { isLoading: isLoadingUpdate, error: errorUpdate }] =
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+  });
+  const [updateCategory, { isLoading: isLoadingUpdate }] =
     useUpdateCategoryMutation();
-  const [deleteCategory, { isLoading: isLoadingDelete, error: errorDelete }] =
+  const [deleteCategory, { isLoading: isLoadingDelete }] =
     useDeleteCategoryMutation();
   const [uploadCategoryImage, { isLoading: isLoadingUpload }] =
-    useUploadCategoryImageMutation(); // Image upload mutation
+    useUploadCategoryImageMutation();
 
   if (isLoading) {
     return <CircularProgress color="inherit" />;
@@ -32,8 +39,11 @@ const CategoryList = memo(({ category, isLoading }) => {
   const handleClick = (event, item) => {
     setAnchorEl(event.currentTarget);
     setSelectedItem(item);
-    setSelectedImage(item.img); // Set selected image on click
-    setImagePreview(item.img ? `${PRIMITIVE_URL}${item.img}` : null); // Set image preview on click
+    setSelectedImage(item.img);
+    setImagePreview(item.img ? `${PRIMITIVE_URL}${item.img}` : null);
+    setFormData({
+      name: item.name || "",
+    });
   };
 
   const handleClose = () => {
@@ -41,85 +51,101 @@ const CategoryList = memo(({ category, isLoading }) => {
     setSelectedItem(null);
     setSelectedImage(null);
     setImagePreview(null);
+    setFormData({
+      name: "",
+    });
   };
 
-  const handleImageChange = (event) => {
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleImageChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
       setSelectedImage(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+      setImagePreview(URL.createObjectURL(file));
 
-  const handleUpdate = async (id) => {
-    try {
-      let updatedImgUrl = selectedItem.img;
-
-      if (selectedImage !== selectedItem.img) {
+      try {
         const formData = new FormData();
-        formData.append("image", selectedImage);
-        const response = await uploadCategoryImage(formData).unwrap();
-        updatedImgUrl = response.image;
-      }
+        formData.append("image", file);
 
-      const updatedData = formRef.current?.getFormData();
-      const finalData = { ...selectedItem, ...updatedData, img: updatedImgUrl };
+        console.log("File to upload:", file);
+        console.log("FormData entries:", [...formData.entries()]);
 
-      await updateCategory({ id, ...finalData }).unwrap();
-      if (errorUpdate) {
-        toast.error(errorUpdate);
-      } else {
-        toast.success("Profile updated successfully");
-        handleClose(); // Close the popover on success
+        const result = await uploadCategoryImage(formData).unwrap();
+        console.log("Upload result:", result);
+
+        if (result.image) {
+          setSelectedImage(result.image);
+        }
+      } catch (error) {
+        console.error("Error uploading image:", error);
+        toast.error("Lỗi khi upload ảnh!");
       }
-    } catch (error) {
-      toast.error(error?.data?.message || "Update failed");
     }
   };
 
-  const handleDelete = async (_id) => {
+  const handleUpdate = async () => {
     try {
-      await deleteCategory(_id).unwrap();
-      if (errorDelete) {
-        toast.error(errorDelete);
-      } else {
-        handleClose();
-        toast.success("Delete successfully");
-      }
+      if (!selectedItem) return;
+
+      const updateData = {
+        ...formData,
+        img: selectedImage,
+      };
+
+      await updateCategory({
+        id: selectedItem._id,
+        body: updateData,
+      }).unwrap();
+
+      toast.success("Cập nhật danh mục thành công!");
+      handleClose();
     } catch (error) {
-      toast.error(error?.data?.message || "Delete failed");
+      console.error("Error updating category:", error);
+      toast.error("Lỗi khi cập nhật danh mục!");
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      if (!selectedItem) return;
+      await deleteCategory({ _id: selectedItem._id }).unwrap();
+      toast.success("Xóa danh mục thành công!");
+      handleClose();
+    } catch (error) {
+      console.error("Error deleting category:", error);
+      toast.error("Lỗi khi xóa danh mục!");
     }
   };
 
   return (
-    <Box display={{ xs: "flex", md: "flex" }} sx={{ gap: 2, flexWrap: "wrap" }}>
-      {category.length === 0 ? (
-        <Typography>No categories available.</Typography>
-      ) : (
-        category.map((item) => (
-          <React.Fragment key={item._id}>
-            <ButtonOutLined
-              onClick={(event) => handleClick(event, item)}
-              text={item.name}
-            />
-          </React.Fragment>
-        ))
-      )}
+    <Box>
+      <Box display="flex" flexWrap="wrap" gap={2}>
+        {category.map((item) => (
+          <ButtonOutLined
+            key={item._id}
+            onClick={(event) => handleClick(event, item)}
+          >
+            {item.name}
+          </ButtonOutLined>
+        ))}
+      </Box>
+
       <PopoverPaper
-        isLoadingUpdate={isLoadingUpdate || isLoadingUpload}
-        isLoadingDelete={isLoadingDelete}
-        item={selectedItem}
-        open={Boolean(anchorEl)}
-        updateBtn={true}
-        deleteBtn={true}
         anchorEl={anchorEl}
         handleClose={handleClose}
-        handleUpdate={() => handleUpdate(selectedItem._id)}
-        handleDelete={() => handleDelete(selectedItem._id)}
+        updateBtn={!!selectedItem}
+        deleteBtn={!!selectedItem}
+        handleUpdate={handleUpdate}
+        handleDelete={handleDelete}
+        isLoadingUpdate={isLoadingUpdate}
+        isLoadingDelete={isLoadingDelete}
       >
         <Box sx={{ m: "0 auto", display: "table", mt: 2 }}>
           <Card
@@ -159,7 +185,18 @@ const CategoryList = memo(({ category, isLoading }) => {
             />
           </Card>
         </Box>
-        <FormBase ref={formRef} item={selectedItem || { _id: "", name: "" }} />
+
+        <Box sx={{ p: 2 }}>
+          <TextField
+            fullWidth
+            label="Name"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+            margin="normal"
+            required
+          />
+        </Box>
       </PopoverPaper>
     </Box>
   );

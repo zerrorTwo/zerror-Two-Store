@@ -1,16 +1,28 @@
-import CategoryModel from "../models/category.model.js";
 import ApiError from "../utils/api.error.js";
 import slugtify from "slugify";
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
+import {
+  findCategoryByParent,
+  findAllCategories,
+  findCategoryById,
+  findCategoryByName,
+  createNewCategory,
+  deleteCategoryById,
+  findCategoriesByParent,
+  countCategoriesByParent,
+  findChildCategories,
+  findCategoriesByName,
+  findCommonCategories,
+  updateCategoryChildren,
+  updateCategoryById,
+} from "../repositories/category.repository.js";
 
 const getCategoryTree = async (parent = null) => {
-  const categories = await CategoryModel.find({ parent })
-    .select("_id name slug img level")
-    .lean();
+  const categories = await findCategoryByParent(parent);
   const tree = await Promise.all(
     categories.map(async (category) => {
-      const children = await getCategoryTree(category._id); // Lấy danh mục con
+      const children = await getCategoryTree(category._id);
       return {
         ...category,
         children,
@@ -22,28 +34,23 @@ const getCategoryTree = async (parent = null) => {
 
 const getAllCategoriesTree = async (req, res) => {
   try {
-    // Lấy tất cả danh mục
-    const allCategories = await CategoryModel.find({}).lean();
+    const allCategories = await findAllCategories();
 
-    // Tạo bản đồ danh mục để dễ dàng tìm kiếm
     const categoryMap = {};
     allCategories.forEach((category) => {
       categoryMap[category._id] = { ...category, children: [] };
     });
 
-    // Xây dựng cây danh mục
     const tree = [];
     allCategories.forEach((category) => {
       if (category.parent) {
-        // Nếu danh mục có `parent`, thêm nó vào `children` của cha
         categoryMap[category.parent]?.children.push(categoryMap[category._id]);
       } else {
-        // Nếu không có `parent`, đây là danh mục gốc
         tree.push(categoryMap[category._id]);
       }
     });
 
-    return tree; // Trả về cây danh mục
+    return tree;
   } catch (error) {
     throw error;
   }
@@ -51,9 +58,7 @@ const getAllCategoriesTree = async (req, res) => {
 
 const getAllCategories = async () => {
   try {
-    return await CategoryModel.find({})
-      .select("_id name slug img level")
-      .lean();
+    return await findAllCategories();
   } catch (error) {
     throw error;
   }
@@ -61,35 +66,21 @@ const getAllCategories = async () => {
 
 const getPageCategory = async (parent, page, limit) => {
   try {
-    // Calculate the number of items to skip
     const skip = (page - 1) * limit;
 
     let categories;
-
-    // Check if parent is null or not provided, then fetch categories without parent filter
     if (parent === "null" || !parent) {
-      categories = await CategoryModel.find({ parent: null })
-        .skip(skip)
-        .limit(limit)
-        .select("_id name slug img level")
-        .lean();
+      categories = await findCategoriesByParent(null, skip, limit);
     } else {
-      // Fetch categories with the provided parent
-      categories = await CategoryModel.find({ parent: parent })
-        .skip(skip)
-        .limit(limit)
-        .select("_id name slug img level")
-        .lean();
+      categories = await findCategoriesByParent(parent, skip, limit);
     }
 
     let totalCategories;
-
     if (parent !== "null") {
-      totalCategories = await CategoryModel.countDocuments({ parent: parent });
+      totalCategories = await countCategoriesByParent(parent);
     } else {
-      totalCategories = await CategoryModel.countDocuments({ parent: null });
+      totalCategories = await countCategoriesByParent(null);
     }
-    // Get the total number of categories
 
     return {
       page,
@@ -105,10 +96,8 @@ const getPageCategory = async (parent, page, limit) => {
 
 const getChildCategories = async (id) => {
   try {
-    const parentCategory = await CategoryModel.findById(id).lean();
-    const childCategories = await CategoryModel.find({
-      _id: { $in: parentCategory.children },
-    });
+    const parentCategory = await findCategoryById(id);
+    const childCategories = await findChildCategories(parentCategory.children);
     return childCategories;
   } catch (error) {
     throw error;
@@ -122,27 +111,26 @@ const createCategory = async (data) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Data not found");
   }
 
-  data.name = data.name.trim().toUpperCase();
-
-  const categoryExist = await CategoryModel.findOne({
-    name: data.name,
-  });
+  const categoryExist = await findCategoryByName(data.name);
 
   if (categoryExist) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Category already exists");
   }
-  let parentCategory;
+
   if (data.parent) {
-    data.parent = data.parent.trim().toUpperCase();
-    parentCategory = await CategoryModel.findById({ _id: data.parent });
+    const parentCategory = await findCategoryById(data.parent);
+    if (!parentCategory) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Parent category not found");
+    }
     data.parent = parentCategory._id;
   }
 
   data.slug = slugtify(data.name, { lower: true, strict: true });
-  const category = new CategoryModel(data);
-  await category.save();
-  parentCategory?.children.push(category._id.toString());
-  await parentCategory?.save();
+  const category = await createNewCategory(data);
+
+  if (data.parent) {
+    await updateCategoryChildren(data.parent, category._id);
+  }
 
   return category;
 };
@@ -152,56 +140,52 @@ const updateCategory = async (id, data) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid category ID");
   }
 
-  const category = await CategoryModel.findById(id);
+  const category = await findCategoryById(id);
   if (!category) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Category not found");
   }
 
-  // Nếu đổi tên, kiểm tra sự tồn tại
+  const updateData = { ...category.toObject() };
+
   if (data.name && data.name.trim().toUpperCase() !== category.name) {
-    const categoryExist = await CategoryModel.findOne({
-      name: data.name.trim().toUpperCase(),
-    });
+    const categoryExist = await findCategoryByName(
+      data.name.trim().toUpperCase()
+    );
     if (categoryExist) {
       throw new ApiError(
         StatusCodes.BAD_REQUEST,
         "Category with this name already exists"
       );
     }
-    category.name = data.name.trim().toUpperCase();
-    category.slug = slugtify(data.name, { lower: true, strict: true });
+    updateData.name = data.name.trim().toUpperCase();
+    updateData.slug = slugtify(data.name, { lower: true, strict: true });
   }
-  // Cập nhật các trường khác nếu có
-  if (data.img) category.img = data.img;
-  if (data.description) category.description = data.description;
 
-  await category.save();
+  if (data.img) updateData.img = data.img;
+  if (data.description) updateData.description = data.description;
 
-  return category;
+  const updatedCategory = await updateCategoryById(id, updateData);
+
+  return updatedCategory;
 };
 
 const deleteCategory = async (categories) => {
-  // Nhận mảng _id từ body request
-
   if (!categories || categories.length === 0) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Categories not found");
   }
 
-  // Hàm đệ quy để xóa tất cả danh mục con
   const deleteChildren = async (categoryId) => {
-    const category = await CategoryModel.findById(categoryId);
+    const category = await findCategoryById(categoryId);
     if (category && category.children && category.children.length > 0) {
       for (let childId of category.children) {
-        await deleteChildren(childId); // Đệ quy xóa tất cả danh mục con
+        await deleteChildren(childId);
       }
     }
-    // Xóa danh mục hiện tại
-    await CategoryModel.findByIdAndDelete(categoryId); // Xóa danh mục
+    await deleteCategoryById(categoryId);
   };
 
-  // Xóa từng danh mục trong mảng categories
   for (let categoryId of categories) {
-    const category = await CategoryModel.findById(categoryId);
+    const category = await findCategoryById(categoryId);
     if (!category) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
@@ -209,21 +193,18 @@ const deleteCategory = async (categories) => {
       );
     }
 
-    // Xóa tất cả danh mục con của danh mục chính
     if (category.children && category.children.length > 0) {
       for (let childId of category.children) {
-        await deleteChildren(childId); // Đệ quy xóa tất cả danh mục con
+        await deleteChildren(childId);
       }
     }
 
-    // Xóa danh mục chính
-    await CategoryModel.findByIdAndDelete(categoryId); // Xóa danh mục chính
+    await deleteCategoryById(categoryId);
 
-    // Cập nhật danh mục cha nếu có
     if (category.parent) {
-      const parentCategory = await CategoryModel.findById(category.parent);
+      const parentCategory = await findCategoryById(category.parent);
       parentCategory.children = parentCategory.children.filter(
-        (childId) => childId && childId.toString() !== categoryId // Xóa ID danh mục hiện tại khỏi danh mục cha
+        (childId) => childId && childId.toString() !== categoryId
       );
       await parentCategory.save();
     }
@@ -236,13 +217,10 @@ const searchCategory = async (req, res) => {
   let { keyword } = req.query;
   keyword = keyword.trim().toUpperCase();
   if (keyword === undefined) {
-    return await CategoryModel.find({});
+    return await findAllCategories();
   }
   try {
-    const categories = await CategoryModel.find({
-      name: { $regex: keyword },
-    });
-
+    const categories = await findCategoriesByName(keyword);
     return categories;
   } catch (error) {
     throw new Error(`Error searching categories: ${error.message}`);
@@ -251,7 +229,7 @@ const searchCategory = async (req, res) => {
 
 const getCommonCategories = async () => {
   try {
-    return await CategoryModel.find({ parent: null });
+    return await findCommonCategories();
   } catch (error) {
     throw new Error(`Error find categories: ${error.message}`);
   }

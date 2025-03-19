@@ -118,6 +118,8 @@ const GenericTable = ({
                 height: `${height}px`,
                 padding: "0 16px",
                 lineHeight: `${height}px`,
+                textAlign: "center",
+                verticalAlign: "middle",
               },
             }}
             aria-labelledby="tableTitle"
@@ -148,6 +150,12 @@ const GenericTable = ({
                       tabIndex={-1}
                       selected={isItemSelected}
                       key={row._id}
+                      sx={{
+                        "& .MuiTableCell-root": {
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        },
+                      }}
                     >
                       <TableCell padding="checkbox">
                         <Checkbox
@@ -171,6 +179,8 @@ const GenericTable = ({
                             align="center"
                             sx={{
                               color: theme.palette.text.secondary,
+                              textAlign: "center",
+                              verticalAlign: "middle",
                             }}
                           >
                             {cellValue != null ? (
@@ -182,6 +192,7 @@ const GenericTable = ({
                                     justifyContent: "center",
                                     height: "100%",
                                     maxWidth: "80px",
+                                    margin: "0 auto",
                                   }}
                                 >
                                   <img
@@ -225,6 +236,7 @@ const GenericTable = ({
                                     whiteSpace: "nowrap",
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",
+                                    margin: "0 auto",
                                   }}
                                 >
                                   {String(cellValue)}
@@ -236,41 +248,52 @@ const GenericTable = ({
                           </TableCell>
                         );
                       })}
-                      <TableCell align="center">
-                        <Tooltip title="Update">
-                          <IconButton
-                            onClick={(e) => handleUpdateClick(e, row)}
-                            sx={{
-                              "&:hover": {
-                                backgroundColor:
-                                  theme.palette.button.hoverBackgroundColor,
-                              },
-                              color: "white",
-                              backgroundColor:
-                                theme.palette.button.backgroundColor,
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Tooltip>
-                        {handleMoreClick && (
-                          <Tooltip title="More">
+                      <TableCell
+                        align="center"
+                        sx={{
+                          textAlign: "center",
+                          verticalAlign: "middle",
+                        }}
+                      >
+                        <Box
+                          sx={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            gap: 1,
+                          }}
+                        >
+                          <Tooltip title="Update">
                             <IconButton
-                              onClick={() => handleMoreClick(row)}
+                              onClick={(e) => handleUpdateClick(e, row)}
                               sx={{
                                 "&:hover": {
-                                  backgroundColor:
-                                    theme.palette.button.hoverBackgroundColor,
+                                  backgroundColor: "primary.main",
                                 },
                                 color: "white",
-                                backgroundColor:
-                                  theme.palette.button.backgroundColor,
+                                backgroundColor: "primary.main",
                               }}
                             >
-                              <MoreHorizIcon fontSize="small" />
+                              <EditIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                        )}
+                          {handleMoreClick && (
+                            <Tooltip title="More">
+                              <IconButton
+                                onClick={() => handleMoreClick(row)}
+                                sx={{
+                                  "&:hover": {
+                                    backgroundColor: "primary.main",
+                                  },
+                                  color: "white",
+                                  backgroundColor: "primary.main",
+                                }}
+                              >
+                                <MoreHorizIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+                        </Box>
                       </TableCell>
                     </TableRow>
                   );
@@ -295,6 +318,7 @@ const GenericTable = ({
                     rowsPerPage={rowsPerPage}
                     onPageChange={onPageChange}
                     onRowsPerPageChange={onRowsPerPageChange}
+                    rowsPerPageOptions={[5, 10, 25]}
                     sx={{
                       display: "flex",
                       width: "100%",

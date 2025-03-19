@@ -67,7 +67,7 @@ function CartPopoverItem({ item }) {
             {new Intl.NumberFormat("vi-VN", {
               style: "currency",
               currency: "VND",
-            }).format(item?.variations[0]?.price)}
+            }).format(item?.variationPrice)}
           </Typography>
         </Box>
       </Box>

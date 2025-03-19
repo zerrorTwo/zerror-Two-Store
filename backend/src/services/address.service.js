@@ -1,14 +1,20 @@
-import CityModel from "../models/city.model.js";
-import DistrictModel from "../models/district.model.js";
-import WardModel from "../models/ward.model.js";
-import AddressModel from "../models/address.model.js";
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
-import UserModel from "../models/user.model.js";
+import {
+  findAllCities,
+  findDistrictsByProvinceId,
+  findWardsByDistrictId,
+  findUserById,
+  countUserAddresses,
+  updateAllUserAddresses,
+  createNewAddress,
+  findAllUserAddresses,
+  findAddressById,
+} from "../repositories/address.repository.js";
 
 const getAllCity = async () => {
   try {
-    const cities = await CityModel.find({}).lean();
+    const cities = await findAllCities();
     return cities;
   } catch (error) {
     throw error;
@@ -17,7 +23,7 @@ const getAllCity = async () => {
 
 const getAllDistrict = async (id) => {
   try {
-    const districts = await DistrictModel.find({ provinceId: id }).lean();
+    const districts = await findDistrictsByProvinceId(id);
     return districts;
   } catch (error) {
     throw error;
@@ -26,7 +32,7 @@ const getAllDistrict = async (id) => {
 
 const getAllWard = async (id) => {
   try {
-    const wards = await WardModel.find({ districtId: id }).lean();
+    const wards = await findWardsByDistrictId(id);
     return wards;
   } catch (error) {
     throw error;
@@ -35,12 +41,12 @@ const getAllWard = async (id) => {
 
 const createNewUserAddress = async (userId, data) => {
   try {
-    const user = await UserModel.findOne({ _id: userId });
+    const user = await findUserById(userId);
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, "User not found!!");
     }
 
-    const count = await AddressModel.countDocuments({ userId });
+    const count = await countUserAddresses(userId);
 
     // Nếu user chưa có địa chỉ nào, set địa chỉ này làm mặc định
     if (count === 0) {
@@ -49,13 +55,10 @@ const createNewUserAddress = async (userId, data) => {
 
     // Nếu địa chỉ mới là mặc định, đặt tất cả địa chỉ cũ về false trước
     if (data.setDefault) {
-      await AddressModel.updateMany(
-        { userId },
-        { $set: { setDefault: false } }
-      );
+      await updateAllUserAddresses(userId, { $set: { setDefault: false } });
     }
 
-    const newAddress = await AddressModel.create({ userId, ...data });
+    const newAddress = await createNewAddress({ userId, ...data });
 
     return newAddress;
   } catch (error) {
@@ -65,20 +68,13 @@ const createNewUserAddress = async (userId, data) => {
 
 const getAllUserAddress = async (userId) => {
   try {
-    const user = await UserModel.findOne({ _id: userId });
+    const user = await findUserById(userId);
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, "User not found!!");
     }
 
-    const newAddress = await AddressModel.find({ userId: userId })
-      .select("-userId")
-      .populate("city")
-      .populate("district")
-      .populate("ward")
-      .sort({ setDefault: -1, createdAt: -1 })
-      .lean();
-
-    return newAddress;
+    const addresses = await findAllUserAddresses(userId);
+    return addresses;
   } catch (error) {
     throw error;
   }
@@ -86,13 +82,7 @@ const getAllUserAddress = async (userId) => {
 
 const getUserAddressById = async (id) => {
   try {
-    const address = await AddressModel.findById(id)
-      .select("-userId")
-      .populate("city")
-      .populate("district")
-      .populate("ward")
-      .lean();
-
+    const address = await findAddressById(id);
     return address;
   } catch (error) {
     throw error;

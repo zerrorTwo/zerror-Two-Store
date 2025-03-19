@@ -1,17 +1,21 @@
-import mongoose from "mongoose";
-import CartModel from "../models/cart.model.js";
-import ProductModel from "../models/product.model.js";
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
+import {
+  findCartByUserId,
+  findActiveCartByUserId,
+  findProductById,
+  createNewCart,
+  updateCart,
+  updateAllCheckoutStatus,
+  findActiveCartWithAggregate,
+  getCartSummary,
+  getPaginatedCart,
+} from "../repositories/cart.repository.js";
 
 const validateVariation = (newProduct, variations) => {
-  const { type, quantity } = variations[0]; // Lấy thông tin variation từ tham số `variations`
+  const { type, quantity } = variations[0];
   const typeStr = Object.values(type).join(", ");
-
-  // Tách type để tạo miniVar
   const miniVar = typeStr.split(", ");
-
-  // Lấy danh sách các variation của sản phẩm
   const productVar = newProduct?.variations?.pricing;
 
   const keyCount = Object.keys(newProduct?.variations)?.length;
@@ -19,12 +23,10 @@ const validateVariation = (newProduct, variations) => {
     throw new ApiError(StatusCodes.NOT_FOUND, `Variation is not available!!`);
   }
 
-  // Tìm kiếm variation khớp với giá trị miniVar
   const matchingProduct = productVar.find((item) =>
     miniVar.every((val) => Object.values(item).includes(val))
   );
 
-  // Nếu không tìm thấy matchingProduct, ném lỗi
   if (!matchingProduct) {
     throw new ApiError(
       StatusCodes.NOT_FOUND,
@@ -32,29 +34,23 @@ const validateVariation = (newProduct, variations) => {
     );
   }
 
-  // Kiểm tra số lượng tồn kho
   if (quantity > matchingProduct?.stock) {
     throw new ApiError(StatusCodes.NOT_FOUND, `Product out of stock!!`);
   }
 
-  // Cập nhật giá vào matchingProduct
-  matchingProduct.price = matchingProduct?.price || 0; // Đảm bảo giá không bị undefined
-
-  // Trả về sản phẩm phù hợp
+  matchingProduct.price = matchingProduct?.price || 0;
   return matchingProduct;
 };
 
 const addToCart = async (userId, products = []) => {
-  const userCart = await CartModel.findOne({ userId });
+  const userCart = await findCartByUserId(userId);
 
-  // Kiểm tra nếu giỏ hàng của người dùng không tồn tại
   if (!userCart) {
     return await createCart(userId, products);
   }
 
-  // Kiểm tra nếu giỏ hàng rỗng
   if (!userCart.products.length) {
-    const newProduct = await ProductModel.findById(products[0].productId);
+    const newProduct = await findProductById(products[0].productId);
 
     if (!newProduct) {
       throw new ApiError(
@@ -65,44 +61,27 @@ const addToCart = async (userId, products = []) => {
 
     if (newProduct?.variations?.pricing.length === 0) {
       products[0].variations[0].price = newProduct.price;
-      userCart.products = [
-        {
-          ...products[0], // Lưu tất cả thông tin sản phẩm
-        },
-      ];
+      userCart.products = [{ ...products[0] }];
     } else {
       const validProduct = validateVariation(
         newProduct,
         products[0].variations
       );
-      // Gán giá trị price vào variations[0]
       products[0].variations[0].price = validProduct.price;
-
-      userCart.products = [
-        {
-          ...products[0],
-        },
-      ];
+      userCart.products = [{ ...products[0] }];
     }
-
-    // Kiểm tra và cập nhật giá trong pricing
-
-    // Nếu không có pricing hoặc validate thành công, thêm sản phẩm vào giỏ hàng
 
     return await userCart.save();
   }
 
-  // Nếu giỏ hàng không rỗng, gọi hàm cập nhật số lượng sản phẩm trong giỏ hàng
   return await updateUserCartQuantity(userId, products);
 };
 
 const updateUserCartQuantity = async (userId, product = []) => {
   const { productId, variations = [] } = product[0];
-  // Lấy thông tin variation từ tham số `variations`
   const isUpdate = variations[0]?.isUpdate;
 
-  // Kiểm tra sản phẩm trong cơ sở dữ liệu
-  const newProduct = await ProductModel.findById(productId);
+  const newProduct = await findProductById(productId);
   if (!newProduct) {
     throw new ApiError(
       StatusCodes.NOT_FOUND,
@@ -110,12 +89,9 @@ const updateUserCartQuantity = async (userId, product = []) => {
     );
   }
 
-  // Tìm giỏ hàng của người dùng
-  const userCart = await CartModel.findOne({ userId, state: "ACTIVE" });
+  const userCart = await findActiveCartByUserId(userId);
 
-  // Nếu không có variations.pricing hoặc là mảng rỗng
   if (!newProduct.variations?.pricing?.length) {
-    // Tìm sản phẩm trong giỏ hàng mà không xét đến variations
     const existingProduct = userCart.products.find(
       (item) => item.productId.toString() === productId
     );
@@ -127,25 +103,20 @@ const updateUserCartQuantity = async (userId, product = []) => {
         existingProduct.variations[0].quantity += variations[0].quantity;
       }
     } else {
-      // Nếu chưa có, thêm sản phẩm vào giỏ hàng
       product[0].variations[0].price = newProduct.price;
-      product[0].variations[0].type = undefined; // Không cần type khi không có pricing
-
+      product[0].variations[0].type = undefined;
       userCart.products.push(product[0]);
     }
 
-    // Lưu lại giỏ hàng
     await userCart.save();
     return userCart;
   }
 
-  // Nếu có variations.pricing, tiếp tục xử lý như trước
   const existingProduct = userCart.products.find(
     (item) => item.productId.toString() === productId
   );
 
   if (existingProduct) {
-    // Kiểm tra nếu variation.type đã có trong sản phẩm (không phân biệt thứ tự)
     const existingVariationIndex = existingProduct.variations.findIndex(
       (varItem) =>
         JSON.stringify(Object.entries(varItem.type).sort()) ===
@@ -160,62 +131,46 @@ const updateUserCartQuantity = async (userId, product = []) => {
         existingProduct.variations[existingVariationIndex].quantity +=
           variations[0].quantity;
       }
-      // Nếu variation đã tồn tại, cập nhật số lượng mới thay vì cộng
 
-      // Cập nhật giá cho variation nếu có pricing mới
       const validVariation = validateVariation(newProduct, variations);
       existingProduct.variations[existingVariationIndex].price =
-        validVariation.price; // Cập nhật giá từ pricing
+        validVariation.price;
     } else {
-      // Nếu variation chưa tồn tại, kiểm tra variation.pricing
       const validVariation = validateVariation(newProduct, variations);
-      variations[0].price = validVariation.price; // Gán giá vào variation mới
-
-      existingProduct.variations.push(...variations); // Thêm variation mới vào sản phẩm
+      variations[0].price = validVariation.price;
+      existingProduct.variations.push(...variations);
     }
 
-    // Lưu lại giỏ hàng sau khi cập nhật số lượng hoặc thêm variation
     await userCart.save();
     return userCart;
   } else {
-    // Nếu chưa có sản phẩm trong giỏ hàng, thêm mới vào giỏ hàng
     const validProduct = validateVariation(newProduct, variations);
 
-    // Kiểm tra nếu variations chưa được khởi tạo, thì khởi tạo
     if (!product[0].variations) {
-      product[0].variations = []; // Khởi tạo mảng variations nếu chưa có
+      product[0].variations = [];
     }
 
-    // Kiểm tra nếu variations[0] chưa tồn tại, tạo mới và gán giá trị
     if (!product[0].variations[0]) {
-      product[0].variations[0] = {}; // Tạo đối tượng cho variation[0]
+      product[0].variations[0] = {};
     }
 
-    product[0].variations[0].price = validProduct.price; // Cập nhật giá vào sản phẩm mới
+    product[0].variations[0].price = validProduct.price;
 
-    // Thêm sản phẩm vào giỏ hàng (nếu chưa có)
-    await CartModel.findOneAndUpdate(
-      { userId, state: "ACTIVE" },
-      { $push: { products: product[0] } }, // Thêm sản phẩm vào giỏ
-      { new: true, upsert: true }
-    );
-
+    await updateCart(userId, { $push: { products: product[0] } });
     return userCart;
   }
 };
 
 const updateUserCartVariation = async (userId, products = []) => {
-  const userCart = await CartModel.findOne({ userId });
+  const userCart = await findCartByUserId(userId);
 
-  // Kiểm tra nếu giỏ hàng của người dùng không tồn tại
   if (!userCart) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Cart not found for this user.");
   }
 
   const { productId, variations = [] } = products[0];
 
-  // Kiểm tra sản phẩm trong cơ sở dữ liệu
-  const newProduct = await ProductModel.findById(productId);
+  const newProduct = await findProductById(productId);
   if (!newProduct) {
     throw new ApiError(
       StatusCodes.NOT_FOUND,
@@ -223,13 +178,11 @@ const updateUserCartVariation = async (userId, products = []) => {
     );
   }
 
-  // Tìm sản phẩm trong giỏ hàng
   const existingProduct = userCart.products.find(
     (item) => item.productId.toString() === productId
   );
 
   if (existingProduct) {
-    // Tìm variation cũ trong sản phẩm bằng cách so sánh `oldType`
     const existingVariationIndex = existingProduct.variations.findIndex(
       (varItem) =>
         JSON.stringify(Object.entries(varItem.type).sort()) ===
@@ -237,7 +190,6 @@ const updateUserCartVariation = async (userId, products = []) => {
     );
 
     if (existingVariationIndex !== -1) {
-      // Validate variation mới trước khi cập nhật
       const newVariation = {
         ...existingProduct.variations[existingVariationIndex],
         type: variations[0].type,
@@ -245,7 +197,6 @@ const updateUserCartVariation = async (userId, products = []) => {
 
       const validVariation = validateVariation(newProduct, [newVariation]);
 
-      // Nếu không hợp lệ, thông báo lỗi
       if (!validVariation) {
         throw new ApiError(
           StatusCodes.BAD_REQUEST,
@@ -253,11 +204,9 @@ const updateUserCartVariation = async (userId, products = []) => {
         );
       }
 
-      // Nếu hợp lệ, cập nhật giá và variation mới
       newVariation.price = validVariation.price;
       existingProduct.variations[existingVariationIndex] = newVariation;
 
-      // Lưu lại giỏ hàng sau khi cập nhật
       await userCart.save();
       return userCart;
     } else {
@@ -275,15 +224,13 @@ const updateCheckout = async (userId, product = []) => {
 
   const { productId, variations = [] } = product[0];
 
-  // Kiểm tra nếu variations có dữ liệu hợp lệ
   if (variations.length > 0 && typeof variations[0] !== "object") {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid variations format.");
   }
 
-  const isUpdate = variations[0]?.isUpdate; // Kiểm tra flag update
+  const isUpdate = variations[0]?.isUpdate;
 
-  // Tìm sản phẩm trong database
-  const newProduct = await ProductModel.findById(productId);
+  const newProduct = await findProductById(productId);
   if (!newProduct) {
     throw new ApiError(
       StatusCodes.NOT_FOUND,
@@ -291,16 +238,13 @@ const updateCheckout = async (userId, product = []) => {
     );
   }
 
-  // Tìm giỏ hàng của người dùng
-  let userCart = await CartModel.findOne({ userId, state: "ACTIVE" });
+  let userCart = await findActiveCartByUserId(userId);
 
   if (!userCart) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User cart not found.");
   }
 
-  // Kiểm tra nếu sản phẩm không có variations.pricing hoặc là mảng rỗng
   if (!newProduct.variations?.pricing?.length) {
-    // Tìm sản phẩm trong giỏ hàng
     const existingProduct = userCart.products.find(
       (item) => item.productId.toString() === productId
     );
@@ -309,7 +253,6 @@ const updateCheckout = async (userId, product = []) => {
       throw new ApiError(StatusCodes.NOT_FOUND, "Product not found in cart.");
     }
 
-    // Cập nhật trạng thái checkout của variation đầu tiên
     if (existingProduct.variations.length > 0) {
       existingProduct.variations[0].checkout =
         !existingProduct.variations[0].checkout;
@@ -324,13 +267,11 @@ const updateCheckout = async (userId, product = []) => {
     return userCart;
   }
 
-  // Nếu có variations.pricing, tiếp tục xử lý
   const existingProduct = userCart.products.find(
     (item) => item.productId.toString() === productId
   );
 
   if (existingProduct) {
-    // Kiểm tra nếu variation.type đã có trong sản phẩm (không phân biệt thứ tự)
     const existingVariationIndex = existingProduct.variations.findIndex(
       (varItem) =>
         JSON.stringify(Object.entries(varItem.type).sort()) ===
@@ -338,7 +279,6 @@ const updateCheckout = async (userId, product = []) => {
     );
 
     if (existingVariationIndex !== -1) {
-      // Nếu variation đã tồn tại, cập nhật trạng thái checkout
       existingProduct.variations[existingVariationIndex].checkout =
         !existingProduct.variations[existingVariationIndex].checkout;
     } else {
@@ -363,20 +303,15 @@ const updateAllCheckout = async (userId, newState) => {
     );
   }
 
-  await CartModel.updateOne(
-    { userId, state: "ACTIVE" },
-    { $set: { "products.$[].variations.$[].checkout": newState } }
-  );
-
-  return await CartModel.findOne({ userId, state: "ACTIVE" });
+  await updateAllCheckoutStatus(userId, newState);
+  return await findActiveCartByUserId(userId);
 };
 
 const createCart = async (userId, products = []) => {
   try {
     const { productId, variations } = products[0];
 
-    // Kiểm tra sản phẩm trong cơ sở dữ liệu
-    const newProduct = await ProductModel.findById(productId);
+    const newProduct = await findProductById(productId);
 
     if (!newProduct) {
       throw new ApiError(
@@ -385,31 +320,24 @@ const createCart = async (userId, products = []) => {
       );
     }
 
-    // Kiểm tra nếu variations.pricing là mảng rỗng
     if (!newProduct.variations?.pricing?.length) {
-      // Nếu không có pricing, lấy price từ product và không cần type của variation
       products[0].variations = [
         {
-          price: newProduct.price, // Lấy giá từ product
-          type: undefined, // Không cần type
+          price: newProduct.price,
+          type: undefined,
         },
       ];
     } else {
-      // Nếu có pricing, validate variation và cập nhật giá cho sản phẩm
       const validVariation = validateVariation(newProduct, variations);
-
-      // Cập nhật giá vào variation
       variations[0].price = validVariation.price;
     }
 
-    // Tạo giỏ hàng mới với sản phẩm đã có giá
-    const newCart = new CartModel({
+    const newCart = {
       userId,
       products: [products[0]],
-    });
+    };
 
-    // Lưu giỏ hàng vào cơ sở dữ liệu
-    return await newCart.save();
+    return await createNewCart(newCart);
   } catch (error) {
     throw error;
   }
@@ -419,17 +347,12 @@ const removeProductFromCart = async (userId, products = {}) => {
   const { productId, variations = [] } = products[0];
 
   try {
-    // Tìm giỏ hàng của user đang ACTIVE
-    const userCart = await CartModel.findOne({
-      userId,
-      state: "ACTIVE",
-    });
+    const userCart = await findActiveCartByUserId(userId);
 
     if (!userCart) {
       throw new Error("Cart not found.");
     }
 
-    // Tìm sản phẩm trong giỏ hàng
     const existingProduct = userCart.products.find(
       (prod) => prod.productId.toString() === productId.toString()
     );
@@ -438,8 +361,7 @@ const removeProductFromCart = async (userId, products = {}) => {
       throw new Error("Product not found in cart.");
     }
 
-    // Kiểm tra sản phẩm trong cơ sở dữ liệu
-    const newProduct = await ProductModel.findById(productId);
+    const newProduct = await findProductById(productId);
     if (!newProduct) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
@@ -447,14 +369,11 @@ const removeProductFromCart = async (userId, products = {}) => {
       );
     }
 
-    // Nếu không có variations.pricing hoặc là mảng rỗng
     if (!newProduct.variations?.pricing?.length) {
-      // Xóa luôn product đó
       userCart.products = userCart.products.filter(
         (prod) => prod.productId.toString() !== productId.toString()
       );
     } else {
-      // Nếu có variations, kiểm tra từng variation
       variations.forEach((variationToRemove) => {
         const indexToRemove = existingProduct.variations.findIndex(
           (varItem) =>
@@ -462,13 +381,11 @@ const removeProductFromCart = async (userId, products = {}) => {
             JSON.stringify(Object.entries(variationToRemove.type || {}).sort())
         );
 
-        // Nếu tìm thấy variation thì xóa
         if (indexToRemove !== -1) {
           existingProduct.variations.splice(indexToRemove, 1);
         }
       });
 
-      // Nếu sau khi xóa mà không còn variation nào, xóa luôn product
       if (existingProduct.variations.length === 0) {
         userCart.products = userCart.products.filter(
           (prod) => prod.productId.toString() !== productId.toString()
@@ -476,7 +393,6 @@ const removeProductFromCart = async (userId, products = {}) => {
       }
     }
 
-    // Lưu lại giỏ hàng sau khi xóa
     await userCart.save();
     return userCart;
   } catch (error) {
@@ -486,101 +402,9 @@ const removeProductFromCart = async (userId, products = {}) => {
 
 const getRecentProducts = async (userId) => {
   try {
-    // Aggregate 1: Tính tổng cho toàn bộ giỏ hàng
-    const totalSummary = await CartModel.aggregate([
-      {
-        $match: {
-          userId: new mongoose.Types.ObjectId(userId),
-          state: "ACTIVE",
-        },
-      },
-      { $unwind: "$products" },
-      { $unwind: "$products.variations" },
-      {
-        $group: {
-          _id: null,
-          totalItems: { $sum: "$products.variations.quantity" },
-          totalVariations: { $sum: 1 }, // Mỗi variation là 1
-          totalPrice: {
-            $sum: {
-              $multiply: [
-                "$products.variations.quantity",
-                "$products.variations.price",
-              ],
-            },
-          },
-        },
-      },
-    ]);
+    const totalSummary = await getCartSummary(userId);
+    const recentProducts = await findActiveCartWithAggregate(userId);
 
-    // Aggregate 2: Lấy 5 sản phẩm gần đây nhất
-    const recentProducts = await CartModel.aggregate([
-      {
-        $match: {
-          userId: new mongoose.Types.ObjectId(userId),
-          state: "ACTIVE",
-        },
-      },
-      { $unwind: "$products" },
-      { $unwind: "$products.variations" },
-      {
-        $lookup: {
-          from: "products",
-          localField: "products.productId",
-          foreignField: "_id",
-          as: "productDetails",
-        },
-      },
-      { $unwind: "$productDetails" },
-      {
-        $addFields: {
-          productCreatedAt: "$products.createdAt",
-        },
-      },
-      {
-        $project: {
-          _id: 0,
-          productId: "$products.productId",
-          variationType: "$products.variations.type",
-          variationPrice: "$products.variations.price",
-          variationQuantity: "$products.variations.quantity",
-          variationCheckout: "$products.variations.checkout",
-          productName: "$productDetails.name",
-          productImages: "$productDetails.mainImg",
-          productSlug: "$productDetails.slug",
-          totalPrice: {
-            $multiply: [
-              "$products.variations.quantity",
-              "$products.variations.price",
-            ],
-          },
-          createdAt: "$products.createdAt",
-          productCreatedAt: "$productCreatedAt",
-        },
-      },
-      { $sort: { productCreatedAt: -1 } },
-      { $limit: 5 },
-      {
-        $group: {
-          _id: "$productId",
-          productName: { $first: "$productName" },
-          productImages: { $first: "$productImages" },
-          productSlug: { $first: "$productSlug" },
-          variations: {
-            $push: {
-              type: "$variationType",
-              price: "$variationPrice",
-              quantity: "$variationQuantity",
-              checkout: "$variationCheckout",
-            },
-          },
-          productCreatedAt: { $first: "$productCreatedAt" },
-        },
-      },
-      { $sort: { productCreatedAt: -1 } },
-    ]);
-
-    // Nếu không có sản phẩm nào
     if (!recentProducts.length) {
       return {
         message: "Cart is empty",
@@ -591,12 +415,10 @@ const getRecentProducts = async (userId) => {
       };
     }
 
-    // Lấy kết quả tổng số lượng, biến thể, và giá trị
     const totalItems = totalSummary[0]?.totalItems || 0;
     const totalVariations = totalSummary[0]?.totalVariations || 0;
     const totalPrice = totalSummary[0]?.totalPrice || 0;
 
-    // Trả về kết quả
     return {
       message: "Cart summary retrieved successfully",
       products: recentProducts,
@@ -611,85 +433,8 @@ const getRecentProducts = async (userId) => {
 
 const getPageCart = async (userId, page = 1, limit = 10) => {
   try {
-    const skip = (page - 1) * limit; // Tính toán số lượng sản phẩm cần bỏ qua
-
-    const cart = await CartModel.aggregate([
-      // Lọc giỏ hàng theo userId và trạng thái ACTIVE
-      {
-        $match: {
-          userId: new mongoose.Types.ObjectId(userId),
-          state: "ACTIVE",
-        },
-      },
-
-      // Unwind mảng products để mỗi sản phẩm là một phần tử riêng biệt
-      { $unwind: "$products" },
-
-      // Lookup để lấy thông tin chi tiết từ Product collection
-      {
-        $lookup: {
-          from: "products", // Tên collection sản phẩm
-          localField: "products.productId", // Trường cần kết nối
-          foreignField: "_id", // Trường của Product collection
-          as: "productDetails", // Tên alias của thông tin sản phẩm trả về
-        },
-      },
-
-      // Unwind kết quả từ lookup, giúp biến mỗi sản phẩm có thông tin chi tiết thành một object
-      { $unwind: "$productDetails" },
-
-      // Lựa chọn tất cả các trường từ cả giỏ hàng và sản phẩm
-      {
-        $project: {
-          _id: 0,
-          productId: "$products.productId",
-          cartQuantity: "$products.quantity", // Số lượng sản phẩm trong giỏ (đổi tên thành cartQuantity)
-          cartVariations: "$products.variations", // Biến thể của sản phẩm trong giỏ (đổi tên thành cartVariations)
-          productName: "$productDetails.name", // Tên sản phẩm
-          productImages: "$productDetails.mainImg", // Ảnh chính của sản phẩm
-          productSlug: "$productDetails.slug", // Slug của sản phẩm
-          stock: "$productDetails.stock", // Số lượng sản phẩm trong kho
-          sold: "$productDetails.sold", // Số lượng sản phẩm đã bán
-          status: "$productDetails.status", // Trạng thái sản phẩm
-          type: "$productDetails.type", // Loại sản phẩm (category)
-          rating: "$productDetails.rating", // Đánh giá trung bình của sản phẩm
-          productVariations: "$productDetails.variations", // Các biến thể sản phẩm
-          price: "$productDetails.price", // Giá mặc định của sản phẩm
-          createdAt: "$products.createdAt", // Thêm ngày tạo để sắp xếp
-        },
-      },
-
-      { $sort: { createdAt: -1 } },
-
-      // Tính toán tổng số sản phẩm và tổng giá trị
-      {
-        $group: {
-          _id: null,
-          products: { $push: "$$ROOT" }, // Lưu tất cả sản phẩm vào mảng
-          totalItems: { $sum: "$products.quantity" }, // Tổng số sản phẩm
-          totalPrice: {
-            $sum: {
-              $multiply: ["$products.quantity", "$products.price"], // Tổng giá trị
-            },
-          },
-        },
-      },
-
-      { $sort: { createdAt: -1 } },
-
-      // Lấy sản phẩm theo trang (sử dụng $skip và $limit)
-      { $skip: skip }, // Bỏ qua các sản phẩm đã được lấy từ các trang trước
-      { $limit: limit }, // Giới hạn số lượng sản phẩm trả về
-
-      // Lấy ra thông tin tổng số sản phẩm và tổng giá trị
-      {
-        $project: {
-          products: 1, // Trả về mảng sản phẩm
-          totalItems: 1, // Trả về tổng số sản phẩm
-          totalPrice: 1, // Trả về tổng giá trị
-        },
-      },
-    ]);
+    const skip = (page - 1) * limit;
+    const cart = await getPaginatedCart(userId, skip, limit);
 
     if (!cart.length) {
       return {
@@ -700,11 +445,8 @@ const getPageCart = async (userId, page = 1, limit = 10) => {
       };
     }
 
-    // Now calculate final price for each product and compute total price
-    // Now calculate final price for each product and compute total price
     let totalPrice = 0;
     const updatedProducts = cart[0].products.map((product) => {
-      // Tính tổng giá của từng product dựa trên cartVariations
       const productTotalPrice = product.cartVariations.reduce(
         (sum, variation) => {
           return sum + variation.price * variation.quantity;
@@ -712,12 +454,11 @@ const getPageCart = async (userId, page = 1, limit = 10) => {
         0
       );
 
-      // Cộng dồn vào tổng giá của toàn bộ giỏ hàng
       totalPrice += productTotalPrice;
 
       return {
         ...product,
-        productTotalPrice, // Tổng giá trị của sản phẩm này
+        productTotalPrice,
       };
     });
 
