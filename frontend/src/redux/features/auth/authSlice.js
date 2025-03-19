@@ -19,6 +19,33 @@ const authSlice = createSlice({
       const { user, accessToken } = action.payload;
       state.userInfo = user;
       state.token = accessToken;
+
+      // Set localStorage
+      const expires = new Date().getTime() + 30 * 24 * 60 * 60 * 1000; // 30 days
+      localStorage.setItem(
+        "userInfo",
+        JSON.stringify({
+          user,
+          expires,
+        })
+      );
+      localStorage.setItem(
+        "token",
+        JSON.stringify({
+          token: accessToken,
+          expires,
+        })
+      );
+    },
+    setUser: (state, action) => {
+      state.userInfo = action.payload;
+      // Cập nhật localStorage
+      const storedUserInfo = localStorage.getItem("userInfo");
+      if (storedUserInfo) {
+        const parsedUserInfo = JSON.parse(storedUserInfo);
+        parsedUserInfo.user = action.payload;
+        localStorage.setItem("userInfo", JSON.stringify(parsedUserInfo));
+      }
     },
     // eslint-disable-next-line no-unused-vars
     logOut: (state, action) => {
@@ -30,7 +57,7 @@ const authSlice = createSlice({
   },
 });
 
-export const { setCredentials, logOut } = authSlice.actions;
+export const { setCredentials, setUser, logOut } = authSlice.actions;
 
 export default authSlice.reducer;
 

@@ -118,7 +118,7 @@ const createOrder = async (data) => {
   }
 };
 
-const getUserOrder = async (userId, page = 1, limit = 2) => {
+const getUserOrder = async (userId, page = 1, limit = 2, filter) => {
   page = parseInt(page) || 1;
   limit = parseInt(limit) || 2;
 
@@ -128,7 +128,12 @@ const getUserOrder = async (userId, page = 1, limit = 2) => {
     }
 
     // Bước 1: Phân trang trước khi lấy sản phẩm
-    const paginatedOrders = await findPaginatedOrders(userId, page, limit);
+    const paginatedOrders = await findPaginatedOrders(
+      userId,
+      page,
+      limit,
+      filter
+    );
 
     const orderIds = paginatedOrders.map((order, index) => ({
       _id: order._id,

@@ -1,14 +1,11 @@
 import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
-import InputAdornment from "@mui/material/InputAdornment";
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../../redux/features/auth/authSlice";
 import OrderList from "./OrderList";
 import { useGetUserOrderQuery } from "../../../redux/api/checkoutSlice";
 
-function MyOrderAll() {
-  const [searchTerm, setSearchTerm] = useState("");
+function MyOrdertoShip() {
   const [page, setPage] = useState(1);
   const [allOrders, setAllOrders] = useState([]);
   const userId = useSelector(selectCurrentUser)?._id;
@@ -17,6 +14,7 @@ function MyOrderAll() {
     userId,
     page,
     limit: 2,
+    filter: "toship",
   });
 
   // Cập nhật danh sách đơn hàng khi có dữ liệu mới
@@ -52,27 +50,6 @@ function MyOrderAll() {
 
   return (
     <Box sx={{ width: "100%" }}>
-      {/* Search Box */}
-      <Box sx={{ mb: 3 }}>
-        <TextField
-          fullWidth
-          variant="outlined"
-          placeholder="Tìm kiếm theo mã đơn hàng hoặc tên sản phẩm"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">🔍</InputAdornment>
-            ),
-          }}
-          sx={{
-            "& .MuiOutlinedInput-root": {
-              "&.Mui-focused fieldset": { borderColor: "#F5F5F5" },
-            },
-          }}
-        />
-      </Box>
-
       {/* Orders List */}
       <OrderList
         allOrders={allOrders}
@@ -83,4 +60,4 @@ function MyOrderAll() {
   );
 }
 
-export default MyOrderAll;
+export default MyOrdertoShip;
