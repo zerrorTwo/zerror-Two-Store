@@ -32,6 +32,7 @@ const signUp = async (req, res) => {
 
   // Create and save the new user
   const newUser = new UserModel({ userName, email, password: hasPassword });
+  console.log(newUser);
   try {
     const { publicKey, privateKey } = generateRSAKeyPair();
 

@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
-import { momoService } from "./momo.service.js";
 import {
   findAddressById,
   findCartItemsByUserId,
@@ -13,6 +12,7 @@ import {
   countUserOrders,
   findOrdersByTimeRange,
   findCartCheckoutItems,
+  getAllOrders,
 } from "../repositories/order.repository.js";
 
 const createOrder = async (data) => {
@@ -159,6 +159,16 @@ const getUserOrder = async (userId, page = 1, limit = 2, filter) => {
   }
 };
 
+const getAllOrdersService = async (page, limit, search) => {
+  page = parseInt(page) || 1;
+  limit = parseInt(limit) || 10;
+  try {
+    return await getAllOrders(page, limit, search);
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 const getUserTotalOrder = async (userId, time) => {
   try {
     let startDate, endDate;
@@ -249,4 +259,5 @@ export const orderService = {
   createOrder,
   getUserTotalOrder,
   getUserOrder,
+  getAllOrdersService,
 };

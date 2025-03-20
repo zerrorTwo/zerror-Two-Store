@@ -24,6 +24,7 @@ import ProductDashboard from "./pages/Admin/ProductDashboard";
 import ProfileDashBoard from "./pages/ProfilePage/ProfileDasBoard";
 import MyOrder from "./pages/ProfilePage/MyOrder/MyOrder";
 import MyAccount from "./pages/ProfilePage/MyAccount";
+import OrderDashBoard from "./pages/Admin/OrderDashBoard";
 
 function App() {
   const dispatch = useDispatch();
@@ -70,6 +71,7 @@ function App() {
           <Route path="admin" element={<LayoutAdmin />}>
             <Route path="cate" element={<CateDashBoard />} />
             <Route path="product" element={<ProductDashboard />} />
+            <Route path="order" element={<OrderDashBoard />} />
             <Route path="update-product/:id" element={<CreateProduct />} />
             <Route path="create-product" element={<CreateProduct />} />
 

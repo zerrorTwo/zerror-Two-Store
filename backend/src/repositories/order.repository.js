@@ -189,6 +189,8 @@ const findOrdersWithDetails = async (orderIds) => {
         updatedAt: { $first: "$updatedAt" },
         paymentMethod: { $first: "$paymentMethod" },
         paymentStatus: { $first: "$paymentStatus" },
+        paymentUrl: { $first: "$paymentUrl" },
+        momoRequestId: { $first: "$momoRequestId" },
         deliveryFee: { $first: "$deliveryFee" },
         totalPrice: { $first: "$totalPrice" },
         finalTotal: { $first: "$finalTotal" },
@@ -309,6 +311,69 @@ const findOrderById = async (orderId) => {
   return await OrderModel.findById(orderId);
 };
 
+const updateOrderById = async (orderId, updateData) => {
+  return await OrderModel.findByIdAndUpdate(orderId, updateData, { new: true });
+};
+
+const getAllOrders = async (page = 1, limit = 10, search = null) => {
+  const skip = (page - 1) * limit;
+
+  const pipeline = [
+    {
+      $lookup: {
+        from: "users",
+        localField: "userId",
+        foreignField: "_id",
+        as: "userInfo",
+      },
+    },
+    { $unwind: "$userInfo" },
+    ...(search
+      ? [
+          {
+            $match: {
+              "userInfo.userName": { $regex: search, $options: "i" },
+            },
+          },
+        ]
+      : []),
+    { $sort: { createdAt: -1 } },
+    {
+      $facet: {
+        totalCount: [{ $count: "count" }],
+        paginatedResults: [
+          { $skip: skip },
+          { $limit: limit },
+          {
+            $project: {
+              _id: 1,
+              state: 1,
+              deliveryState: 1,
+              paymentStatus: 1,
+              finalTotal: 1,
+              createdAt: 1,
+              userName: "$userInfo.userName",
+              email: "$userInfo.email",
+            },
+          },
+        ],
+      },
+    },
+  ];
+
+  const result = await OrderModel.aggregate(pipeline);
+
+  const totalOrders = result[0].totalCount[0]?.count || 0;
+  const totalPages = Math.ceil(totalOrders / limit);
+  const formattedOrders = result[0].paginatedResults;
+
+  return {
+    orders: formattedOrders,
+    totalPages,
+    totalOrders,
+  };
+};
+
 export {
   findAddressById,
   findCartItemsByUserId,
@@ -321,4 +386,6 @@ export {
   findOrdersByTimeRange,
   findCartCheckoutItems,
   findOrderById,
+  updateOrderById,
+  getAllOrders,
 };

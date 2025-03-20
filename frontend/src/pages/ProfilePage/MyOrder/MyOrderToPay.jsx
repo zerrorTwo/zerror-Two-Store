@@ -17,8 +17,6 @@ function MyOrdertoPay() {
     filter: "topay",
   });
 
-  console.log("Data in MyOrderToPay:", data);
-
   // Cập nhật danh sách đơn hàng khi có dữ liệu mới
   useEffect(() => {
     if (!data?.orders) return;

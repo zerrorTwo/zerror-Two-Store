@@ -15,9 +15,9 @@ const Router = express.Router();
 // route need authen
 Router.use(authentication);
 
-Router.route("/profile")
-  .get(getCurrentUserProfile)
-  .put(updateCurrentUserProfile);
+Router.route("/profile").get(getCurrentUserProfile);
+
+Router.route("/profile/:id").put(updateCurrentUserProfile);
 
 // route need authorization for admin role only
 Router.use(authorization);
