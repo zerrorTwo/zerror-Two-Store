@@ -20,10 +20,22 @@ const getUserOrder = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(orders);
 });
 
+const getAllOrders = asyncHandeler(async (req, res) => {
+  const { page, limit, search } = req.query;
+  const orders = await orderService.getAllOrdersService(page, limit, search);
+  res.status(StatusCodes.OK).json(orders);
+});
+
 const getUserTotalOrder = asyncHandeler(async (req, res) => {
   const { userId, time } = req.query;
   const orders = await orderService.getUserTotalOrder(userId, time);
   res.status(StatusCodes.OK).json(orders);
 });
 
-export { getProductCheckout, createOrder, getUserOrder, getUserTotalOrder };
+export {
+  getProductCheckout,
+  createOrder,
+  getUserOrder,
+  getUserTotalOrder,
+  getAllOrders,
+};

@@ -66,7 +66,7 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 export default function HeaderLayout() {
   const navigate = useNavigate();
-  const a = useSelector(selectCurrentUser)?._id;
+  const a = useSelector(selectCurrentUser);
   const [anchorEl, setAnchorEl] = useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
   const [searchText, setSearchText] = useState("");
@@ -117,7 +117,6 @@ export default function HeaderLayout() {
         if (result) {
           dispatch(logOut());
           navigate("/");
-          window.location.reload();
         }
         setAnchorEl(null);
         handleMobileMenuClose();
@@ -395,8 +394,19 @@ export default function HeaderLayout() {
                   }}
                 >
                   <AccountCircle />
-                  <Typography fontWeight={"bold"} ml={0.5} variant="caption">
-                    Le Nam
+                  <Typography
+                    fontWeight={"bold"}
+                    ml={0.5}
+                    variant="caption"
+                    sx={{
+                      maxWidth: "60px",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      display: "block",
+                    }}
+                  >
+                    {a?.userName}
                   </Typography>
                 </IconButton>
               )}

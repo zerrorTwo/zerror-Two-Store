@@ -18,14 +18,12 @@ const userSchema = new mongoose.Schema(
     number: {
       type: String,
       match: [/^\d{10}$/, "Please provide a valid 10-digit phone number"],
-      index: true,
       unique: true,
-      sparse: true,
+      default: null,
     },
     password: {
       type: String,
       minlength: [8, "Password must be at least 8 characters long"],
-      // Không yêu cầu password khi người dùng đăng nhập qua Google
       required: function () {
         return !this.googleId; // Chỉ yêu cầu password nếu không có googleId
       },

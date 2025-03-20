@@ -38,6 +38,7 @@ const getComparator = (order, orderBy) =>
 const GenericTable = ({
   name,
   create,
+  update = true,
   rows,
   headCells,
   handleUpdateClick,
@@ -211,6 +212,22 @@ const GenericTable = ({
                                     }}
                                   />
                                 </Box>
+                              ) : cell.state ? (
+                                <Box
+                                  maxHeight={"35px"}
+                                  borderRadius={"50px"}
+                                  color={
+                                    cellValue === "CONFIRMED"
+                                      ? "success.main"
+                                      : cellValue === "CANCELLED"
+                                      ? "error.main"
+                                      : cellValue === "COMPLETED"
+                                      ? "warning.main"
+                                      : "info.main"
+                                  }
+                                >
+                                  {cellValue}
+                                </Box>
                               ) : cell.money ? (
                                 `${new Intl.NumberFormat().format(cellValue)}đ`
                               ) : cell.boolean ? (
@@ -263,24 +280,30 @@ const GenericTable = ({
                             gap: 1,
                           }}
                         >
-                          <Tooltip title="Update">
-                            <IconButton
-                              onClick={(e) => handleUpdateClick(e, row)}
-                              sx={{
-                                "&:hover": {
+                          {update && (
+                            <Tooltip title="Update">
+                              <IconButton
+                                onClick={(e) => handleUpdateClick(e, row)}
+                                sx={{
+                                  "&:hover": {
+                                    backgroundColor: "primary.main",
+                                  },
+                                  color: "white",
                                   backgroundColor: "primary.main",
-                                },
-                                color: "white",
-                                backgroundColor: "primary.main",
-                              }}
-                            >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                                }}
+                              >
+                                <EditIcon fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          )}
+
                           {handleMoreClick && (
                             <Tooltip title="More">
                               <IconButton
-                                onClick={() => handleMoreClick(row)}
+                                onClick={() => {
+                                  console.log(row);
+                                  handleMoreClick(row);
+                                }}
                                 sx={{
                                   "&:hover": {
                                     backgroundColor: "primary.main",
@@ -365,8 +388,9 @@ GenericTable.propTypes = {
   rows: PropTypes.array.isRequired,
   name: PropTypes.string,
   create: PropTypes.bool,
+  update: PropTypes.bool,
   headCells: PropTypes.array.isRequired,
-  handleUpdateClick: PropTypes.func.isRequired,
+  handleUpdateClick: PropTypes.func,
   handleCreateClick: PropTypes.func,
   handleMoreClick: PropTypes.func,
   selected: PropTypes.array.isRequired,

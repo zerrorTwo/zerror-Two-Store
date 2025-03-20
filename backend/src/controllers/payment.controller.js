@@ -4,7 +4,10 @@ import { momoService } from "../services/momo.service.js";
 import ApiError from "../utils/api.error.js";
 
 const createMomoPayment = asyncHandeler(async (req, res) => {
-  const { orderId, orderInfo } = req.body;
+  console.log(req.body);
+  const { orderId } = req.body;
+
+  const orderInfo = `Pay for order ${orderId}`;
   const redirectUrl = "http://localhost:5173/thanks";
   const ipnUrl =
     process.env.MOMO_IPN_URL ||

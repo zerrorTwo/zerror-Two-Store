@@ -1,5 +1,5 @@
 import { apiSlice } from "./apiSlice";
-import { CHECKOUT_URL } from "../constants";
+import { CHECKOUT_URL, PAYMENT_URL } from "../constants";
 
 export const checkoutSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -15,6 +15,15 @@ export const checkoutSlice = apiSlice.injectEndpoints({
     getUserTotalOrder: builder.query({
       query: ({ userId, time }) => ({
         url: `${CHECKOUT_URL}/get-total/?userId=${userId}&time=${time}`,
+        method: "GET",
+      }),
+      providesTags: ["Order"],
+      keepUnusedDataFor: 5,
+    }),
+
+    getAllOrders: builder.query({
+      query: ({ page = 1, limit = 10, search }) => ({
+        url: `${CHECKOUT_URL}/all?page=${page}&limit=${limit}&search=${search}`,
         method: "GET",
       }),
       providesTags: ["Order"],
@@ -61,6 +70,24 @@ export const checkoutSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Order", "Cart"],
     }),
+
+    createMomoPayment: builder.mutation({
+      query: (orderId) => ({
+        url: `${PAYMENT_URL}/momo/create`,
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: orderId,
+      }),
+      invalidatesTags: ["Order"],
+    }),
+
+    verifyPaymentUrlExpiration: builder.mutation({
+      query: (orderId) => ({
+        url: `${PAYMENT_URL}/momo/transaction-status`,
+        method: "POST",
+        body: { orderId },
+      }),
+    }),
   }),
 });
 
@@ -69,4 +96,7 @@ export const {
   useCreateOrderMutation,
   useLazyGetUserTotalOrderQuery,
   useGetUserOrderQuery,
+  useGetAllOrdersQuery,
+  useCreateMomoPaymentMutation,
+  useVerifyPaymentUrlExpirationMutation,
 } = checkoutSlice;

@@ -3,9 +3,11 @@ import https from "https";
 import dotenv from "dotenv";
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
-import OrderModel from "../models/order.model.js";
 import MomoModel from "../models/momo.model.js";
-import { findOrderById } from "../repositories/order.repository.js";
+import {
+  findOrderById,
+  updateOrderById,
+} from "../repositories/order.repository.js";
 
 dotenv.config();
 
@@ -15,13 +17,17 @@ const secretKey = process.env.MOMO_SECRET_KEY;
 
 const createMomoPayment = async ({
   orderId,
-  amount,
   orderInfo,
   redirectUrl,
   ipnUrl,
   extraData = "",
 }) => {
   try {
+    const order = await findOrderById(orderId);
+    if (!order) {
+      throw new ApiError(StatusCodes.NOT_FOUND, "Order not found");
+    }
+    const amount = order.finalTotal;
     const requestId = partnerCode + new Date().getTime();
     const requestType = "payWithATM";
     const lang = "en";
@@ -64,7 +70,19 @@ const createMomoPayment = async ({
         res.on("data", (chunk) => {
           body += chunk;
         });
-        res.on("end", () => resolve(JSON.parse(body)));
+        res.on("end", async () => {
+          const response = JSON.parse(body);
+
+          // Lưu paymentUrl vào order
+          if (response.payUrl) {
+            await updateOrderById(orderId, {
+              paymentUrl: response.payUrl,
+              momoRequestId: requestId,
+            });
+          }
+
+          resolve(response);
+        });
       });
 
       req.on("error", (e) =>
@@ -120,6 +138,7 @@ const handleMomoCallback = async (req) => {
     }
 
     order.paymentStatus = resultCode === 0 ? "PAID" : "FAILED";
+    order.paymentMethod = "MOMO";
     order.state = resultCode === 0 ? "CONFIRMED" : "FAILED";
     await order.save();
 
