@@ -30,6 +30,15 @@ export const checkoutSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
 
+    getOrderById: builder.query({
+      query: (orderId) => ({
+        url: `${CHECKOUT_URL}/detail/${orderId}`,
+        method: "GET",
+      }),
+      providesTags: ["Order"],
+      keepUnusedDataFor: 5,
+    }),
+
     getUserOrder: builder.query({
       query: ({ userId, page, limit, filter }) => {
         return {
@@ -71,6 +80,24 @@ export const checkoutSlice = apiSlice.injectEndpoints({
       invalidatesTags: ["Order", "Cart"],
     }),
 
+    updateOrderState: builder.mutation({
+      query: (data) => ({
+        url: `${CHECKOUT_URL}/update-state`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Order"],
+    }),
+
+    updateOrderDeliveryState: builder.mutation({
+      query: (data) => ({
+        url: `${CHECKOUT_URL}/update-delivery-state`,
+        method: "PUT",
+        body: data,
+      }),
+      invalidatesTags: ["Order"],
+    }),
+
     createMomoPayment: builder.mutation({
       query: (orderId) => ({
         url: `${PAYMENT_URL}/momo/create`,
@@ -99,4 +126,7 @@ export const {
   useGetAllOrdersQuery,
   useCreateMomoPaymentMutation,
   useVerifyPaymentUrlExpirationMutation,
+  useGetOrderByIdQuery,
+  useUpdateOrderStateMutation,
+  useUpdateOrderDeliveryStateMutation,
 } = checkoutSlice;

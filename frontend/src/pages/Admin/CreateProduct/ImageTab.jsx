@@ -220,6 +220,9 @@ function ImageTab({ formData, setFormData, onNext, onPre }) {
           sx={{
             color: "white",
             bgcolor: "secondary.main",
+            "&:hover": {
+              bgcolor: "secondary.dark",
+            },
           }}
           onClick={onPre}
         >
@@ -229,6 +232,9 @@ function ImageTab({ formData, setFormData, onNext, onPre }) {
           sx={{
             color: "white",
             bgcolor: "secondary.main",
+            "&:hover": {
+              bgcolor: "secondary.dark",
+            },
           }}
           onClick={handleNext}
           disabled={!isFormValid()} // Disable if form is not valid

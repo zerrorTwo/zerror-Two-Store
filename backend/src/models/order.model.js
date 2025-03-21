@@ -41,6 +41,7 @@ const orderSchema = new mongoose.Schema(
         "DELIVERED", // Đã giao thành công
         "FAILED", // Giao hàng thất bại
         "RETURNED", // Trả hàng
+        "CANCELLED", // Đơn hàng đã bị hủy
       ],
       default: "PROCESSING",
     },

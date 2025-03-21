@@ -113,6 +113,9 @@ function ConfirmTab({
           sx={{
             color: "white",
             bgcolor: "secondary.main",
+            "&:hover": {
+              bgcolor: "secondary.dark",
+            },
           }}
           onClick={onPre}
         >
@@ -122,6 +125,9 @@ function ConfirmTab({
           sx={{
             color: "white",
             bgcolor: "secondary.main",
+            "&:hover": {
+              bgcolor: "secondary.dark",
+            },
           }}
           onClick={handleSubmit}
         >
@@ -139,13 +145,25 @@ function ConfirmTab({
               </Typography>
               <Box display="flex" gap={2} marginTop={2}>
                 <Button
-                  sx={{ color: "white", bgcolor: "secondary.main" }}
+                  sx={{
+                    color: "white",
+                    bgcolor: "success.main",
+                    "&:hover": {
+                      bgcolor: "success.light",
+                    },
+                  }}
                   onClick={handleConfirmSubmit}
                 >
                   Yes
                 </Button>
                 <Button
-                  sx={{ color: "white", bgcolor: "error.main" }}
+                  sx={{
+                    color: "white",
+                    bgcolor: "error.main",
+                    "&:hover": {
+                      bgcolor: "error.light",
+                    },
+                  }}
                   onClick={handleClose}
                 >
                   No

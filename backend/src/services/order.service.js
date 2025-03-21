@@ -13,6 +13,9 @@ import {
   findOrdersByTimeRange,
   findCartCheckoutItems,
   getAllOrders,
+  getOrderById,
+  updateOrderDeliveryState,
+  updateOrderState,
 } from "../repositories/order.repository.js";
 
 const createOrder = async (data) => {
@@ -254,10 +257,37 @@ const getProductCheckout = async (userId) => {
   }
 };
 
+const getOrderByIdService = async (orderId) => {
+  try {
+    return await getOrderById(orderId);
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
+const updateOrderStateService = async (orderId, state) => {
+  try {
+    return await updateOrderState(orderId, state);
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
+const updateOrderDeliveryStateService = async (orderId, deliveryState) => {
+  try {
+    return await updateOrderDeliveryState(orderId, deliveryState);
+  } catch (error) {
+    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+  }
+};
+
 export const orderService = {
   getProductCheckout,
   createOrder,
   getUserTotalOrder,
   getUserOrder,
   getAllOrdersService,
+  getOrderByIdService,
+  updateOrderStateService,
+  updateOrderDeliveryStateService,
 };

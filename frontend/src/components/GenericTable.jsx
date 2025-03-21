@@ -301,7 +301,6 @@ const GenericTable = ({
                             <Tooltip title="More">
                               <IconButton
                                 onClick={() => {
-                                  console.log(row);
                                   handleMoreClick(row);
                                 }}
                                 sx={{

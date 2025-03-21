@@ -367,6 +367,9 @@ function VariationTab({ formData, setFormData, onNext, onPre }) {
           sx={{
             color: "white",
             bgcolor: "secondary.main",
+            "&:hover": {
+              bgcolor: "secondary.dark",
+            },
           }}
           onClick={onPre}
         >
@@ -376,6 +379,9 @@ function VariationTab({ formData, setFormData, onNext, onPre }) {
           sx={{
             color: "white",
             bgcolor: "secondary.main",
+            "&:hover": {
+              bgcolor: "secondary.dark",
+            },
           }}
           onClick={handleNext}
           disabled={!isFormValid()}

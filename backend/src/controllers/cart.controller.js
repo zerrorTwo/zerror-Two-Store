@@ -5,7 +5,7 @@ import { cartService } from "../services/cart.service.js";
 const createCart = asyncHandeler(async (req, res) => {
   const { userId, products } = req.body;
   const cart = await cartService.addToCart(userId, products);
-  res.status(StatusCodes.OK).json(cart);
+  res.status(StatusCodes.CREATED).json(cart);
 });
 
 const updateQuantity = asyncHandeler(async (req, res) => {

@@ -374,6 +374,67 @@ const getAllOrders = async (page = 1, limit = 10, search = null) => {
   };
 };
 
+const getOrderById = async (orderId) => {
+  if (!mongoose.Types.ObjectId.isValid(orderId)) {
+    throw new Error("Invalid order ID");
+  }
+
+  return await OrderModel.aggregate([
+    { $match: { _id: new mongoose.Types.ObjectId(orderId) } },
+    {
+      $lookup: {
+        from: "products",
+        localField: "products.productId",
+        foreignField: "_id",
+        as: "productDetails",
+      },
+    },
+    {
+      $unwind: {
+        path: "$productDetails",
+        preserveNullAndEmptyArrays: true,
+      },
+    },
+    {
+      $addFields: {
+        "products.name": "$productDetails.name",
+        "products.mainImg": "$productDetails.mainImg",
+        "products.slug": "$productDetails.slug",
+      },
+    },
+    {
+      $project: {
+        _id: 1,
+        userId: 1,
+        state: 1,
+        deliveryState: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        paymentMethod: 1,
+        paymentStatus: 1,
+        paymentUrl: 1,
+        momoRequestId: 1,
+        deliveryFee: 1,
+        totalPrice: 1,
+        finalTotal: 1,
+        products: 1,
+      },
+    },
+  ]);
+};
+
+const updateOrderState = async (orderId, state) => {
+  return await OrderModel.findByIdAndUpdate(orderId, { state }, { new: true });
+};
+
+const updateOrderDeliveryState = async (orderId, deliveryState) => {
+  return await OrderModel.findByIdAndUpdate(
+    orderId,
+    { deliveryState },
+    { new: true }
+  );
+};
+
 export {
   findAddressById,
   findCartItemsByUserId,
@@ -388,4 +449,7 @@ export {
   findOrderById,
   updateOrderById,
   getAllOrders,
+  getOrderById,
+  updateOrderState,
+  updateOrderDeliveryState,
 };
