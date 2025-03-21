@@ -22,7 +22,7 @@ const createMomoPayment = asyncHandeler(async (req, res) => {
       ipnUrl,
       extraData,
     });
-    res.status(StatusCodes.OK).json(response);
+    res.status(StatusCodes.CREATED).json(response);
   } catch (error) {
     console.error(error);
     throw new ApiError(

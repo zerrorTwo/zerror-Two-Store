@@ -139,12 +139,22 @@ const getProductBySlug = async (slug) => {
 
 // Lấy sản phẩm theo ID
 const getProductById = async (id) => {
-  return await ProductModel.findById(id)
-    .populate({
-      path: "type",
-      select: "slug",
-    })
-    .lean();
+  try {
+    const product = await ProductModel.findById(id)
+      .populate({
+        path: "type",
+        select: "slug",
+      })
+      .lean();
+
+    if (product && product.type) {
+      product.type = product.type.slug;
+    }
+
+    return product;
+  } catch (error) {
+    throw error;
+  }
 };
 
 // Lấy tất cả sản phẩm

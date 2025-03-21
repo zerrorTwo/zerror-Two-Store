@@ -34,7 +34,7 @@ const getChildCategories = asyncHandeler(async (req, res) => {
 const createCategory = asyncHandeler(async (req, res) => {
   const data = req.body;
   const categories = await categoryService.createCategory(data);
-  res.status(StatusCodes.OK).json(categories);
+  res.status(StatusCodes.CREATED).json(categories);
 });
 
 const updateCategory = asyncHandeler(async (req, res) => {

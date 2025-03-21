@@ -22,7 +22,7 @@ function InforTab({ formData, setFormData, onNext }) {
 
   const handleCategorySelect = useCallback(
     (selectedCategory) => {
-      setFormData((prev) => ({ ...prev, type: selectedCategory }));
+      setFormData((prev) => ({ ...prev, type: selectedCategory._id }));
       setIsDropdownOpen(false);
     },
     [setFormData]
@@ -46,7 +46,11 @@ function InforTab({ formData, setFormData, onNext }) {
   };
 
   const isFormValid = () => {
-    return formData?.name.trim() !== "" && formData?.type.trim() !== "";
+    return (
+      formData?.name.trim() !== "" &&
+      typeof formData?.type === "string" &&
+      formData.type.trim() !== ""
+    );
   };
 
   const handleNext = () => {
@@ -144,6 +148,9 @@ function InforTab({ formData, setFormData, onNext }) {
           sx={{
             color: "white",
             bgcolor: "secondary.main",
+            "&:hover": {
+              bgcolor: "secondary.dark",
+            },
           }}
           onClick={handleNext}
           disabled={!isFormValid()} // Disable if form is not valid

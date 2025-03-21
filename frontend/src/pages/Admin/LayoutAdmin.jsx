@@ -6,7 +6,6 @@ import Grid from "@mui/material/Grid2";
 import { CssBaseline, Divider, List, Typography } from "@mui/material";
 import NavAdminItem from "../../components/NavAdminItem";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
-import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
@@ -14,6 +13,8 @@ import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
 import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import { Link, Outlet, useLocation } from "react-router-dom"; // Import useLocation
 import { EventBusyOutlined, LogoutOutlined } from "@mui/icons-material";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import BarChartIcon from "@mui/icons-material/BarChart";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: "transparent",
@@ -98,10 +99,20 @@ function LayoutAdmin() {
                   sx={{ bgcolor: theme.palette.text.primary }}
                 />
                 <MemoizedNavAdminItem
-                  icon={<DashboardOutlinedIcon />}
+                  icon={<BarChartIcon />}
                   text="Dashboard"
                   isSelected={selectedItem === "dashboard"}
                   link="/admin/dashboard"
+                />
+                <Divider
+                  variant="middle"
+                  sx={{ bgcolor: theme.palette.text.primary }}
+                />
+                <MemoizedNavAdminItem
+                  icon={<AddCircleOutlineIcon />}
+                  text="Create Product"
+                  isSelected={selectedItem === "create-product"}
+                  link="/admin/create-product"
                 />
                 <Divider
                   variant="middle"

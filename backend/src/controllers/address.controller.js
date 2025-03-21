@@ -22,7 +22,7 @@ const getAllWard = asyncHandeler(async (req, res) => {
 const createNewUserAddress = asyncHandeler(async (req, res) => {
   const { userId } = req.params; // Lấy từ params thay vì query
   const address = await addressService.createNewUserAddress(userId, req.body);
-  res.status(StatusCodes.OK).json(address);
+  res.status(StatusCodes.CREATED).json(address);
 });
 
 const getAllUserAddress = asyncHandeler(async (req, res) => {
