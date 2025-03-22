@@ -1,9 +1,9 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
-import { 
-  Box, 
-  Grid, 
-  Paper, 
-  Typography, 
+import { useState, useEffect, useRef, useMemo } from "react";
+import {
+  Box,
+  Grid,
+  Paper,
+  Typography,
   useTheme,
   Fade,
   IconButton,
@@ -20,8 +20,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip
-} from '@mui/material';
+  Chip,
+} from "@mui/material";
 import {
   ShoppingCart,
   AttachMoney,
@@ -29,17 +29,21 @@ import {
   People,
   MoreVert,
   FileDownload,
-  CalendarToday
-} from '@mui/icons-material';
-import Chart from 'chart.js/auto';
-import StatCard from './Chart/StatCard';
-import { useNavigate } from 'react-router';
-import { useGetChartDataQuery, useGetDashboardStatsQuery, useGetProductDistributionQuery } from '../../redux/api/dashboardSlice';
+  CalendarToday,
+} from "@mui/icons-material";
+import Chart from "chart.js/auto";
+import StatCard from "./Chart/StatCard";
+import { useNavigate } from "react-router";
+import {
+  useGetChartDataQuery,
+  useGetProductDistributionQuery,
+  useGetRecentOrdersQuery,
+} from "../../redux/api/dashboardSlice";
 
 const timeRanges = [
-  { value: 'day', label: 'Day' },
-  { value: 'month', label: 'Month' },
-  { value: 'year', label: 'Year' },
+  { value: "day", label: "Day" },
+  { value: "month", label: "Month" },
+  { value: "year", label: "Year" },
 ];
 
 // Chart data based on time range
@@ -81,7 +85,7 @@ const timeRanges = [
 
 const MainDashBoard = () => {
   const theme = useTheme();
-  const [timeRange, setTimeRange] = useState('day');
+  const [timeRange, setTimeRange] = useState("day");
   const [exportAnchorEl, setExportAnchorEl] = useState(null);
   const navigate = useNavigate();
 
@@ -94,11 +98,15 @@ const MainDashBoard = () => {
   const orderStatesChartInstance = useRef(null);
   const deliveryStatesChartRef = useRef(null);
   const deliveryStatesChartInstance = useRef(null);
-  
-  const { data: chartData, isLoading: isChartLoading } = useGetChartDataQuery(timeRange);
+  const productDistributionChartRef = useRef(null);
+  const productDistributionChartInstance = useRef(null);
+
+  const { data: chartData } = useGetChartDataQuery(timeRange);
   // const { data: stats, isLoading: isStatsLoading } = useGetDashboardStatsQuery();
-  const { data: stats, isLoading: isStatsLoading } = useGetProductDistributionQuery();
-  console.log( stats);
+  const { data: productDistribution } =
+    useGetProductDistributionQuery(timeRange);
+  const { data: orders } = useGetRecentOrdersQuery(5);
+  console.log(orders);
   const handleExportClick = (event) => {
     setExportAnchorEl(event.currentTarget);
   };
@@ -108,47 +116,50 @@ const MainDashBoard = () => {
   };
 
   // Common chart options
-  const commonOptions = useMemo(() => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        display: true,
-        labels: {
-          color: '#2b3674',
-          font: {
-            family: theme.typography.fontFamily
-          }
-        }
-      }
-    },
-    scales: {
-      x: {
-        grid: {
-          color: 'rgba(0,0,0,0.05)',
-          drawBorder: false
+  const commonOptions = useMemo(
+    () => ({
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: true,
+          labels: {
+            color: "#2b3674",
+            font: {
+              family: theme.typography.fontFamily,
+            },
+          },
         },
-        ticks: {
-          color: '#a3aed0',
-          font: {
-            family: theme.typography.fontFamily
-          }
-        }
       },
-      y: {
-        grid: {
-          color: 'rgba(0,0,0,0.05)',
-          drawBorder: false
+      scales: {
+        x: {
+          grid: {
+            color: "rgba(0,0,0,0.05)",
+            drawBorder: false,
+          },
+          ticks: {
+            color: "#a3aed0",
+            font: {
+              family: theme.typography.fontFamily,
+            },
+          },
         },
-        ticks: {
-          color: '#a3aed0',
-          font: {
-            family: theme.typography.fontFamily
-          }
-        }
-      }
-    }
-  }), [theme.typography.fontFamily]);
+        y: {
+          grid: {
+            color: "rgba(0,0,0,0.05)",
+            drawBorder: false,
+          },
+          ticks: {
+            color: "#a3aed0",
+            font: {
+              family: theme.typography.fontFamily,
+            },
+          },
+        },
+      },
+    }),
+    [theme.typography.fontFamily]
+  );
 
   // Initialize charts
   useEffect(() => {
@@ -159,82 +170,84 @@ const MainDashBoard = () => {
       }
 
       revenueChartInstance.current = new Chart(revenueChartRef.current, {
-        type: 'line',
+        type: "line",
         data: {
           labels: chartData?.labels,
-          datasets: [{
-            label: 'Revenue',
-            data: chartData?.revenue,
-            borderColor: '#5a93ff',
-            backgroundColor: 'rgba(90, 147, 255, 0.1)',
-            tension: 0.4,
-            fill: true,
-            pointBackgroundColor: '#5a93ff',
-            pointBorderColor: '#fff',
-            pointBorderWidth: 2,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            pointHoverBorderWidth: 3
-          }]
+          datasets: [
+            {
+              label: "Revenue",
+              data: chartData?.revenue,
+              borderColor: "#5a93ff",
+              backgroundColor: "rgba(90, 147, 255, 0.1)",
+              tension: 0.4,
+              fill: true,
+              pointBackgroundColor: "#5a93ff",
+              pointBorderColor: "#fff",
+              pointBorderWidth: 2,
+              pointRadius: 6,
+              pointHoverRadius: 8,
+              pointHoverBorderWidth: 3,
+            },
+          ],
         },
         options: {
           ...commonOptions,
           interaction: {
-            mode: 'index',
-            intersect: false
+            mode: "index",
+            intersect: false,
           },
           plugins: {
             ...commonOptions.plugins,
             tooltip: {
-              mode: 'index',
+              mode: "index",
               intersect: false,
-              backgroundColor: 'white',
-              titleColor: '#2b3674',
-              bodyColor: '#2b3674',
+              backgroundColor: "white",
+              titleColor: "#2b3674",
+              bodyColor: "#2b3674",
               titleFont: {
                 size: 13,
-                weight: '600'
+                weight: "600",
               },
               bodyFont: {
-                size: 12
+                size: 12,
               },
               padding: 12,
-              borderColor: 'rgba(0,0,0,0.05)',
+              borderColor: "rgba(0,0,0,0.05)",
               borderWidth: 1,
               displayColors: false,
               callbacks: {
-                title: function(items) {
+                title: function (items) {
                   return items[0].label;
                 },
-                label: function(item) {
+                label: function (item) {
                   return `Revenue: $${item.raw.toLocaleString()}`;
-                }
-              }
-            }
+                },
+              },
+            },
           },
           scales: {
             x: {
               grid: {
-                display: false
+                display: false,
               },
               ticks: {
-                color: '#a3aed0'
-              }
+                color: "#a3aed0",
+              },
             },
             y: {
               beginAtZero: true,
               grid: {
-                color: 'rgba(0,0,0,0.05)'
+                color: "rgba(0,0,0,0.05)",
               },
               ticks: {
-                color: '#a3aed0',
-                callback: function(value) {
-                  return '$' + value.toLocaleString();
-                }
-              }
-            }
-          }
-        }
+                color: "#a3aed0",
+                callback: function (value) {
+                  return "$" + value.toLocaleString();
+                },
+              },
+            },
+          },
+        },
       });
     }
 
@@ -245,17 +258,27 @@ const MainDashBoard = () => {
       }
 
       productsChartInstance.current = new Chart(productsChartRef.current, {
-        type: 'bar',
+        type: "bar",
         data: {
           labels: chartData?.labels,
-          datasets: [{
-            label: 'Products Sold',
-            data: chartData?.products,
-            backgroundColor: '#82ca9d',
-            borderRadius: 4,
-            barPercentage: 0.6,
-            categoryPercentage: 0.7
-          }]
+          datasets: [
+            {
+              label: "Products Sold",
+              data: chartData?.products,
+              backgroundColor: () => {
+                const canvas = productsChartRef.current;
+                const gradient = canvas
+                  .getContext("2d")
+                  .createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, "#82ca9d");
+                gradient.addColorStop(1, "#28a745");
+                return gradient;
+              },
+              borderRadius: 4,
+              barPercentage: 0.6,
+              categoryPercentage: 0.7,
+            },
+          ],
         },
         options: {
           ...commonOptions,
@@ -263,10 +286,10 @@ const MainDashBoard = () => {
             ...commonOptions.plugins,
             legend: {
               ...commonOptions.plugins.legend,
-              position: 'bottom'
-            }
-          }
-        }
+              position: "bottom",
+            },
+          },
+        },
       });
     }
 
@@ -276,83 +299,118 @@ const MainDashBoard = () => {
         orderStatesChartInstance.current.destroy();
       }
 
-      orderStatesChartInstance.current = new Chart(orderStatesChartRef.current, {
-        type: 'bar',
-        data: {
-          labels: chartData?.labels,
-          datasets: [
-            {
-              label: 'Pending',
-              data: chartData?.orders.pending,
-              backgroundColor: '#5a93ff',
-              borderRadius: 4,
-              barPercentage: 0.6,
-              categoryPercentage: 0.7
-            },
-            {
-              label: 'Confirmed',
-              data: chartData?.orders.confirmed,
-              backgroundColor: '#82ca9d',
-              borderRadius: 4,
-              barPercentage: 0.6,
-              categoryPercentage: 0.7
-            },
-            {
-              label: 'Completed',
-              data: chartData?.orders.completed,
-              backgroundColor: '#4CAF50',
-              borderRadius: 4,
-              barPercentage: 0.6,
-              categoryPercentage: 0.7
-            },
-            {
-              label: 'Cancelled',
-              data: chartData?.orders.cancelled,
-              backgroundColor: '#f44336',
-              borderRadius: 4,
-              barPercentage: 0.6,
-              categoryPercentage: 0.7
-            }
-          ]
-        },
-        options: {
-          ...commonOptions,
-          plugins: {
-            ...commonOptions.plugins,
-            title: {
-              display: true,
-              text: 'Order States',
-              color: '#2b3674',
-              font: {
-                size: 16,
-                weight: '600'
+      orderStatesChartInstance.current = new Chart(
+        orderStatesChartRef.current,
+        {
+          type: "bar",
+          data: {
+            labels: chartData?.labels,
+            datasets: [
+              {
+                label: "Pending",
+                data: chartData?.orders.pending,
+                backgroundColor: () => {
+                  const canvas = orderStatesChartRef.current;
+                  const gradient = canvas
+                    .getContext("2d")
+                    .createLinearGradient(0, 0, 0, 400);
+                  gradient.addColorStop(0, "#5a93ff");
+                  gradient.addColorStop(1, "#007bff");
+                  return gradient;
+                },
+                borderRadius: 4,
+                barPercentage: 0.6,
+                categoryPercentage: 0.7,
               },
-              padding: {
-                bottom: 24
-              }
-            },
-            legend: {
-              position: 'top',
-              align: 'start',
-              labels: {
-                usePointStyle: true,
-                padding: 20,
-                boxWidth: 8
-              }
-            }
+              {
+                label: "Confirmed",
+                data: chartData?.orders.confirmed,
+                backgroundColor: () => {
+                  const canvas = orderStatesChartRef.current;
+                  const gradient = canvas
+                    .getContext("2d")
+                    .createLinearGradient(0, 0, 0, 400);
+                  gradient.addColorStop(0, "#82ca9d");
+                  gradient.addColorStop(1, "#28a745");
+                  return gradient;
+                },
+                borderRadius: 4,
+                barPercentage: 0.6,
+                categoryPercentage: 0.7,
+              },
+              {
+                label: "Completed",
+                data: chartData?.orders.completed,
+                backgroundColor: () => {
+                  const canvas = orderStatesChartRef.current;
+                  const gradient = canvas
+                    .getContext("2d")
+                    .createLinearGradient(0, 0, 0, 400);
+                  gradient.addColorStop(0, "#4CAF50");
+                  gradient.addColorStop(1, "#2e7d32");
+                  return gradient;
+                },
+                borderRadius: 4,
+                barPercentage: 0.6,
+                categoryPercentage: 0.7,
+              },
+              {
+                label: "Cancelled",
+                data: chartData?.orders.cancelled,
+                backgroundColor: () => {
+                  const canvas = orderStatesChartRef.current;
+                  const gradient = canvas
+                    .getContext("2d")
+                    .createLinearGradient(0, 0, 0, 400);
+                  gradient.addColorStop(0, "#f44336");
+                  gradient.addColorStop(1, "#d32f2f");
+                  return gradient;
+                },
+                borderRadius: 4,
+                barPercentage: 0.6,
+                categoryPercentage: 0.7,
+              },
+            ],
           },
-          scales: {
-            ...commonOptions.scales,
-            y: {
-              ...commonOptions.scales.y,
-              beginAtZero: true,
-              grid: {
-                drawBorder: false
-              }
-            }
-          }
+          options: {
+            ...commonOptions,
+            plugins: {
+              ...commonOptions.plugins,
+              title: {
+                display: true,
+                text: "Order States",
+                color: "#2b3674",
+                font: {
+                  size: 16,
+                  weight: "600",
+                },
+                padding: {
+                  bottom: 24,
+                },
+              },
+              legend: {
+                position: "top",
+                align: "start",
+                labels: {
+                  usePointStyle: true,
+                  padding: 20,
+                  boxWidth: 8,
+                },
+              },
+            },
+            scales: {
+              ...commonOptions.scales,
+              y: {
+                ...commonOptions.scales.y,
+                beginAtZero: true,
+                grid: {
+                  drawBorder: false,
+                },
+              },
+            },
+          },
         }
-      });
+      );
     }
 
     // Delivery States Chart
@@ -361,80 +419,218 @@ const MainDashBoard = () => {
         deliveryStatesChartInstance.current.destroy();
       }
 
-      deliveryStatesChartInstance.current = new Chart(deliveryStatesChartRef.current, {
-        type: 'doughnut',
-        data: {
-          labels: [
-            'Processing',
-            'Shipped',
-            'In Transit',
-            'Delivered',
-            'Failed',
-            'Returned',
-            'Cancelled'
-          ],
-          datasets: [{
-            data: [30, 25, 20, 15, 5, 3, 2],
-            backgroundColor: [
-              '#f6c23e', // Processing - Yellow
-              '#ff9f43', // Shipped - Orange
-              '#9c27b0', // In Transit - Purple
-              '#2196f3', // Delivered - Blue
-              '#f44336', // Failed - Red
-              '#795548', // Returned - Brown
-              '#9e9e9e'  // Cancelled - Gray
+      deliveryStatesChartInstance.current = new Chart(
+        deliveryStatesChartRef.current,
+        {
+          type: "doughnut",
+          data: {
+            labels: [
+              "Processing",
+              "Shipped",
+              "In Transit",
+              "Delivered",
+              "Failed",
+              "Returned",
+              "Cancelled",
             ],
-            borderWidth: 0,
-            hoverOffset: 4
-          }]
+            datasets: [
+              {
+                data: [30, 25, 20, 15, 5, 3, 2],
+                backgroundColor: function (context) {
+                  const chart = context.chart;
+                  const { ctx, chartArea } = chart;
+
+                  if (!chartArea) {
+                    // This case happens on initial chart load
+                    return;
+                  }
+
+                  // Create a gradient based on the data index
+                  const colorStops = [
+                    [
+                      ["#f6c23e", 0],
+                      ["#ff9f43", 1],
+                    ], // Processing
+                    [
+                      ["#ff9f43", 0],
+                      ["#f6c23e", 1],
+                    ], // Shipped
+                    [
+                      ["#9c27b0", 0],
+                      ["#673ab7", 1],
+                    ], // In Transit
+                    [
+                      ["#2196f3", 0],
+                      ["#03a9f4", 1],
+                    ], // Delivered
+                    [
+                      ["#f44336", 0],
+                      ["#e91e63", 1],
+                    ], // Failed
+                    [
+                      ["#795548", 0],
+                      ["#8d6e63", 1],
+                    ], // Returned
+                    [
+                      ["#9e9e9e", 0],
+                      ["#bdbdbd", 1],
+                    ], // Cancelled
+                  ];
+
+                  // Get the index of the current dataset
+                  const dataIndex = context.dataIndex;
+
+                  // Create a radial gradient for pie/doughnut charts
+                  const centerX = (chartArea.left + chartArea.right) / 2;
+                  const centerY = (chartArea.top + chartArea.bottom) / 2;
+                  const radius =
+                    Math.min(
+                      chartArea.right - chartArea.left,
+                      chartArea.bottom - chartArea.top
+                    ) / 2;
+
+                  const gradient = ctx.createRadialGradient(
+                    centerX,
+                    centerY,
+                    0,
+                    centerX,
+                    centerY,
+                    radius
+                  );
+
+                  // Add color stops based on the data index
+                  if (dataIndex >= 0 && dataIndex < colorStops.length) {
+                    colorStops[dataIndex].forEach(([color, stop]) => {
+                      gradient.addColorStop(stop, color);
+                    });
+                  }
+
+                  return gradient;
+                },
+                borderWidth: 0,
+                hoverOffset: 4,
+              },
+            ],
+          },
+          options: {
+            ...commonOptions,
+            cutout: "65%",
+            radius: "90%",
+            plugins: {
+              ...commonOptions.plugins,
+              title: {
+                display: true,
+                text: "Delivery States Distribution",
+                color: "#2b3674",
+                font: {
+                  size: 16,
+                  weight: "600",
+                },
+                padding: {
+                  bottom: 24,
+                },
+              },
+              legend: {
+                position: "right",
+                labels: {
+                  usePointStyle: true,
+                  padding: 20,
+                  boxWidth: 8,
+                  color: "#2b3674",
+                  font: {
+                    size: 11,
+                  },
+                  generateLabels: function (chart) {
+                    const data = chart.data;
+                    const colorPairs = [
+                      ["#f6c23e", "#ff9f43"], // Processing
+                      ["#ff9f43", "#f6c23e"], // Shipped
+                      ["#9c27b0", "#673ab7"], // In Transit
+                      ["#2196f3", "#03a9f4"], // Delivered
+                      ["#f44336", "#e91e63"], // Failed
+                      ["#795548", "#8d6e63"], // Returned
+                      ["#9e9e9e", "#bdbdbd"], // Cancelled
+                    ];
+
+                    return data.labels.map((label, i) => ({
+                      text: `${label} (${data.datasets[0].data[i]}%)`,
+                      fillStyle: colorPairs[i][0],
+                      strokeStyle: colorPairs[i][0],
+                    }));
+                  },
+                },
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return ` ${context.label}: ${context.raw}%`;
+                  },
+                },
+              },
+            },
+          },
+        }
+      );
+    }
+
+    // Product Distribution Chart
+    if (productDistribution && productDistributionChartRef.current) {
+      const ctx = productDistributionChartRef.current.getContext("2d");
+
+      if (productDistributionChartInstance.current) {
+        productDistributionChartInstance.current.destroy();
+      }
+
+      productDistributionChartInstance.current = new Chart(ctx, {
+        type: "bar",
+        data: {
+          labels: productDistribution.map((p) => p.name),
+          datasets: [
+            {
+              label: "Number of Products",
+              data: productDistribution.map((p) => p.count),
+              backgroundColor: () => {
+                const canvas = productDistributionChartRef.current;
+                const gradient = canvas
+                  .getContext("2d")
+                  .createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, "#36A2EB");
+                gradient.addColorStop(1, "#4BC0C0");
+                return gradient;
+              },
+              borderColor: "#36A2EB",
+              borderWidth: 1,
+            },
+          ],
         },
         options: {
-          ...commonOptions,
-          cutout: '65%',
-          radius: '90%',
-          plugins: {
-            ...commonOptions.plugins,
-            title: {
-              display: true,
-              text: 'Delivery States Distribution',
-              color: '#2b3674',
-              font: {
-                size: 16,
-                weight: '600'
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: "#e0e0e0",
               },
-              padding: {
-                bottom: 24
-              }
+              ticks: {
+                color: "#2b3674",
+              },
             },
+            x: {
+              grid: {
+                display: false,
+              },
+              ticks: {
+                color: "#2b3674",
+              },
+            },
+          },
+          plugins: {
             legend: {
-              position: 'right',
-              labels: {
-                usePointStyle: true,
-                padding: 20,
-                boxWidth: 8,
-                color: '#2b3674',
-                font: {
-                  size: 11
-                },
-                generateLabels: (chart) => {
-                  const data = chart.data;
-                  return data.labels.map((label, i) => ({
-                    text: `${label} (${data.datasets[0].data[i]}%)`,
-                    fillStyle: data.datasets[0].backgroundColor[i],
-                    strokeStyle: data.datasets[0].backgroundColor[i]
-                  }));
-                }
-              }
+              display: false,
             },
-            tooltip: {
-              callbacks: {
-                label: function(context) {
-                  return ` ${context.label}: ${context.raw}%`;
-                }
-              }
-            }
-          }
-        }
+          },
+        },
       });
     }
 
@@ -452,23 +648,52 @@ const MainDashBoard = () => {
       if (deliveryStatesChartInstance.current) {
         deliveryStatesChartInstance.current.destroy();
       }
+      if (productDistributionChartInstance.current) {
+        productDistributionChartInstance.current.destroy();
+      }
     };
-  }, [theme.typography.fontFamily, commonOptions, timeRange, chartData?.labels, chartData?.revenue, chartData?.products, chartData?.orders.pending, chartData?.orders.confirmed, chartData?.orders.completed, chartData?.orders.cancelled]);
+  }, [
+    theme.typography.fontFamily,
+    commonOptions,
+    timeRange,
+    chartData?.labels,
+    chartData?.revenue,
+    chartData?.products,
+    chartData?.orders.pending,
+    chartData?.orders.confirmed,
+    chartData?.orders.completed,
+    chartData?.orders.cancelled,
+    productDistribution,
+    timeRange,
+  ]);
 
   return (
-    <Box sx={{
-      py: 3,
-      px: { xs: 2, md: 3 },
-      backgroundColor: '#f8f9fa'
-    }}>
+    <Box
+      sx={{
+        py: 3,
+        px: { xs: 2, md: 3 },
+        backgroundColor: "#f8f9fa",
+      }}
+    >
       {/* Header */}
-      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <Box
+        sx={{
+          mb: 4,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+        }}
+      >
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 1, color: '#2b3674' }}>
+          <Typography
+            variant="h4"
+            sx={{ fontWeight: "bold", mb: 1, color: "#2b3674" }}
+          >
             Dashboard Overview
           </Typography>
-          <Typography variant="body1" sx={{ color: '#a3aed0' }}>
-            Welcome back! Here&apos;s what&apos;s happening with your store today.
+          <Typography variant="body1" sx={{ color: "#a3aed0" }}>
+            Welcome back! Here&apos;s what&apos;s happening with your store
+            today.
           </Typography>
         </Box>
         <Stack direction="row" spacing={2}>
@@ -480,7 +705,9 @@ const MainDashBoard = () => {
               label="Time Range"
               size="small"
               startAdornment={
-                <CalendarToday sx={{ mr: 1, fontSize: 20, color: 'action.active' }} />
+                <CalendarToday
+                  sx={{ mr: 1, fontSize: 20, color: "action.active" }}
+                />
               }
             >
               {timeRanges.map((range) => (
@@ -494,7 +721,7 @@ const MainDashBoard = () => {
             variant="outlined"
             startIcon={<FileDownload />}
             onClick={handleExportClick}
-            sx={{ borderRadius: 2, textTransform: 'none' }}
+            sx={{ borderRadius: 2, textTransform: "none" }}
           >
             Export
           </Button>
@@ -508,7 +735,7 @@ const MainDashBoard = () => {
             title="Total Revenue"
             value="$23,850"
             subtext="+12.5% from last month"
-            icon={<AttachMoney sx={{ color: '#5a93ff' }} />}
+            icon={<AttachMoney sx={{ color: "#5a93ff" }} />}
             color="#5a93ff"
             trend="up"
             percentage={68}
@@ -519,7 +746,7 @@ const MainDashBoard = () => {
             title="Total Orders"
             value="1,245"
             subtext="+8.3% from last month"
-            icon={<ShoppingCart sx={{ color: '#82ca9d' }} />}
+            icon={<ShoppingCart sx={{ color: "#82ca9d" }} />}
             color="#82ca9d"
             trend="up"
             percentage={75}
@@ -530,7 +757,7 @@ const MainDashBoard = () => {
             title="Total Products"
             value="384"
             subtext="+5.7% new products"
-            icon={<Inventory sx={{ color: '#f6c23e' }} />}
+            icon={<Inventory sx={{ color: "#f6c23e" }} />}
             color="#f6c23e"
             trend="up"
             percentage={62}
@@ -541,7 +768,7 @@ const MainDashBoard = () => {
             title="Total Users"
             value="2,845"
             subtext="+15.2% new users"
-            icon={<People sx={{ color: '#ff9f43' }} />}
+            icon={<People sx={{ color: "#ff9f43" }} />}
             color="#ff9f43"
             trend="up"
             percentage={82}
@@ -553,22 +780,31 @@ const MainDashBoard = () => {
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} lg={8}>
           <Fade in timeout={1200}>
-            <Paper sx={{ 
-              p: 3,
-              height: '100%',
-              background: 'white',
-              boxShadow: '0 2px 6px 0 rgba(0,0,0,0.05)',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                transition: 'all 0.3s'
-              }
-            }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+            <Paper
+              sx={{
+                p: 3,
+                height: "100%",
+                background: "white",
+                boxShadow: "0 2px 6px 0 rgba(0,0,0,0.05)",
+                "&:hover": {
+                  transform: "translateY(-4px)",
+                  transition: "all 0.3s",
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 3,
+                }}
+              >
                 <Box>
-                  <Typography variant="h6" sx={{ mb: 1, color: '#2b3674' }}>
+                  <Typography variant="h6" sx={{ mb: 1, color: "#2b3674" }}>
                     Revenue Overview
                   </Typography>
-                  <Typography variant="body2" sx={{ color: '#a3aed0' }}>
+                  <Typography variant="body2" sx={{ color: "#a3aed0" }}>
                     (+15.2%) than last month
                   </Typography>
                 </Box>
@@ -576,7 +812,7 @@ const MainDashBoard = () => {
                   <MoreVert />
                 </IconButton>
               </Box>
-              <Box sx={{ height: 350, position: 'relative' }}>
+              <Box sx={{ height: 350, position: "relative" }}>
                 <canvas ref={revenueChartRef} />
               </Box>
             </Paper>
@@ -584,21 +820,23 @@ const MainDashBoard = () => {
         </Grid>
         <Grid item xs={12} lg={4}>
           <Fade in timeout={1200}>
-            <Paper sx={{ 
-              p: 3,
-              height: '100%',
-              background: 'white',
-              boxShadow: '0 2px 6px 0 rgba(0,0,0,0.05)',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                transition: 'all 0.3s'
-              }
-            }}>
-              <Typography variant="h6" sx={{ mb: 3, color: '#2b3674' }}>
-                Products Distribution
+            <Paper
+              sx={{
+                p: 3,
+                height: "100%",
+                background: "white",
+                boxShadow: "0 2px 6px 0 rgba(0,0,0,0.05)",
+                "&:hover": {
+                  transform: "translateY(-4px)",
+                  transition: "all 0.3s",
+                },
+              }}
+            >
+              <Typography variant="h6" sx={{ mb: 3, color: "#2b3674" }}>
+                Product Distribution
               </Typography>
-              <Box sx={{ height: 350, position: 'relative' }}>
-                <canvas ref={productsChartRef} />
+              <Box sx={{ height: 350, position: "relative" }}>
+                <canvas ref={productDistributionChartRef} />
               </Box>
             </Paper>
           </Fade>
@@ -608,40 +846,44 @@ const MainDashBoard = () => {
       {/* Charts Row 2 */}
       <Grid container spacing={3} sx={{ mb: 3 }}>
         <Grid item xs={12} md={6}>
-          <Paper sx={{
-            p: 3,
-            height: '100%',
-            borderRadius: 4,
-            background: 'white',
-            boxShadow: '0px 2px 5px rgba(0,0,0,0.05)',
-            transition: 'all 0.3s',
-            '&:hover': {
-              boxShadow: '0px 4px 10px rgba(0,0,0,0.1)',
-              transform: 'translateY(-2px)',
-              transition: 'all 0.3s'
-            }
-          }}>
-            <Box sx={{ height: 350, position: 'relative' }}>
+          <Paper
+            sx={{
+              p: 3,
+              height: "100%",
+              borderRadius: 4,
+              background: "white",
+              boxShadow: "0px 2px 5px rgba(0,0,0,0.05)",
+              transition: "all 0.3s",
+              "&:hover": {
+                boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                transform: "translateY(-2px)",
+                transition: "all 0.3s",
+              },
+            }}
+          >
+            <Box sx={{ height: 350, position: "relative" }}>
               <canvas ref={orderStatesChartRef} />
             </Box>
           </Paper>
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <Paper sx={{
-            p: 3,
-            height: '100%',
-            borderRadius: 4,
-            background: 'white',
-            boxShadow: '0px 2px 5px rgba(0,0,0,0.05)',
-            transition: 'all 0.3s',
-            '&:hover': {
-              boxShadow: '0px 4px 10px rgba(0,0,0,0.1)',
-              transform: 'translateY(-2px)',
-              transition: 'all 0.3s'
-            }
-          }}>
-            <Box sx={{ height: 350, position: 'relative' }}>
+          <Paper
+            sx={{
+              p: 3,
+              height: "100%",
+              borderRadius: 4,
+              background: "white",
+              boxShadow: "0px 2px 5px rgba(0,0,0,0.05)",
+              transition: "all 0.3s",
+              "&:hover": {
+                boxShadow: "0px 4px 10px rgba(0,0,0,0.1)",
+                transform: "translateY(-2px)",
+                transition: "all 0.3s",
+              },
+            }}
+          >
+            <Box sx={{ height: 350, position: "relative" }}>
               <canvas ref={deliveryStatesChartRef} />
             </Box>
           </Paper>
@@ -652,25 +894,34 @@ const MainDashBoard = () => {
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <Fade in timeout={1200}>
-            <Paper sx={{ 
-              p: 3,
-              background: 'white',
-              boxShadow: '0 2px 6px 0 rgba(0,0,0,0.05)',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                transition: 'all 0.3s'
-              }
-            }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-                <Typography variant="h6" sx={{ color: '#2b3674' }}>
+            <Paper
+              sx={{
+                p: 3,
+                background: "white",
+                boxShadow: "0 2px 6px 0 rgba(0,0,0,0.05)",
+                "&:hover": {
+                  transform: "translateY(-4px)",
+                  transition: "all 0.3s",
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  mb: 3,
+                }}
+              >
+                <Typography variant="h6" sx={{ color: "#2b3674" }}>
                   Recent Orders
                 </Typography>
-                <Button 
-                  variant="text" 
+                <Button
+                  variant="text"
                   onClick={() => {
-                    navigate('/admin/order');
+                    navigate("/admin/order");
                   }}
-                  sx={{ textTransform: 'none', color: '#a3aed0' }}
+                  sx={{ textTransform: "none", color: "#a3aed0" }}
                 >
                   View All
                 </Button>
@@ -679,85 +930,65 @@ const MainDashBoard = () => {
                 <Table>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ color: '#2b3674', fontWeight: 700 }}>Time</TableCell>
-                      <TableCell sx={{ color: '#2b3674', fontWeight: 700 }}>Order ID</TableCell>
-                      <TableCell sx={{ color: '#2b3674', fontWeight: 700 }}>Customer</TableCell>
-                      <TableCell sx={{ color: '#2b3674', fontWeight: 700 }}>Total</TableCell>
-                      <TableCell sx={{ color: '#2b3674', fontWeight: 700 }}>Status</TableCell>
+                      <TableCell sx={{ color: "#2b3674", fontWeight: 700 }}>
+                        Time
+                      </TableCell>
+                      <TableCell sx={{ color: "#2b3674", fontWeight: 700 }}>
+                        Order ID
+                      </TableCell>
+                      <TableCell sx={{ color: "#2b3674", fontWeight: 700 }}>
+                        Customer
+                      </TableCell>
+                      <TableCell sx={{ color: "#2b3674", fontWeight: 700 }}>
+                        Total
+                      </TableCell>
+                      <TableCell sx={{ color: "#2b3674", fontWeight: 700 }}>
+                        Status
+                      </TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {[
-                      {
-                        time: '10 Sep, 2024 8:20 PM',
-                        id: '#OD1711',
-                        customer: 'John Doe',
-                        total: '$156.00',
-                        status: 'CONFIRMED'
-                      },
-                      {
-                        time: '10 Sep, 2024 7:45 PM',
-                        id: '#OD1712',
-                        customer: 'Jane Smith',
-                        total: '$225.50',
-                        status: 'PENDING'
-                      },
-                      {
-                        time: '10 Sep, 2024 6:30 PM',
-                        id: '#OD1713',
-                        customer: 'Robert Johnson',
-                        total: '$325.00',
-                        status: 'COMPLETED'
-                      },
-                      {
-                        time: '10 Sep, 2024 5:15 PM',
-                        id: '#OD1714',
-                        customer: 'Emily Brown',
-                        total: '$189.99',
-                        status: 'CANCELLED'
-                      },
-                      {
-                        time: '10 Sep, 2024 4:00 PM',
-                        id: '#OD1715',
-                        customer: 'Michael Wilson',
-                        total: '$432.25',
-                        status: 'CONFIRMED'
-                      }
-                    ].sort((a, b) => new Date(b.time) - new Date(a.time)).map((order) => (
+                    {orders?.map((order) => (
                       <TableRow
-                        key={order.id}
+                        key={order._id}
                         sx={{
-                          '&:last-child td, &:last-child th': { border: 0 },
-                          '&:hover': {
-                            backgroundColor: 'rgba(0,0,0,0.01)'
-                          }
+                          "&:last-child td, &:last-child th": { border: 0 },
+                          "&:hover": {
+                            backgroundColor: "rgba(0,0,0,0.01)",
+                          },
                         }}
                       >
-                        <TableCell sx={{ color: '#2b3674' }}>
-                          {order.time}
+                        <TableCell sx={{ color: "#2b3674" }}>
+                          {new Date(order.createdAt).toLocaleString()}
                         </TableCell>
-                        <TableCell sx={{ color: '#2b3674' }}>
-                          {order.id}
+                        <TableCell sx={{ color: "#2b3674" }}>
+                          #{order._id.substring(0, 6)}
                         </TableCell>
-                        <TableCell sx={{ color: '#2b3674' }}>
-                          {order.customer}
+                        <TableCell sx={{ color: "#2b3674" }}>
+                          {order.user.userName}
                         </TableCell>
-                        <TableCell sx={{ color: '#2b3674' }}>
-                          {order.total}
+                        <TableCell sx={{ color: "#2b3674" }}>
+                          {new Intl.NumberFormat("vi-VN", {
+                            style: "currency",
+                            currency: "VND",
+                          }).format(order.totalPrice || 0)}
                         </TableCell>
                         <TableCell>
                           <Chip
-                            label={order.status}
+                            label={order.state}
                             size="small"
                             sx={{
-                              backgroundColor: 
-                                order.status === 'COMPLETED' ? '#4CAF50' :
-                                order.status === 'PENDING' ? '#f6c23e' :
-                                order.status === 'CANCELLED' ? '#f44336' :
-                                '#2196f3',
-                              color: 'white',
+                              backgroundColor:
+                                order.state === "COMPLETED"
+                                  ? "#4CAF50"
+                                  : order.state === "PENDING"
+                                  ? "#f6c23e"
+                                  : order.state === "CANCELLED"
+                                  ? "#f44336"
+                                  : "#2196f3",
+                              color: "white",
                               fontWeight: 600,
-                              fontSize: '0.75rem'
+                              fontSize: "0.75rem",
                             }}
                           />
                         </TableCell>
@@ -777,15 +1008,9 @@ const MainDashBoard = () => {
         open={Boolean(exportAnchorEl)}
         onClose={handleExportClose}
       >
-        <MenuItem onClick={handleExportClose}>
-          Export as PDF
-        </MenuItem>
-        <MenuItem onClick={handleExportClose}>
-          Export as Excel
-        </MenuItem>
-        <MenuItem onClick={handleExportClose}>
-          Export as CSV
-        </MenuItem>
+        <MenuItem onClick={handleExportClose}>Export as PDF</MenuItem>
+        <MenuItem onClick={handleExportClose}>Export as Excel</MenuItem>
+        <MenuItem onClick={handleExportClose}>Export as CSV</MenuItem>
       </Menu>
     </Box>
   );

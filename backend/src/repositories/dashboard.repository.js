@@ -1,44 +1,68 @@
 import OrderModel from "../models/order.model.js";
 import ProductModel from "../models/product.model.js";
-import { startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, eachHourOfInterval, eachWeekOfInterval, eachMonthOfInterval, format, getWeek, subMonths } from "date-fns";
+import {
+  startOfDay,
+  endOfDay,
+  startOfWeek,
+  endOfWeek,
+  startOfMonth,
+  endOfMonth,
+  startOfYear,
+  endOfYear,
+  eachHourOfInterval,
+  eachWeekOfInterval,
+  eachMonthOfInterval,
+  format,
+  getWeek,
+  subMonths,
+} from "date-fns";
 
 // Helper function to get time ranges
 const getTimeRanges = (timeframe) => {
   const now = new Date();
   switch (timeframe) {
-    case 'day':
+    case "day":
       return {
         start: startOfDay(now),
         end: endOfDay(now),
-        intervals: eachHourOfInterval({ start: startOfDay(now), end: endOfDay(now) }, { step: 4 })
+        intervals: eachHourOfInterval(
+          { start: startOfDay(now), end: endOfDay(now) },
+          { step: 4 }
+        ),
       };
-    case 'month':
+    case "month":
       return {
         start: startOfMonth(now),
         end: endOfMonth(now),
-        intervals: eachWeekOfInterval({ start: startOfMonth(now), end: endOfMonth(now) })
+        intervals: eachWeekOfInterval({
+          start: startOfMonth(now),
+          end: endOfMonth(now),
+        }),
       };
-    case 'year':
+    case "year":
       return {
         start: startOfYear(now),
         end: endOfYear(now),
-        intervals: eachMonthOfInterval({ start: startOfYear(now), end: endOfYear(now) })
+        intervals: eachMonthOfInterval({
+          start: startOfYear(now),
+          end: endOfYear(now),
+        }),
       };
     default:
-      throw new Error('Invalid timeframe');
+      throw new Error("Invalid timeframe");
   }
 };
 
 // Get revenue data
 const getRevenueData = async (timeframe) => {
   const { start, end, intervals } = getTimeRanges(timeframe);
-  
+
   const orders = await OrderModel.aggregate([
     {
       $match: {
         createdAt: { $gte: start, $lte: end },
-        state: { $ne: 'CANCELLED' }
-      }
+        state: { $ne: "CANCELLED" },
+      },
     },
     {
       $group: {
@@ -46,38 +70,38 @@ const getRevenueData = async (timeframe) => {
           $switch: {
             branches: [
               {
-                case: { $eq: [timeframe, 'day'] },
+                case: { $eq: [timeframe, "day"] },
                 then: {
                   $subtract: [
-                    { $toDate: '$createdAt' },
-                    { $mod: [{ $toLong: '$createdAt' }, 4 * 60 * 60 * 1000] }
-                  ]
-                }
+                    { $toDate: "$createdAt" },
+                    { $mod: [{ $toLong: "$createdAt" }, 4 * 60 * 60 * 1000] },
+                  ],
+                },
               },
               {
-                case: { $eq: [timeframe, 'month'] },
-                then: { $week: '$createdAt' }
+                case: { $eq: [timeframe, "month"] },
+                then: { $week: "$createdAt" },
               },
               {
-                case: { $eq: [timeframe, 'year'] },
-                then: { $month: '$createdAt' }
-              }
+                case: { $eq: [timeframe, "year"] },
+                then: { $month: "$createdAt" },
+              },
             ],
-            default: '$createdAt'
-          }
+            default: "$createdAt",
+          },
         },
-        revenue: { $sum: '$totalPrice' }
-      }
+        revenue: { $sum: "$totalPrice" },
+      },
     },
-    { $sort: { '_id': 1 } }
+    { $sort: { _id: 1 } },
   ]);
 
   // Map intervals to revenue data
-  return intervals.map(interval => {
-    const matchingRevenue = orders.find(r => {
-      if (timeframe === 'month') {
+  return intervals.map((interval) => {
+    const matchingRevenue = orders.find((r) => {
+      if (timeframe === "month") {
         return getWeek(interval) === r._id;
-      } else if (timeframe === 'year') {
+      } else if (timeframe === "year") {
         return interval.getMonth() + 1 === r._id;
       }
       return r._id.getTime() === interval.getTime();
@@ -89,12 +113,12 @@ const getRevenueData = async (timeframe) => {
 // Get order statistics
 const getOrderStats = async (timeframe) => {
   const { start, end, intervals } = getTimeRanges(timeframe);
-  
+
   const orderStats = await OrderModel.aggregate([
     {
       $match: {
-        createdAt: { $gte: start, $lte: end }
-      }
+        createdAt: { $gte: start, $lte: end },
+      },
     },
     {
       $group: {
@@ -102,53 +126,56 @@ const getOrderStats = async (timeframe) => {
           $switch: {
             branches: [
               {
-                case: { $eq: [timeframe, 'day'] },
+                case: { $eq: [timeframe, "day"] },
                 then: {
                   $subtract: [
-                    { $toDate: '$createdAt' },
-                    { $mod: [{ $toLong: '$createdAt' }, 4 * 60 * 60 * 1000] }
-                  ]
-                }
+                    { $toDate: "$createdAt" },
+                    { $mod: [{ $toLong: "$createdAt" }, 4 * 60 * 60 * 1000] },
+                  ],
+                },
               },
               {
-                case: { $eq: [timeframe, 'month'] },
-                then: { $week: '$createdAt' }
+                case: { $eq: [timeframe, "month"] },
+                then: { $week: "$createdAt" },
               },
               {
-                case: { $eq: [timeframe, 'year'] },
-                then: { $month: '$createdAt' }
-              }
+                case: { $eq: [timeframe, "year"] },
+                then: { $month: "$createdAt" },
+              },
             ],
-            default: '$createdAt'
-          }
+            default: "$createdAt",
+          },
         },
         orders: {
           $push: {
-            state: '$state',
-            count: 1
-          }
-        }
-      }
+            state: "$state",
+            count: 1,
+          },
+        },
+      },
     },
-    { $sort: { '_id': 1 } }
+    { $sort: { _id: 1 } },
   ]);
 
   // Map intervals to order stats
-  return intervals.map(interval => {
-    const matchingStats = orderStats.find(stat => {
-      if (timeframe === 'month') {
+  return intervals.map((interval) => {
+    const matchingStats = orderStats.find((stat) => {
+      if (timeframe === "month") {
         return getWeek(interval) === stat._id;
-      } else if (timeframe === 'year') {
+      } else if (timeframe === "year") {
         return interval.getMonth() + 1 === stat._id;
       }
       return stat._id.getTime() === interval.getTime();
     }) || { orders: [] };
 
     return {
-      pending: matchingStats.orders.filter(o => o.state === 'PENDING').length,
-      confirmed: matchingStats.orders.filter(o => o.state === 'CONFIRMED').length,
-      completed: matchingStats.orders.filter(o => o.state === 'COMPLETED').length,
-      cancelled: matchingStats.orders.filter(o => o.state === 'CANCELLED').length
+      pending: matchingStats.orders.filter((o) => o.state === "PENDING").length,
+      confirmed: matchingStats.orders.filter((o) => o.state === "CONFIRMED")
+        .length,
+      completed: matchingStats.orders.filter((o) => o.state === "COMPLETED")
+        .length,
+      cancelled: matchingStats.orders.filter((o) => o.state === "CANCELLED")
+        .length,
     };
   });
 };
@@ -156,16 +183,16 @@ const getOrderStats = async (timeframe) => {
 // Get product statistics
 const getProductStats = async (timeframe) => {
   const { start, end, intervals } = getTimeRanges(timeframe);
-  
+
   const productStats = await OrderModel.aggregate([
     {
       $match: {
         createdAt: { $gte: start, $lte: end },
-        state: { $ne: 'CANCELLED' }
-      }
+        state: { $ne: "CANCELLED" },
+      },
     },
     {
-      $unwind: '$products'
+      $unwind: "$products",
     },
     {
       $group: {
@@ -173,38 +200,38 @@ const getProductStats = async (timeframe) => {
           $switch: {
             branches: [
               {
-                case: { $eq: [timeframe, 'day'] },
+                case: { $eq: [timeframe, "day"] },
                 then: {
                   $subtract: [
-                    { $toDate: '$createdAt' },
-                    { $mod: [{ $toLong: '$createdAt' }, 4 * 60 * 60 * 1000] }
-                  ]
-                }
+                    { $toDate: "$createdAt" },
+                    { $mod: [{ $toLong: "$createdAt" }, 4 * 60 * 60 * 1000] },
+                  ],
+                },
               },
               {
-                case: { $eq: [timeframe, 'month'] },
-                then: { $week: '$createdAt' }
+                case: { $eq: [timeframe, "month"] },
+                then: { $week: "$createdAt" },
               },
               {
-                case: { $eq: [timeframe, 'year'] },
-                then: { $month: '$createdAt' }
-              }
+                case: { $eq: [timeframe, "year"] },
+                then: { $month: "$createdAt" },
+              },
             ],
-            default: '$createdAt'
-          }
+            default: "$createdAt",
+          },
         },
-        totalProducts: { $sum: '$products.quantity' }
-      }
+        totalProducts: { $sum: "$products.quantity" },
+      },
     },
-    { $sort: { '_id': 1 } }
+    { $sort: { _id: 1 } },
   ]);
 
   // Map intervals to product data
-  return intervals.map(interval => {
-    const matchingProducts = productStats.find(p => {
-      if (timeframe === 'month') {
+  return intervals.map((interval) => {
+    const matchingProducts = productStats.find((p) => {
+      if (timeframe === "month") {
         return getWeek(interval) === p._id;
-      } else if (timeframe === 'year') {
+      } else if (timeframe === "year") {
         return interval.getMonth() + 1 === p._id;
       }
       return p._id.getTime() === interval.getTime();
@@ -213,20 +240,59 @@ const getProductStats = async (timeframe) => {
   });
 };
 
-// Get product distribution
-const getProductDistribution = async () => {
-  const products = await ProductModel.aggregate([
+// Get top categories from orders
+const getProductDistribution = async (timeframe) => {
+  const { start, end } = getTimeRanges(timeframe);
+
+  const categories = await OrderModel.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: start, $lte: end },
+      },
+    },
+    {
+      $unwind: "$products",
+    },
+    {
+      $lookup: {
+        from: "products",
+        localField: "products.productId",
+        foreignField: "_id",
+        as: "productDetails",
+      },
+    },
+    {
+      $unwind: "$productDetails",
+    },
+    {
+      $lookup: {
+        from: "categories",
+        localField: "productDetails.type",
+        foreignField: "_id",
+        as: "categoryDetails",
+      },
+    },
+    {
+      $unwind: "$categoryDetails",
+    },
     {
       $group: {
-        _id: '$category',
-        count: { $sum: 1 }
-      }
-    }
+        _id: "$categoryDetails._id",
+        name: { $first: "$categoryDetails.name" },
+        count: { $sum: 1 },
+      },
+    },
+    {
+      $sort: { count: -1 },
+    },
+    {
+      $limit: 5,
+    },
   ]);
-  
-  return products.map(p => ({
-    category: p._id,
-    count: p.count
+
+  return categories.map((c) => ({
+    name: c.name,
+    count: c.count,
   }));
 };
 
@@ -241,48 +307,51 @@ const getDashboardStats = async () => {
       {
         $match: {
           createdAt: { $gte: startOfMonth(now), $lte: endOfMonth(now) },
-          state: { $ne: 'CANCELLED' }
-        }
+          state: { $ne: "CANCELLED" },
+        },
       },
       {
         $group: {
           _id: null,
-          revenue: { $sum: '$totalPrice' },
-          orders: { $sum: 1 }
-        }
-      }
+          revenue: { $sum: "$totalPrice" },
+          orders: { $sum: 1 },
+        },
+      },
     ]),
     ProductModel.countDocuments(),
     OrderModel.aggregate([
       {
         $match: {
-          createdAt: { $gte: startOfMonth(now), $lte: endOfMonth(now) }
-        }
+          createdAt: { $gte: startOfMonth(now), $lte: endOfMonth(now) },
+        },
       },
       {
         $group: {
-          _id: '$state',
-          count: { $sum: 1 }
-        }
-      }
-    ])
+          _id: "$state",
+          count: { $sum: 1 },
+        },
+      },
+    ]),
   ]);
 
   // Get last month stats for comparison
   const lastMonthStats = await OrderModel.aggregate([
     {
       $match: {
-        createdAt: { $gte: startOfMonth(lastMonth), $lte: endOfMonth(lastMonth) },
-        state: { $ne: 'CANCELLED' }
-      }
+        createdAt: {
+          $gte: startOfMonth(lastMonth),
+          $lte: endOfMonth(lastMonth),
+        },
+        state: { $ne: "CANCELLED" },
+      },
     },
     {
       $group: {
         _id: null,
-        revenue: { $sum: '$totalPrice' },
-        orders: { $sum: 1 }
-      }
-    }
+        revenue: { $sum: "$totalPrice" },
+        orders: { $sum: 1 },
+      },
+    },
   ]);
 
   const currentStats = currentMonthStats[0][0] || { revenue: 0, orders: 0 };
@@ -294,8 +363,12 @@ const getDashboardStats = async () => {
   }, {});
 
   // Calculate percentage changes
-  const revenueChange = lastStats.revenue ? ((currentStats.revenue - lastStats.revenue) / lastStats.revenue) * 100 : 0;
-  const ordersChange = lastStats.orders ? ((currentStats.orders - lastStats.orders) / lastStats.orders) * 100 : 0;
+  const revenueChange = lastStats.revenue
+    ? ((currentStats.revenue - lastStats.revenue) / lastStats.revenue) * 100
+    : 0;
+  const ordersChange = lastStats.orders
+    ? ((currentStats.orders - lastStats.orders) / lastStats.orders) * 100
+    : 0;
 
   return {
     currentRevenue: currentStats.revenue,
@@ -303,7 +376,7 @@ const getDashboardStats = async () => {
     currentOrders: currentStats.orders,
     ordersChange,
     totalProducts,
-    orderStateStats
+    orderStateStats,
   };
 };
 
@@ -315,20 +388,20 @@ const getDashboardChartData = async (timeframe) => {
   const [revenue, orderStats, products] = await Promise.all([
     getRevenueData(timeframe),
     getOrderStats(timeframe),
-    getProductStats(timeframe)
+    getProductStats(timeframe),
   ]);
 
   // Format labels based on timeframe
-  const labels = intervals.map(interval => {
-    switch(timeframe) {
-      case 'day':
-        return format(interval, 'HH:mm');
-      case 'month':
+  const labels = intervals.map((interval) => {
+    switch (timeframe) {
+      case "day":
+        return format(interval, "HH:mm");
+      case "month":
         return `Week ${getWeek(interval)}`;
-      case 'year':
-        return format(interval, 'MMM');
+      case "year":
+        return format(interval, "MMM");
       default:
-        return '';
+        return "";
     }
   });
 
@@ -337,12 +410,12 @@ const getDashboardChartData = async (timeframe) => {
     labels,
     revenue,
     orders: {
-      pending: orderStats.map(stat => stat.pending),
-      confirmed: orderStats.map(stat => stat.confirmed),
-      completed: orderStats.map(stat => stat.completed),
-      cancelled: orderStats.map(stat => stat.cancelled)
+      pending: orderStats.map((stat) => stat.pending),
+      confirmed: orderStats.map((stat) => stat.confirmed),
+      completed: orderStats.map((stat) => stat.completed),
+      cancelled: orderStats.map((stat) => stat.cancelled),
     },
-    products
+    products,
   };
 };
 
@@ -352,5 +425,5 @@ export {
   getProductStats,
   getDashboardChartData,
   getProductDistribution,
-  getDashboardStats
+  getDashboardStats,
 };

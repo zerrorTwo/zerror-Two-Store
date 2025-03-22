@@ -20,14 +20,14 @@ export const dashboardApiSlice = apiSlice.injectEndpoints({
       providesTags: ["Orders"],
     }),
     getProductDistribution: builder.query({
-      query: () => ({
-        url: '/dashboard/product-distribution',
+      query: (timeframe = "day") => ({
+        url: `${DASHBOARD_URL}/product-distribution?timeframe=${timeframe}`,
         method: 'GET',
       }),
     }),
     getDashboardStats: builder.query({
       query: () => ({
-        url: '/dashboard/stats',
+        url: `${DASHBOARD_URL}/stats`,
         method: 'GET',
       }),
     }),

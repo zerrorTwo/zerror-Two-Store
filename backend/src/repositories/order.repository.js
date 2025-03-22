@@ -449,31 +449,13 @@ const getRecentOrders = async (limit = 10) => {
       $unwind: "$user",
     },
     {
-      $lookup: {
-        from: "addresses",
-        localField: "addressId",
-        foreignField: "_id",
-        as: "address",
-      },
-    },
-    {
-      $unwind: "$address",
-    },
-    {
       $project: {
         _id: 1,
         state: 1,
         deliveryState: 1,
         totalPrice: 1,
         createdAt: 1,
-        "user.name": 1,
-        "user.email": 1,
-        "address.name": 1,
-        "address.phone": 1,
-        "address.street": 1,
-        "address.ward.name": 1,
-        "address.district.name": 1,
-        "address.city.name": 1,
+        "user.userName": 1,
       },
     },
     {
