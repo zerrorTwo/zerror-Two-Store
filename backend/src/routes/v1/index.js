@@ -9,6 +9,7 @@ import { cartRoute } from "./cart.route.js";
 import { addressRoute } from "./address.route.js";
 import { paymentRoute } from "./payment.route.js";
 import { orderRoute } from "./order.route.js";
+import dashboardRoute from "./dashboard.route.js";
 
 const Router = express.Router();
 
@@ -20,10 +21,11 @@ Router.use("/auth", authRoute);
 Router.use("/users", userRoute);
 Router.use("/category", categoryRoute);
 Router.use("/products", productRoute);
+Router.use("/upload", uploadRoute);
 Router.use("/cart", cartRoute);
-Router.use("/order", orderRoute);
 Router.use("/address", addressRoute);
 Router.use("/payment", paymentRoute);
-Router.use("/upload", uploadRoute); // Use uploadRoute for handling uploads
+Router.use("/order", orderRoute);
+Router.use("/dashboard", dashboardRoute);
 
 export const APIS_V1 = Router;

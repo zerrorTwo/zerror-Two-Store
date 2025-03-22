@@ -4,8 +4,8 @@ import { CART_URL } from "../constants";
 export const cartApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getAllCart: builder.query({
-      query: (userId) => ({
-        url: `${CART_URL}?userId=${userId}`,
+      query: () => ({
+        url: `${CART_URL}`,
         method: "GET",
       }),
       providesTags: ["Cart"],
@@ -13,8 +13,8 @@ export const cartApiSlice = apiSlice.injectEndpoints({
     }),
 
     getMiniCart: builder.query({
-      query: (userId) => ({
-        url: `${CART_URL}/recent?userId=${userId}`,
+      query: () => ({
+        url: `${CART_URL}/recent`,
         method: "GET",
       }),
       providesTags: ["Cart"],

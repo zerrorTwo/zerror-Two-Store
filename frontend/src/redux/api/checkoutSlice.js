@@ -4,8 +4,8 @@ import { CHECKOUT_URL, PAYMENT_URL } from "../constants";
 export const checkoutSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getProductCheckout: builder.query({
-      query: (userId) => ({
-        url: `${CHECKOUT_URL}?userId=${userId}`,
+      query: () => ({
+        url: `${CHECKOUT_URL}`,
         method: "GET",
       }),
       providesTags: ["Order"],
@@ -13,8 +13,8 @@ export const checkoutSlice = apiSlice.injectEndpoints({
     }),
 
     getUserTotalOrder: builder.query({
-      query: ({ userId, time }) => ({
-        url: `${CHECKOUT_URL}/get-total/?userId=${userId}&time=${time}`,
+      query: ({ time }) => ({
+        url: `${CHECKOUT_URL}/get-total/?time=${time}`,
         method: "GET",
       }),
       providesTags: ["Order"],
@@ -40,17 +40,15 @@ export const checkoutSlice = apiSlice.injectEndpoints({
     }),
 
     getUserOrder: builder.query({
-      query: ({ userId, page, limit, filter }) => {
-        return {
-          url: `${CHECKOUT_URL}/get-all/?userId=${userId}&page=${page}&limit=${limit}&filter=${filter}`,
-          method: "GET",
-        };
-      },
+      query: ({ page, limit, filter }) => ({
+        url: `${CHECKOUT_URL}/get-all/?page=${page}&limit=${limit}&filter=${filter}`,
+        method: "GET",
+      }),
       serializeQueryArgs: ({ queryArgs }) => {
-        return `${queryArgs.userId}-${queryArgs.filter}`;
+        return `${queryArgs.filter}`;
       },
-      merge: (currentCache, newItems, { arg }) => {
-        if (arg.page === 1) {
+      merge: (currentCache, newItems) => {
+        if (currentCache.page === 1) {
           return newItems;
         }
         return {

@@ -3,20 +3,20 @@ import asyncHandeler from "../middlewares/async.handler.js";
 import { orderService } from "../services/order.service.js";
 
 const getProductCheckout = asyncHandeler(async (req, res) => {
-  const { userId } = req.query;
-  const products = await orderService.getProductCheckout(userId);
+  const products = await orderService.getProductCheckout(req.userId);
   res.status(StatusCodes.OK).json(products);
 });
 
 const createOrder = asyncHandeler(async (req, res) => {
   const data = req.body;
+  data.userId = req.userId;
   const products = await orderService.createOrder(data);
   res.status(StatusCodes.CREATED).json(products);
 });
 
 const getUserOrder = asyncHandeler(async (req, res) => {
-  const { userId, page, limit, filter } = req.query;
-  const orders = await orderService.getUserOrder(userId, page, limit, filter);
+  const { page, limit, filter } = req.query;
+  const orders = await orderService.getUserOrder(req.userId, page, limit, filter);
   res.status(StatusCodes.OK).json(orders);
 });
 
@@ -33,8 +33,8 @@ const getOrderById = asyncHandeler(async (req, res) => {
 });
 
 const getUserTotalOrder = asyncHandeler(async (req, res) => {
-  const { userId, time } = req.query;
-  const orders = await orderService.getUserTotalOrder(userId, time);
+  const { time } = req.query;
+  const orders = await orderService.getUserTotalOrder(req.userId, time);
   res.status(StatusCodes.OK).json(orders);
 });
 
@@ -53,13 +53,20 @@ const updateOrderDeliveryState = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(order);
 });
 
-export {
+const getRecentOrders = asyncHandeler(async (req, res) => {
+  const { limit = 10 } = req.query;
+  const orders = await orderService.getRecentOrdersService(parseInt(limit));
+  res.status(StatusCodes.OK).json(orders);
+});
+
+export  {
   getProductCheckout,
   createOrder,
-  getUserOrder,
   getUserTotalOrder,
+  getUserOrder,
   getAllOrders,
   getOrderById,
   updateOrderState,
   updateOrderDeliveryState,
+  getRecentOrders,
 };

@@ -4,7 +4,6 @@ import { momoService } from "../services/momo.service.js";
 import ApiError from "../utils/api.error.js";
 
 const createMomoPayment = asyncHandeler(async (req, res) => {
-  console.log(req.body);
   const { orderId } = req.body;
 
   const orderInfo = `Pay for order ${orderId}`;

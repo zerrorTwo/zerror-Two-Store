@@ -13,12 +13,12 @@ import {
 } from "../repositories/user.repository.js";
 
 const getCurrentUserProfile = async (req, res) => {
-  const userId = req.user;
+  const userId = req.userId;
   return await findUserById(userId);
 };
 
 const updateCurrentUserProfile = async (req, res) => {
-  const userId = req.user;
+  const userId = req.userId;
   if (!userId) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }

@@ -30,8 +30,8 @@ export const addressSlice = apiSlice.injectEndpoints({
     }),
 
     createUserAddress: builder.mutation({
-      query: ({ userId, data }) => ({
-        url: `${ADDRESS_URL}/${userId}`, // Sửa lại URL structure
+      query: ({ data }) => ({
+        url: `${ADDRESS_URL}`,
         method: "POST",
         body: data,
       }),
@@ -39,8 +39,8 @@ export const addressSlice = apiSlice.injectEndpoints({
     }),
 
     getAllUserAddress: builder.query({
-      query: (userId) => ({
-        url: `${ADDRESS_URL}/${userId}`,
+      query: () => ({
+        url: `${ADDRESS_URL}`,
         method: "GET",
       }),
       providesTags: ["Address"],
@@ -49,7 +49,7 @@ export const addressSlice = apiSlice.injectEndpoints({
 
     getUserAddressById: builder.query({
       query: (id) => ({
-        url: `${ADDRESS_URL}/?id=${id}`,
+        url: `${ADDRESS_URL}/user?id=${id}`,
         method: "GET",
       }),
       providesTags: ["Address"],

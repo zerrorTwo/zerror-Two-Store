@@ -41,6 +41,7 @@ function CheckoutPage() {
 
   const [createOrder, { isLoading }] = useCreateOrderMutation();
 
+
   useEffect(() => {
     const fetchUserAddress = async () => {
       try {
@@ -74,7 +75,6 @@ function CheckoutPage() {
     }
 
     const data = {
-      userId: userId,
       addressId: selectedAddress._id,
       paymentMethod: selectedPaymentMethod.toUpperCase(),
       notes: "Giao hàng vào buổi sáng.",
@@ -94,6 +94,11 @@ function CheckoutPage() {
         error?.data?.message || "An error occurred while placing the order."
       );
     }
+  };
+
+  const formatAddress = (address) => {
+    if (!address) return "No address selected";
+    return `${address.name} (+84) ${address.phone}, ${address.street}, ${address.ward?.name}, ${address.district?.name}, ${address.city?.name}`;
   };
 
   const formattedTotalPrice = useMemo(() => {
@@ -158,9 +163,7 @@ function CheckoutPage() {
               <Divider sx={{ my: 1 }} flexItem />
               <Box>
                 <Typography alignItems={"center"} variant="body1">
-                  {selectedAddress
-                    ? `${selectedAddress.name} (+84) ${selectedAddress.phone}, ${selectedAddress.street}, ${selectedAddress.ward?.name}, ${selectedAddress.district?.name}, ${selectedAddress.city?.name}`
-                    : "No address selected"}
+                  {formatAddress(selectedAddress)}
                 </Typography>
               </Box>
             </Box>

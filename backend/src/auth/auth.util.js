@@ -107,7 +107,7 @@ const authentication = asyncHandeler(async (req, res, next) => {
 
     const refreshToken = req.cookies[COOKIE.JWT];
     req.id = keyStore._id;
-    req.user = keyStore.user;
+    req.userId = keyStore.user;
     req.refreshToken = refreshToken;
     req.publicKey = keyStore.publicKey;
 
