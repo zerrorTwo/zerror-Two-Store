@@ -1,28 +1,22 @@
 import { Outlet, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../../redux/features/auth/authSlice";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { toast } from "react-toastify";
 
 const AdminAuth = () => {
   const user = useSelector(selectCurrentUser);
   const navigate = useNavigate();
-  const hasShownToast = useRef(false);
-  const isUserAdmin = user?.user?.isAdmin || user?.isAdmin;
+  const isUserAdmin = user?.isAdmin;
 
   useEffect(() => {
-    if (isUserAdmin !== true && !hasShownToast.current) {
-      toast.error("Access denied");
-      hasShownToast.current = true;
+    if (!isUserAdmin) {
+      toast.error("Access denied. Admin privileges required.");
       navigate("/");
     }
   }, [isUserAdmin, navigate]);
 
-  if (isUserAdmin === true) {
-    return <Outlet />;
-  }
-
-  return null;
+  return isUserAdmin ? <Outlet /> : null;
 };
 
 export default AdminAuth;

@@ -16,6 +16,7 @@ import {
   getOrderById,
   updateOrderDeliveryState,
   updateOrderState,
+  getRecentOrders,
 } from "../repositories/order.repository.js";
 
 const createOrder = async (data) => {
@@ -281,6 +282,15 @@ const updateOrderDeliveryStateService = async (orderId, deliveryState) => {
   }
 };
 
+const getRecentOrdersService = async (limit) => {
+  try {
+    const orders = await getRecentOrders(limit);
+    return orders;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const orderService = {
   getProductCheckout,
   createOrder,
@@ -290,4 +300,5 @@ export const orderService = {
   getOrderByIdService,
   updateOrderStateService,
   updateOrderDeliveryStateService,
+  getRecentOrdersService,
 };

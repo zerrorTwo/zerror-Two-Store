@@ -34,6 +34,7 @@ import {
 import Chart from 'chart.js/auto';
 import StatCard from './Chart/StatCard';
 import { useNavigate } from 'react-router';
+import { useGetChartDataQuery, useGetDashboardStatsQuery, useGetProductDistributionQuery } from '../../redux/api/dashboardSlice';
 
 const timeRanges = [
   { value: 'day', label: 'Day' },
@@ -42,41 +43,41 @@ const timeRanges = [
 ];
 
 // Chart data based on time range
-const chartData = {
-  day: {
-    labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'],
-    revenue: [1200, 1900, 3000, 3500, 2800, 3200, 2900],
-    orders: {
-      pending: [10, 15, 20, 25, 18, 22, 20],
-      confirmed: [8, 12, 18, 22, 15, 20, 18],
-      completed: [5, 8, 15, 20, 12, 18, 15],
-      cancelled: [2, 3, 4, 3, 5, 4, 3]
-    },
-    products: [15, 25, 35, 40, 30, 35, 32]
-  },
-  month: {
-    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-    revenue: [12000, 15000, 18000, 16000],
-    orders: {
-      pending: [40, 45, 50, 48],
-      confirmed: [35, 40, 45, 42],
-      completed: [30, 35, 40, 38],
-      cancelled: [8, 10, 12, 10]
-    },
-    products: [150, 180, 200, 190]
-  },
-  year: {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    revenue: [45000, 48000, 52000, 49000, 53000, 55000, 60000, 58000, 56000, 62000, 65000, 68000],
-    orders: {
-      pending: [150, 160, 180, 170, 175, 185, 190, 185, 180, 195, 200, 210],
-      confirmed: [130, 140, 160, 150, 155, 165, 170, 165, 160, 175, 180, 190],
-      completed: [100, 110, 130, 120, 125, 135, 140, 135, 130, 145, 150, 160],
-      cancelled: [20, 25, 30, 28, 30, 32, 35, 33, 32, 38, 40, 42]
-    },
-    products: [500, 520, 550, 530, 540, 560, 580, 570, 560, 590, 600, 620]
-  }
-};
+// const chartData = {
+//   day: {
+//     labels: ['00:00', '04:00', '08:00', '12:00', '16:00', '20:00', '23:59'],
+//     revenue: [1200, 1900, 3000, 3500, 2800, 3200, 2900],
+//     orders: {
+//       pending: [10, 15, 20, 25, 18, 22, 20],
+//       confirmed: [8, 12, 18, 22, 15, 20, 18],
+//       completed: [5, 8, 15, 20, 12, 18, 15],
+//       cancelled: [2, 3, 4, 3, 5, 4, 3]
+//     },
+//     products: [15, 25, 35, 40, 30, 35, 32]
+//   },
+//   month: {
+//     labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+//     revenue: [12000, 15000, 18000, 16000],
+//     orders: {
+//       pending: [40, 45, 50, 48],
+//       confirmed: [35, 40, 45, 42],
+//       completed: [30, 35, 40, 38],
+//       cancelled: [8, 10, 12, 10]
+//     },
+//     products: [150, 180, 200, 190]
+//   },
+//   year: {
+//     labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+//     revenue: [45000, 48000, 52000, 49000, 53000, 55000, 60000, 58000, 56000, 62000, 65000, 68000],
+//     orders: {
+//       pending: [150, 160, 180, 170, 175, 185, 190, 185, 180, 195, 200, 210],
+//       confirmed: [130, 140, 160, 150, 155, 165, 170, 165, 160, 175, 180, 190],
+//       completed: [100, 110, 130, 120, 125, 135, 140, 135, 130, 145, 150, 160],
+//       cancelled: [20, 25, 30, 28, 30, 32, 35, 33, 32, 38, 40, 42]
+//     },
+//     products: [500, 520, 550, 530, 540, 560, 580, 570, 560, 590, 600, 620]
+//   }
+// };
 
 const MainDashBoard = () => {
   const theme = useTheme();
@@ -93,7 +94,11 @@ const MainDashBoard = () => {
   const orderStatesChartInstance = useRef(null);
   const deliveryStatesChartRef = useRef(null);
   const deliveryStatesChartInstance = useRef(null);
-
+  
+  const { data: chartData, isLoading: isChartLoading } = useGetChartDataQuery(timeRange);
+  // const { data: stats, isLoading: isStatsLoading } = useGetDashboardStatsQuery();
+  const { data: stats, isLoading: isStatsLoading } = useGetProductDistributionQuery();
+  console.log( stats);
   const handleExportClick = (event) => {
     setExportAnchorEl(event.currentTarget);
   };
@@ -156,10 +161,10 @@ const MainDashBoard = () => {
       revenueChartInstance.current = new Chart(revenueChartRef.current, {
         type: 'line',
         data: {
-          labels: chartData[timeRange].labels,
+          labels: chartData?.labels,
           datasets: [{
             label: 'Revenue',
-            data: chartData[timeRange].revenue,
+            data: chartData?.revenue,
             borderColor: '#5a93ff',
             backgroundColor: 'rgba(90, 147, 255, 0.1)',
             tension: 0.4,
@@ -242,10 +247,10 @@ const MainDashBoard = () => {
       productsChartInstance.current = new Chart(productsChartRef.current, {
         type: 'bar',
         data: {
-          labels: chartData[timeRange].labels,
+          labels: chartData?.labels,
           datasets: [{
             label: 'Products Sold',
-            data: chartData[timeRange].products,
+            data: chartData?.products,
             backgroundColor: '#82ca9d',
             borderRadius: 4,
             barPercentage: 0.6,
@@ -274,11 +279,11 @@ const MainDashBoard = () => {
       orderStatesChartInstance.current = new Chart(orderStatesChartRef.current, {
         type: 'bar',
         data: {
-          labels: chartData[timeRange].labels,
+          labels: chartData?.labels,
           datasets: [
             {
               label: 'Pending',
-              data: chartData[timeRange].orders.pending,
+              data: chartData?.orders.pending,
               backgroundColor: '#5a93ff',
               borderRadius: 4,
               barPercentage: 0.6,
@@ -286,7 +291,7 @@ const MainDashBoard = () => {
             },
             {
               label: 'Confirmed',
-              data: chartData[timeRange].orders.confirmed,
+              data: chartData?.orders.confirmed,
               backgroundColor: '#82ca9d',
               borderRadius: 4,
               barPercentage: 0.6,
@@ -294,7 +299,7 @@ const MainDashBoard = () => {
             },
             {
               label: 'Completed',
-              data: chartData[timeRange].orders.completed,
+              data: chartData?.orders.completed,
               backgroundColor: '#4CAF50',
               borderRadius: 4,
               barPercentage: 0.6,
@@ -302,7 +307,7 @@ const MainDashBoard = () => {
             },
             {
               label: 'Cancelled',
-              data: chartData[timeRange].orders.cancelled,
+              data: chartData?.orders.cancelled,
               backgroundColor: '#f44336',
               borderRadius: 4,
               barPercentage: 0.6,
@@ -448,7 +453,7 @@ const MainDashBoard = () => {
         deliveryStatesChartInstance.current.destroy();
       }
     };
-  }, [theme.typography.fontFamily, commonOptions, timeRange]);
+  }, [theme.typography.fontFamily, commonOptions, timeRange, chartData?.labels, chartData?.revenue, chartData?.products, chartData?.orders.pending, chartData?.orders.confirmed, chartData?.orders.completed, chartData?.orders.cancelled]);
 
   return (
     <Box sx={{

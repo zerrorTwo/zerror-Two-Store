@@ -15,7 +15,7 @@ Router.route("/city").get(getAllCity);
 Router.route("/district").get(getAllDistrict);
 Router.route("/ward").get(getAllWard);
 Router.use(authentication);
-Router.route("/").get(getUserAddressById);
-Router.route("/:userId").post(createNewUserAddress).get(getAllUserAddress);
+Router.route("/user").get(getUserAddressById);
+Router.route("/").post(createNewUserAddress).get(getAllUserAddress);
 
 export const addressRoute = Router;
