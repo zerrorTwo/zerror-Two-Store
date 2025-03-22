@@ -26,6 +26,7 @@ import MyOrder from "./pages/ProfilePage/MyOrder/MyOrder";
 import MyAccount from "./pages/ProfilePage/MyAccount";
 import OrderDashBoard from "./pages/Admin/OrderDashBoard";
 import OrderDetailDashBoard from "./pages/Admin/OrderDetailDashBoard";
+import MainDashBoard from "./pages/Admin/MainDashBoard";
 
 function App() {
   const dispatch = useDispatch();
@@ -70,6 +71,7 @@ function App() {
       <Route element={<RequireAuth />}>
         <Route element={<AdminAuth />}>
           <Route path="admin" element={<LayoutAdmin />}>
+            <Route path="dashboard" element={<MainDashBoard />} />
             <Route path="cate" element={<CateDashBoard />} />
             <Route path="product" element={<ProductDashboard />} />
             <Route path="user" element={<UserDashboard />} />
