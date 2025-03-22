@@ -18,9 +18,9 @@ const getStats = async () => {
   }
 };
 
-const getDistribution = async () => {
+const getDistribution = async (timeframe) => {
   try {
-    const distribution = await getProductDistribution();
+    const distribution = await getProductDistribution(timeframe);
     return distribution;
   } catch (error) {
     throw error;

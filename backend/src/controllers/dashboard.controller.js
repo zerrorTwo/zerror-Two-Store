@@ -23,7 +23,8 @@ const getStats = asyncHandler(async (req, res) => {
 });
 
 const getDistribution = asyncHandler(async (req, res) => {
-  const distribution = await dashboardService.getDistribution();
+  const { timeframe } = req.query;
+  const distribution = await dashboardService.getDistribution(timeframe);
   res.status(StatusCodes.OK).json(distribution);
 });
 
