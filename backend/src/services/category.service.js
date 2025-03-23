@@ -2,39 +2,12 @@ import ApiError from "../utils/api.error.js";
 import slugtify from "slugify";
 import { StatusCodes } from "http-status-codes";
 import mongoose from "mongoose";
-import {
-  findCategoryByParent,
-  findAllCategories,
-  findCategoryById,
-  findCategoryByName,
-  createNewCategory,
-  deleteCategoryById,
-  findCategoriesByParent,
-  countCategoriesByParent,
-  findChildCategories,
-  findCategoriesByName,
-  findCommonCategories,
-  updateCategoryChildren,
-  updateCategoryById,
-} from "../repositories/category.repository.js";
+import { categoryRepository } from "../repositories/category.repository.js";
 
-const getCategoryTree = async (parent = null) => {
-  const categories = await findCategoryByParent(parent);
-  const tree = await Promise.all(
-    categories.map(async (category) => {
-      const children = await getCategoryTree(category._id);
-      return {
-        ...category,
-        children,
-      };
-    })
-  );
-  return tree;
-};
 
 const getAllCategoriesTree = async (req, res) => {
   try {
-    const allCategories = await findAllCategories();
+    const allCategories = await categoryRepository.findAllCategories();
 
     const categoryMap = {};
     allCategories.forEach((category) => {
@@ -58,7 +31,7 @@ const getAllCategoriesTree = async (req, res) => {
 
 const getAllCategories = async () => {
   try {
-    return await findAllCategories();
+    return await categoryRepository.findAllCategories();
   } catch (error) {
     throw error;
   }
@@ -70,16 +43,16 @@ const getPageCategory = async (parent, page, limit) => {
 
     let categories;
     if (parent === "null" || !parent) {
-      categories = await findCategoriesByParent(null, skip, limit);
+      categories = await categoryRepository.findCategoriesByParent(null, skip, limit);
     } else {
-      categories = await findCategoriesByParent(parent, skip, limit);
+      categories = await categoryRepository.findCategoriesByParent(parent, skip, limit);
     }
 
     let totalCategories;
     if (parent !== "null") {
-      totalCategories = await countCategoriesByParent(parent);
+      totalCategories = await   categoryRepository.countCategoriesByParent(parent);
     } else {
-      totalCategories = await countCategoriesByParent(null);
+      totalCategories = await categoryRepository.countCategoriesByParent(null);
     }
 
     return {
@@ -96,8 +69,8 @@ const getPageCategory = async (parent, page, limit) => {
 
 const getChildCategories = async (id) => {
   try {
-    const parentCategory = await findCategoryById(id);
-    const childCategories = await findChildCategories(parentCategory.children);
+    const parentCategory = await categoryRepository.findCategoryById(id);
+    const childCategories = await categoryRepository.findChildCategories(parentCategory.children);
     return childCategories;
   } catch (error) {
     throw error;
@@ -111,14 +84,14 @@ const createCategory = async (data) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Data not found");
   }
 
-  const categoryExist = await findCategoryByName(data.name);
+  const categoryExist = await categoryRepository.findCategoryByName(data.name);
 
   if (categoryExist) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Category already exists");
   }
 
   if (data.parent) {
-    const parentCategory = await findCategoryById(data.parent);
+    const parentCategory = await categoryRepository.findCategoryById(data.parent);
     if (!parentCategory) {
       throw new ApiError(StatusCodes.NOT_FOUND, "Parent category not found");
     }
@@ -126,10 +99,10 @@ const createCategory = async (data) => {
   }
 
   data.slug = slugtify(data.name, { lower: true, strict: true });
-  const category = await createNewCategory(data);
+  const category = await categoryRepository.createNewCategory(data);
 
   if (data.parent) {
-    await updateCategoryChildren(data.parent, category._id);
+    await categoryRepository.updateCategoryChildren(data.parent, category._id);
   }
 
   return category;
@@ -140,7 +113,7 @@ const updateCategory = async (id, data) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid category ID");
   }
 
-  const category = await findCategoryById(id);
+  const category = await categoryRepository.findCategoryById(id);
   if (!category) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Category not found");
   }
@@ -148,7 +121,7 @@ const updateCategory = async (id, data) => {
   const updateData = { ...category.toObject() };
 
   if (data.name && data.name.trim().toUpperCase() !== category.name) {
-    const categoryExist = await findCategoryByName(
+    const categoryExist = await categoryRepository.findCategoryByName(
       data.name.trim().toUpperCase()
     );
     if (categoryExist) {
@@ -164,7 +137,7 @@ const updateCategory = async (id, data) => {
   if (data.img) updateData.img = data.img;
   if (data.description) updateData.description = data.description;
 
-  const updatedCategory = await updateCategoryById(id, updateData);
+  const updatedCategory = await categoryRepository.updateCategoryById(id, updateData);
 
   return updatedCategory;
 };
@@ -175,17 +148,17 @@ const deleteCategory = async (categories) => {
   }
 
   const deleteChildren = async (categoryId) => {
-    const category = await findCategoryById(categoryId);
+    const category = await categoryRepository.findCategoryById(categoryId);
     if (category && category.children && category.children.length > 0) {
       for (let childId of category.children) {
         await deleteChildren(childId);
       }
     }
-    await deleteCategoryById(categoryId);
+    await categoryRepository.deleteCategoryById(categoryId);
   };
 
   for (let categoryId of categories) {
-    const category = await findCategoryById(categoryId);
+    const category = await categoryRepository.findCategoryById(categoryId);
     if (!category) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
@@ -199,10 +172,10 @@ const deleteCategory = async (categories) => {
       }
     }
 
-    await deleteCategoryById(categoryId);
+    await categoryRepository.deleteCategoryById(categoryId);
 
     if (category.parent) {
-      const parentCategory = await findCategoryById(category.parent);
+      const parentCategory = await categoryRepository.findCategoryById(category.parent);
       parentCategory.children = parentCategory.children.filter(
         (childId) => childId && childId.toString() !== categoryId
       );
@@ -220,7 +193,7 @@ const searchCategory = async (req, res) => {
     return await findAllCategories();
   }
   try {
-    const categories = await findCategoriesByName(keyword);
+    const categories = await categoryRepository.findCategoriesByName(keyword);
     return categories;
   } catch (error) {
     throw new Error(`Error searching categories: ${error.message}`);
@@ -229,7 +202,7 @@ const searchCategory = async (req, res) => {
 
 const getCommonCategories = async () => {
   try {
-    return await findCommonCategories();
+    return await categoryRepository.findCommonCategories();
   } catch (error) {
     throw new Error(`Error find categories: ${error.message}`);
   }

@@ -419,7 +419,7 @@ const getDashboardChartData = async (timeframe) => {
   };
 };
 
-export {
+export const dashboardRepository = {
   getRevenueData,
   getOrderStats,
   getProductStats,

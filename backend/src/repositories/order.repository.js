@@ -469,7 +469,7 @@ const getRecentOrders = async (limit = 10) => {
   return orders;
 };
 
-export {
+export const orderRepository = {
   findAddressById,
   findCartItemsByUserId,
   findProductsByIds,

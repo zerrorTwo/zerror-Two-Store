@@ -10,6 +10,7 @@ import { addressRoute } from "./address.route.js";
 import { paymentRoute } from "./payment.route.js";
 import { orderRoute } from "./order.route.js";
 import dashboardRoute from "./dashboard.route.js";
+import { reviewRoute } from "./review.route.js";
 
 const Router = express.Router();
 
@@ -27,5 +28,6 @@ Router.use("/address", addressRoute);
 Router.use("/payment", paymentRoute);
 Router.use("/order", orderRoute);
 Router.use("/dashboard", dashboardRoute);
+Router.use("/review", reviewRoute);
 
 export const APIS_V1 = Router;

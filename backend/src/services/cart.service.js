@@ -1,16 +1,6 @@
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
-import {
-  findCartByUserId,
-  findActiveCartByUserId,
-  findProductById,
-  createNewCart,
-  updateCart,
-  updateAllCheckoutStatus,
-  findActiveCartWithAggregate,
-  getCartSummary,
-  getPaginatedCart,
-} from "../repositories/cart.repository.js";
+import { cartRepository } from "../repositories/cart.repository.js";
 
 const validateVariation = (newProduct, variations) => {
   const { type, quantity } = variations[0];
@@ -43,14 +33,14 @@ const validateVariation = (newProduct, variations) => {
 };
 
 const addToCart = async (userId, products = []) => {
-  const userCart = await findCartByUserId(userId);
+  const userCart = await cartRepository.findCartByUserId(userId);
 
   if (!userCart) {
-    return await createCart(userId, products);
+    return await cartRepository.createNewCart(userId, products);
   }
 
   if (!userCart.products.length) {
-    const newProduct = await findProductById(products[0].productId);
+    const newProduct = await cartRepository.findProductById(products[0].productId);
 
     if (!newProduct) {
       throw new ApiError(
@@ -81,7 +71,7 @@ const updateUserCartQuantity = async (userId, product = []) => {
   const { productId, variations = [] } = product[0];
   const isUpdate = variations[0]?.isUpdate;
 
-  const newProduct = await findProductById(productId);
+  const newProduct = await cartRepository.findProductById(productId);
   if (!newProduct) {
     throw new ApiError(
       StatusCodes.NOT_FOUND,
@@ -89,7 +79,7 @@ const updateUserCartQuantity = async (userId, product = []) => {
     );
   }
 
-  const userCart = await findActiveCartByUserId(userId);
+  const userCart = await cartRepository.findActiveCartByUserId(userId);
 
   if (!newProduct.variations?.pricing?.length) {
     const existingProduct = userCart.products.find(
@@ -156,13 +146,13 @@ const updateUserCartQuantity = async (userId, product = []) => {
 
     product[0].variations[0].price = validProduct.price;
 
-    await updateCart(userId, { $push: { products: product[0] } });
+    await cartRepository.updateCart(userId, { $push: { products: product[0] } });
     return userCart;
   }
 };
 
 const updateUserCartVariation = async (userId, products = []) => {
-  const userCart = await findCartByUserId(userId);
+  const userCart = await cartRepository.findCartByUserId(userId);
 
   if (!userCart) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Cart not found for this user.");
@@ -170,7 +160,7 @@ const updateUserCartVariation = async (userId, products = []) => {
 
   const { productId, variations = [] } = products[0];
 
-  const newProduct = await findProductById(productId);
+  const newProduct = await cartRepository.findProductById(productId);
   if (!newProduct) {
     throw new ApiError(
       StatusCodes.NOT_FOUND,
@@ -230,7 +220,7 @@ const updateCheckout = async (userId, product = []) => {
 
   const isUpdate = variations[0]?.isUpdate;
 
-  const newProduct = await findProductById(productId);
+  const newProduct = await cartRepository.findProductById(productId);
   if (!newProduct) {
     throw new ApiError(
       StatusCodes.NOT_FOUND,
@@ -238,7 +228,7 @@ const updateCheckout = async (userId, product = []) => {
     );
   }
 
-  let userCart = await findActiveCartByUserId(userId);
+  let userCart = await cartRepository.findActiveCartByUserId(userId);
 
   if (!userCart) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User cart not found.");
@@ -303,15 +293,15 @@ const updateAllCheckout = async (userId, newState) => {
     );
   }
 
-  await updateAllCheckoutStatus(userId, newState);
-  return await findActiveCartByUserId(userId);
+  await cartRepository.updateAllCheckoutStatus(userId, newState);
+  return await cartRepository.findActiveCartByUserId(userId);
 };
 
 const createCart = async (userId, products = []) => {
   try {
     const { productId, variations } = products[0];
 
-    const newProduct = await findProductById(productId);
+    const newProduct = await cartRepository.findProductById(productId);
 
     if (!newProduct) {
       throw new ApiError(
@@ -337,7 +327,7 @@ const createCart = async (userId, products = []) => {
       products: [products[0]],
     };
 
-    return await createNewCart(newCart);
+    return await cartRepository.createNewCart(newCart);
   } catch (error) {
     throw error;
   }
@@ -347,7 +337,7 @@ const removeProductFromCart = async (userId, products = {}) => {
   const { productId, variations = [] } = products[0];
 
   try {
-    const userCart = await findActiveCartByUserId(userId);
+    const userCart = await cartRepository.findActiveCartByUserId(userId);
 
     if (!userCart) {
       throw new Error("Cart not found.");
@@ -361,7 +351,7 @@ const removeProductFromCart = async (userId, products = {}) => {
       throw new Error("Product not found in cart.");
     }
 
-    const newProduct = await findProductById(productId);
+    const newProduct = await cartRepository.findProductById(productId);
     if (!newProduct) {
       throw new ApiError(
         StatusCodes.NOT_FOUND,
@@ -402,8 +392,8 @@ const removeProductFromCart = async (userId, products = {}) => {
 
 const getRecentProducts = async (userId) => {
   try {
-    const totalSummary = await getCartSummary(userId);
-    const recentProducts = await findActiveCartWithAggregate(userId);
+    const totalSummary = await cartRepository.getCartSummary(userId);
+    const recentProducts = await cartRepository.findActiveCartWithAggregate(userId);
 
     if (!recentProducts.length) {
       return {
@@ -434,7 +424,7 @@ const getRecentProducts = async (userId) => {
 const getPageCart = async (userId, page = 1, limit = 10) => {
   try {
     const skip = (page - 1) * limit;
-    const cart = await getPaginatedCart(userId, skip, limit);
+    const cart = await cartRepository.getPaginatedCart(userId, skip, limit);
 
     if (!cart.length) {
       return {

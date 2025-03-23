@@ -4,10 +4,7 @@ import dotenv from "dotenv";
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
 import MomoModel from "../models/momo.model.js";
-import {
-  findOrderById,
-  updateOrderById,
-} from "../repositories/order.repository.js";
+import { orderRepository } from "../repositories/order.repository.js";
 
 dotenv.config();
 
@@ -23,7 +20,7 @@ const createMomoPayment = async ({
   extraData = "",
 }) => {
   try {
-    const order = await findOrderById(orderId);
+    const order = await orderRepository.findOrderById(orderId);
     if (!order) {
       throw new ApiError(StatusCodes.NOT_FOUND, "Order not found");
     }
@@ -75,7 +72,7 @@ const createMomoPayment = async ({
 
           // Lưu paymentUrl vào order
           if (response.payUrl) {
-            await updateOrderById(orderId, {
+            await orderRepository.updateOrderById(orderId, {
               paymentUrl: response.payUrl,
               momoRequestId: requestId,
             });
@@ -132,7 +129,7 @@ const handleMomoCallback = async (req) => {
       return { success: false, message: "Invalid signature" };
     }
 
-    const order = await findOrderById(orderId);
+    const order = await orderRepository.findOrderById(orderId);
     if (!order) {
       return { success: false, message: "Order not found" };
     }

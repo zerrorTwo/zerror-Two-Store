@@ -35,7 +35,7 @@ const removeKeyByUserIdRepo = async (userId) => {
   return { message: "Delete successfully" };
 };
 
-export {
+export const keyTokenRepository = {
   findKeyByUserId,
   findKeyById,
   createOrUpdateKeyToken,

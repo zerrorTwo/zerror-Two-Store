@@ -389,7 +389,7 @@ const getTopSoldProducts = async () => {
   ]);
 };
 
-export {
+export const productRepository = {
   findProductByName,
   findCategoryBySlug,
   createProduct,

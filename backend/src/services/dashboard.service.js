@@ -1,8 +1,8 @@
-import { getDashboardChartData, getDashboardStats, getProductDistribution } from "../repositories/dashboard.repository.js";
+import { dashboardRepository } from "../repositories/dashboard.repository.js";
 
 const getChartData = async (timeframe) => {
   try {
-    const chartData = await getDashboardChartData(timeframe);
+    const chartData = await dashboardRepository.getDashboardChartData(timeframe);
     return chartData;
   } catch (error) {
     throw error;
@@ -11,7 +11,7 @@ const getChartData = async (timeframe) => {
 
 const getStats = async () => {
   try {
-    const stats = await getDashboardStats();
+    const stats = await dashboardRepository.getDashboardStats();
     return stats;
   } catch (error) {
     throw error;
@@ -20,7 +20,7 @@ const getStats = async () => {
 
 const getDistribution = async (timeframe) => {
   try {
-    const distribution = await getProductDistribution(timeframe);
+    const distribution = await dashboardRepository.getProductDistribution(timeframe);
     return distribution;
   } catch (error) {
     throw error;
