@@ -27,4 +27,4 @@ const findKeyStoreById = async (id) => {
   return await KeyModel.findOne({ _id: id });
 };
 
-export { findByEmail, findRoleByUserId, findUserById, findKeyStoreById };
+export const accessRepository = { findByEmail, findRoleByUserId, findUserById, findKeyStoreById };

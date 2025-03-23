@@ -4,7 +4,7 @@ import asyncHandeler from "../middlewares/async.handler.js";
 import { HEADER, COOKIE } from "../constants/header.constants.js";
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
-import { findKeyByUserId } from "../repositories/key.token.repository.js";
+import { keyTokenRepository } from "../repositories/key.token.repository.js";
 const generateRSAKeyPair = () =>
   crypto.generateKeyPairSync("rsa", {
     modulusLength: 4096,
@@ -47,7 +47,7 @@ const authenticationRefresh = asyncHandeler(async (req, res, next) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "Not found userId");
   }
 
-  const keyStore = await findKeyByUserId(userId);
+  const keyStore = await keyTokenRepository.findKeyByUserId(userId);
 
   if (!keyStore) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Not found keyStore");
@@ -76,7 +76,7 @@ const authentication = asyncHandeler(async (req, res, next) => {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "Not found userId");
   }
 
-  const keyStore = await findKeyByUserId(userId);
+  const keyStore = await keyTokenRepository.findKeyByUserId(userId);
 
   if (!keyStore) {
     throw new ApiError(StatusCodes.NOT_FOUND, "Not found keyStore");

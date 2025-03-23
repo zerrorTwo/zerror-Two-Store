@@ -49,7 +49,7 @@ const saveUser = async (user) => {
   return await user.save();
 };
 
-export {
+export const userRepository = {
   findUserById,
   updateUser,
   findPaginatedUsers,

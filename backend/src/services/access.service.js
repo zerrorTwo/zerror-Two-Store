@@ -7,12 +7,7 @@ import { generateRSAKeyPair, generateToken } from "../auth/auth.util.js";
 import bcrypt from "bcryptjs";
 import bcryptPassword from "../utils/bcrypt.password.js";
 import { COOKIE } from "../constants/header.constants.js";
-import {
-  findByEmail,
-  findRoleByUserId,
-  findUserById,
-  findKeyStoreById,
-} from "../repositories/access.repository.js";
+import { accessRepository } from "../repositories/access.repository.js";
 
 const signUp = async (req, res) => {
   const { userName, email, password } = req.body;
@@ -32,7 +27,6 @@ const signUp = async (req, res) => {
 
   // Create and save the new user
   const newUser = new UserModel({ userName, email, password: hasPassword });
-  console.log(newUser);
   try {
     const { publicKey, privateKey } = generateRSAKeyPair();
 
@@ -84,7 +78,7 @@ const signIn = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await findByEmail({ email });
+    const user = await accessRepository.findByEmail({ email });
 
     if (!user) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid email or password");
@@ -258,4 +252,4 @@ const refreshToken = async (req, res) => {
   }
 };
 
-export { signUp, signIn, signInByGG, logout, refreshToken, findRoleByUserId };
+export { signUp, signIn, signInByGG, logout, refreshToken };

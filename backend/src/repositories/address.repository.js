@@ -51,7 +51,7 @@ const findAddressById = async (id) => {
     .lean();
 };
 
-export {
+export const addressRepository = {
   findAllCities,
   findDistrictsByProvinceId,
   findWardsByDistrictId,

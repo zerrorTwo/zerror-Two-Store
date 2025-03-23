@@ -168,7 +168,7 @@ const getPaginatedCart = async (userId, skip, limit) => {
   ]);
 };
 
-export {
+export const cartRepository = {
   findCartByUserId,
   findActiveCartByUserId,
   findProductById,

@@ -1,23 +1,7 @@
 import mongoose from "mongoose";
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
-import {
-  findAddressById,
-  findCartItemsByUserId,
-  findProductsByIds,
-  createNewOrder,
-  updateCartAfterOrder,
-  findPaginatedOrders,
-  findOrdersWithDetails,
-  countUserOrders,
-  findOrdersByTimeRange,
-  findCartCheckoutItems,
-  getAllOrders,
-  getOrderById,
-  updateOrderDeliveryState,
-  updateOrderState,
-  getRecentOrders,
-} from "../repositories/order.repository.js";
+import { orderRepository } from "../repositories/order.repository.js";
 
 const createOrder = async (data) => {
   const session = await mongoose.startSession();
@@ -27,12 +11,12 @@ const createOrder = async (data) => {
     const { userId, addressId, paymentMethod, notes } = data;
 
     // Kiểm tra địa chỉ giao hàng
-    const address = await findAddressById(addressId, userId, session);
+    const address = await orderRepository.findAddressById(addressId, userId, session);
     if (!address)
       throw new ApiError(StatusCodes.NOT_FOUND, "Address not found!");
 
     // Lấy sản phẩm đã checkout từ giỏ hàng
-    const cartItems = await findCartItemsByUserId(userId, session);
+    const cartItems = await orderRepository.findCartItemsByUserId(userId, session);
 
     // Kiểm tra nếu giỏ hàng rỗng
     if (!cartItems.length)
@@ -58,7 +42,7 @@ const createOrder = async (data) => {
 
     // Kiểm tra stock & trừ stock trong một lần truy vấn
     const productIds = products.map((item) => item.productId);
-    const productList = await findProductsByIds(productIds, session);
+    const productList = await orderRepository.findProductsByIds(productIds, session);
 
     // Tạo map để kiểm tra stock nhanh hơn
     const productStockMap = new Map(
@@ -86,7 +70,7 @@ const createOrder = async (data) => {
     await Promise.all(productList.map((p) => p.save({ session })));
 
     // Tạo đơn hàng nháp
-    const newOrder = await createNewOrder(
+    const newOrder = await orderRepository.createNewOrder(
       {
         userId,
         products: products.map((p) => ({
@@ -104,7 +88,7 @@ const createOrder = async (data) => {
     );
 
     // Cập nhật giỏ hàng sau khi tạo đơn hàng
-    await updateCartAfterOrder(userId, session);
+    await orderRepository.updateCartAfterOrder(userId, session);
 
     // Commit transaction
     await session.commitTransaction();
@@ -132,7 +116,7 @@ const getUserOrder = async (userId, page = 1, limit = 2, filter) => {
     }
 
     // Bước 1: Phân trang trước khi lấy sản phẩm
-    const paginatedOrders = await findPaginatedOrders(
+    const paginatedOrders = await orderRepository.findPaginatedOrders(
       userId,
       page,
       limit,
@@ -149,10 +133,10 @@ const getUserOrder = async (userId, page = 1, limit = 2, filter) => {
     }
 
     // Bước 2: Lấy thông tin đơn hàng + sản phẩm
-    const orders = await findOrdersWithDetails(orderIds);
+    const orders = await orderRepository.findOrdersWithDetails(orderIds);
 
     // Kiểm tra còn dữ liệu không
-    const totalOrders = await countUserOrders(userId);
+    const totalOrders = await orderRepository.countUserOrders(userId);
 
     return {
       orders,
@@ -206,7 +190,7 @@ const getUserTotalOrder = async (userId, time) => {
     }
 
     // Truy vấn đơn hàng theo thời gian và userId
-    const orders = await findOrdersByTimeRange(userId, startDate, endDate);
+    const orders = await orderRepository.findOrdersByTimeRange(userId, startDate, endDate);
 
     // Tổng số đơn hàng
     const totalOrders = orders.length;
@@ -235,7 +219,7 @@ const getUserTotalOrder = async (userId, time) => {
 
 const getProductCheckout = async (userId) => {
   try {
-    const cart = await findCartCheckoutItems(userId);
+    const cart = await orderRepository.findCartCheckoutItems(userId);
 
     // Nếu không có sản phẩm nào, trả về giỏ hàng rỗng
     if (!cart.length) {
@@ -260,7 +244,7 @@ const getProductCheckout = async (userId) => {
 
 const getOrderByIdService = async (orderId) => {
   try {
-    return await getOrderById(orderId);
+    return await orderRepository.getOrderById(orderId);
   } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
@@ -268,7 +252,7 @@ const getOrderByIdService = async (orderId) => {
 
 const updateOrderStateService = async (orderId, state) => {
   try {
-    return await updateOrderState(orderId, state);
+    return await orderRepository.updateOrderState(orderId, state);
   } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
@@ -276,7 +260,7 @@ const updateOrderStateService = async (orderId, state) => {
 
 const updateOrderDeliveryStateService = async (orderId, deliveryState) => {
   try {
-    return await updateOrderDeliveryState(orderId, deliveryState);
+    return await orderRepository.updateOrderDeliveryState(orderId, deliveryState);
   } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }
@@ -284,7 +268,7 @@ const updateOrderDeliveryStateService = async (orderId, deliveryState) => {
 
 const getRecentOrdersService = async (limit) => {
   try {
-    const orders = await getRecentOrders(limit);
+    const orders = await orderRepository.getRecentOrders(limit);
     return orders;
   } catch (error) {
     throw error;

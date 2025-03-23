@@ -1,20 +1,11 @@
 import { StatusCodes } from "http-status-codes";
 import ApiError from "../utils/api.error.js";
 import bcyptPassword from "../utils/bcrypt.password.js";
-import {
-  findUserById,
-  updateUser,
-  findPaginatedUsers,
-  countUsers,
-  findUserByIdWithDetails,
-  deleteUser,
-  deleteManyUsersRepo,
-  saveUser,
-} from "../repositories/user.repository.js";
+import { userRepository } from "../repositories/user.repository.js";
 
 const getCurrentUserProfile = async (req, res) => {
   const userId = req.userId;
-  return await findUserById(userId);
+  return await userRepository.findUserById(userId);
 };
 
 const updateCurrentUserProfile = async (req, res) => {
@@ -23,7 +14,7 @@ const updateCurrentUserProfile = async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
 
-  const user = await findUserByIdWithDetails(userId);
+  const user = await userRepository.findUserByIdWithDetails(userId);
   if (!user) {
     throw new ApiError(StatusCodes.UNAUTHORIZED, "Unauthorized");
   }
@@ -40,7 +31,7 @@ const updateCurrentUserProfile = async (req, res) => {
     user.password = bcryptPassword;
   }
 
-  const updatedUser = await saveUser(user);
+  const updatedUser = await userRepository.saveUser(user);
   const { password, ...userWithoutPassword } = updatedUser.toObject();
   return userWithoutPassword;
 };
@@ -50,8 +41,8 @@ const getAllUsers = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
 
-    const users = await findPaginatedUsers(page, limit);
-    const totalUsers = await countUsers();
+    const users = await userRepository.findPaginatedUsers(page, limit);
+    const totalUsers = await userRepository.countUsers();
 
     return {
       page,
@@ -71,7 +62,7 @@ const getUserById = async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "UserId not found");
   }
 
-  const user = await findUserByIdWithDetails(userId);
+  const user = await userRepository.findUserByIdWithDetails(userId);
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
@@ -84,7 +75,7 @@ const updateUserById = async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "UserId not found");
   }
 
-  const user = await findUserByIdWithDetails(userId);
+  const user = await userRepository.findUserByIdWithDetails(userId);
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
@@ -101,7 +92,7 @@ const updateUserById = async (req, res) => {
     user.password = bcryptPassword;
   }
 
-  const updatedUser = await saveUser(user);
+  const updatedUser = await userRepository.saveUser(user);
   const { password, ...userWithoutPassword } = updatedUser.toObject();
   return userWithoutPassword;
 };
@@ -112,13 +103,13 @@ const deleteUserById = async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "UserId not found");
   }
 
-  const user = await findUserByIdWithDetails(userId);
+  const user = await userRepository.findUserByIdWithDetails(userId);
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
 
   const userName = user.userName;
-  await deleteUser(userId);
+  await userRepository.deleteUser(userId);
   return { message: `User ${userName} deleted successfully` };
 };
 
@@ -129,7 +120,7 @@ const deleteManyUsers = async (req, res) => {
     throw new ApiError(StatusCodes.NOT_FOUND, "Users not found");
   }
 
-  const response = await deleteManyUsersRepo(userIds);
+  const response = await userRepository.deleteManyUsersRepo(userIds);
   if (!response) {
     throw new ApiError(
       StatusCodes.INTERNAL_SERVER_ERROR,

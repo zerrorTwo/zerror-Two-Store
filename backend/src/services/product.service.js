@@ -1,23 +1,12 @@
 import { StatusCodes } from "http-status-codes";
 import slugify from "slugify";
 import ApiError from "../utils/api.error.js";
-import {
-  findProductByName,
-  findCategoryBySlug,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  deleteManyProducts,
-  getProductBySlug,
-  getProductById,
-  getAllProducts,
-  getPageProducts,
-  getTopSoldProducts,
-} from "../repositories/product.repository.js";
+import { productRepository } from "../repositories/product.repository.js";
 
-const createProductService = async (data) => {
+
+const createProduct = async (data) => {
   try {
-    const existingProduct = await findProductByName(data.name);
+    const existingProduct = await productRepository.findProductByName(data.name);
 
     if (existingProduct) {
       throw new ApiError(
@@ -26,7 +15,7 @@ const createProductService = async (data) => {
       );
     }
 
-    const type = await findCategoryBySlug(data.category);
+    const type = await productRepository.findCategoryBySlug(data.category);
 
     if (!type) {
       throw new ApiError(
@@ -53,14 +42,14 @@ const createProductService = async (data) => {
   }
 };
 
-const updateProductService = async (id, data) => {
+const updateProduct = async (id, data) => {
   try {
     data = data.updatedFormData;
 
-    const type = await findCategoryBySlug(data.type);
+    const type = await productRepository.findCategoryBySlug(data.type);
     data.type = type._id;
 
-    const product = await updateProduct(id, data);
+    const product = await productRepository.updateProduct(id, data);
     return product;
   } catch (error) {
     throw new ApiError(
@@ -70,9 +59,9 @@ const updateProductService = async (id, data) => {
   }
 };
 
-const deleteProductService = async (id) => {
+const deleteProduct = async (id) => {
   try {
-    const products = await deleteProduct(id);
+    const products = await productRepository.deleteProduct(id);
     if (!products) {
       throw new ApiError(StatusCodes.NOT_FOUND, `Fail to delete`);
     }
@@ -81,12 +70,12 @@ const deleteProductService = async (id) => {
   }
 };
 
-const deleteManyProductsService = async (_id) => {
+const deleteManyProducts = async (_id) => {
   if (!_id) {
     throw new ApiError(StatusCodes.NOT_FOUND, "products not found");
   }
 
-  const response = await deleteManyProducts(_id);
+  const response = await productRepository.deleteManyProducts(_id);
 
   if (!response) {
     throw new ApiError(
@@ -97,43 +86,43 @@ const deleteManyProductsService = async (_id) => {
   return { message: `Products deleted successfully` };
 };
 
-const getProductBySlugService = async (slug) => {
+const getProductBySlug = async (slug) => {
   try {
-    return await getProductBySlug(slug);
+    return await productRepository.getProductBySlug(slug);
   } catch (error) {
     console.error("Error in getProductBySlug:", error);
     throw error;
   }
 };
 
-const getProductByIdService = async (id) => {
+const getProductById = async (id) => {
   try {
-    return await getProductById(id);
+    return await productRepository.getProductById(id);
   } catch (error) {
     throw error;
   }
 };
 
-const getAllProductsService = async (req, res) => {
+const getAllProducts = async (req, res) => {
   try {
-    return await getAllProducts();
+    return await productRepository.getAllProducts();
   } catch (error) {
     return res.status(500).json({ error: "Internal server error" });
   }
 };
 
-const getPageProductsService = async (page, limit, category, search, sort) => {
+const getPageProducts = async (page, limit, category, search, sort) => {
   try {
-    return await getPageProducts(page, limit, category, search, sort);
+    return await productRepository.getPageProducts(page, limit, category, search, sort);
   } catch (error) {
     console.error("Error in getPageProducts:", error);
     throw error;
   }
 };
 
-const getTopSoldProductsService = async () => {
+const getTopSoldProducts = async () => {
   try {
-    return await getTopSoldProducts();
+    return await productRepository.getTopSoldProducts();
   } catch (error) {
     console.error("Error in getTopSoldProducts:", error);
     throw error;
@@ -141,13 +130,13 @@ const getTopSoldProductsService = async () => {
 };
 
 export const productService = {
-  getAllProducts: getAllProductsService,
-  createProduct: createProductService,
-  updateProduct: updateProductService,
-  deleteProduct: deleteProductService,
-  getPageProducts: getPageProductsService,
-  deleteManyProducts: deleteManyProductsService,
-  getProductBySlug: getProductBySlugService,
-  getProductById: getProductByIdService,
-  getTopSoldProducts: getTopSoldProductsService,
+  getAllProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getPageProducts,
+  deleteManyProducts,
+  getProductBySlug,
+  getProductById,
+  getTopSoldProducts,
 };
