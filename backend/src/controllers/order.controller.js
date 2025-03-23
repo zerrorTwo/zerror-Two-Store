@@ -22,13 +22,13 @@ const getUserOrder = asyncHandeler(async (req, res) => {
 
 const getAllOrders = asyncHandeler(async (req, res) => {
   const { page, limit, search } = req.query;
-  const orders = await orderService.getAllOrdersService(page, limit, search);
+  const orders = await orderService.getAllOrders(page, limit, search);
   res.status(StatusCodes.OK).json(orders);
 });
 
 const getOrderById = asyncHandeler(async (req, res) => {
   const { orderId } = req.params;
-  const order = await orderService.getOrderByIdService(orderId);
+  const order = await orderService.getOrderById(orderId);
   res.status(StatusCodes.OK).json(order);
 });
 
@@ -40,13 +40,13 @@ const getUserTotalOrder = asyncHandeler(async (req, res) => {
 
 const updateOrderState = asyncHandeler(async (req, res) => {
   const { orderId, state } = req.body;
-  const order = await orderService.updateOrderStateService(orderId, state);
+  const order = await orderService.updateOrderState(orderId, state);
   res.status(StatusCodes.OK).json(order);
 });
 
 const updateOrderDeliveryState = asyncHandeler(async (req, res) => {
   const { orderId, deliveryState } = req.body;
-  const order = await orderService.updateOrderDeliveryStateService(
+  const order = await orderService.updateOrderDeliveryState(
     orderId,
     deliveryState
   );
@@ -55,7 +55,7 @@ const updateOrderDeliveryState = asyncHandeler(async (req, res) => {
 
 const getRecentOrders = asyncHandeler(async (req, res) => {
   const { limit = 10 } = req.query;
-  const orders = await orderService.getRecentOrdersService(parseInt(limit));
+  const orders = await orderService.getRecentOrders(parseInt(limit));
   res.status(StatusCodes.OK).json(orders);
 });
 

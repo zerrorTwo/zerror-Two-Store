@@ -41,15 +41,16 @@ const createOrder = async (data) => {
     }
 
     // Kiểm tra stock & trừ stock trong một lần truy vấn
-    const productIds = products.map((item) => item.productId);
+    const productIds = [...new Set(products.map(item => item.productId.toString()))]; // Loại bỏ trùng lặp
     const productList = await orderRepository.findProductsByIds(productIds, session);
 
     // Tạo map để kiểm tra stock nhanh hơn
     const productStockMap = new Map(
-      productList.map((p) => [p._id.toString(), p])
+      productList.map(p => [p._id.toString(), p])
     );
 
-    for (const item of products) {
+    // Tách các sản phẩm thành các đơn hàng riêng
+    const orders = products.map(item => {
       const product = productStockMap.get(item.productId.toString());
       if (!product) {
         throw new ApiError(
@@ -63,28 +64,33 @@ const createOrder = async (data) => {
           `Not enough stock for product ${item.productId}`
         );
       }
+      
+      // Trừ stock ngay lập tức
       product.stock -= item.variation.quantity;
-    }
-
-    // Cập nhật stock trong một lần thay vì từng sản phẩm riêng lẻ
-    await Promise.all(productList.map((p) => p.save({ session })));
-
-    // Tạo đơn hàng nháp
-    const newOrder = await orderRepository.createNewOrder(
-      {
+      
+      return {
         userId,
-        products: products.map((p) => ({
-          productId: p.productId,
-          variations: [p.variation],
-        })),
+        products: [{
+          productId: item.productId,
+          variations: [item.variation]
+        }],
         addressId,
         paymentMethod,
         notes,
-        totalItems,
-        totalPrice,
-        finalTotal: totalPrice + 30000,
-      },
-      session
+        totalItems: item.variation.quantity,
+        totalPrice: item.variation.price * item.variation.quantity,
+        finalTotal: item.variation.price * item.variation.quantity + 30000
+      };
+    });
+
+    // Cập nhật stock trong một lần
+    await Promise.all(productList.map(p => p.save({ session })));
+
+    // Tạo các đơn hàng
+    const newOrders = await Promise.all(
+      orders.map(order => 
+        orderRepository.createNewOrder(order, session)
+      )
     );
 
     // Cập nhật giỏ hàng sau khi tạo đơn hàng
@@ -96,8 +102,8 @@ const createOrder = async (data) => {
 
     return {
       success: true,
-      message: "Order created successfully",
-      order: newOrder[0],
+      message: "Orders created successfully",
+      orders: newOrders.flat() // Chuyển đổi array of arrays thành array đơn
     };
   } catch (error) {
     await session.abortTransaction();
@@ -147,11 +153,11 @@ const getUserOrder = async (userId, page = 1, limit = 2, filter) => {
   }
 };
 
-const getAllOrdersService = async (page, limit, search) => {
+const getAllOrders = async (page, limit, search) => {
   page = parseInt(page) || 1;
   limit = parseInt(limit) || 10;
   try {
-    return await getAllOrders(page, limit, search);
+    return await orderRepository.getAllOrders(page, limit, search);
   } catch (error) {
     throw new Error(error.message);
   }
@@ -242,7 +248,7 @@ const getProductCheckout = async (userId) => {
   }
 };
 
-const getOrderByIdService = async (orderId) => {
+const getOrderById = async (orderId) => {
   try {
     return await orderRepository.getOrderById(orderId);
   } catch (error) {
@@ -250,7 +256,7 @@ const getOrderByIdService = async (orderId) => {
   }
 };
 
-const updateOrderStateService = async (orderId, state) => {
+const updateOrderState = async (orderId, state) => {
   try {
     return await orderRepository.updateOrderState(orderId, state);
   } catch (error) {
@@ -258,7 +264,7 @@ const updateOrderStateService = async (orderId, state) => {
   }
 };
 
-const updateOrderDeliveryStateService = async (orderId, deliveryState) => {
+const updateOrderDeliveryState = async (orderId, deliveryState) => {
   try {
     return await orderRepository.updateOrderDeliveryState(orderId, deliveryState);
   } catch (error) {
@@ -266,7 +272,7 @@ const updateOrderDeliveryStateService = async (orderId, deliveryState) => {
   }
 };
 
-const getRecentOrdersService = async (limit) => {
+const getRecentOrders = async (limit) => {
   try {
     const orders = await orderRepository.getRecentOrders(limit);
     return orders;
@@ -280,9 +286,9 @@ export const orderService = {
   createOrder,
   getUserTotalOrder,
   getUserOrder,
-  getAllOrdersService,
-  getOrderByIdService,
-  updateOrderStateService,
-  updateOrderDeliveryStateService,
-  getRecentOrdersService,
+  getAllOrders,
+  getOrderById,
+  updateOrderState,
+  updateOrderDeliveryState,
+  getRecentOrders,
 };

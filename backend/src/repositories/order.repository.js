@@ -171,6 +171,23 @@ const findOrdersWithDetails = async (orderIds) => {
         sortIndex: {
           $indexOfArray: [orderIds.map((o) => o._id), "$_id"],
         },
+        canReview: {
+          $cond: {
+            if: {
+              $and: [
+                { $ifNull: ["$deliveryDate", false] },
+                {
+                  $gte: [
+                    "$deliveryDate",
+                    new Date(new Date().setDate(new Date().getDate() - 7)),
+                  ],
+                },
+              ],
+            },
+            then: true,
+            else: false,
+          },
+        },
       },
     },
     {
@@ -185,6 +202,8 @@ const findOrdersWithDetails = async (orderIds) => {
         userId: { $first: "$userId" },
         state: { $first: "$state" },
         deliveryState: { $first: "$deliveryState" },
+        deliveryDate: { $first: "$deliveryDate" },
+        canReview: { $first: "$canReview" },
         createdAt: { $first: "$createdAt" },
         updatedAt: { $first: "$updatedAt" },
         paymentMethod: { $first: "$paymentMethod" },
@@ -201,6 +220,7 @@ const findOrdersWithDetails = async (orderIds) => {
     { $sort: { sortIndex: 1 } },
   ]);
 };
+
 
 const countUserOrders = async (userId) => {
   return await OrderModel.countDocuments({
@@ -428,11 +448,24 @@ const updateOrderState = async (orderId, state) => {
 };
 
 const updateOrderDeliveryState = async (orderId, deliveryState) => {
-  return await OrderModel.findByIdAndUpdate(
-    orderId,
-    { deliveryState },
-    { new: true }
-  );
+  const order = await OrderModel.findById(orderId);
+
+  if (!order) {
+    throw new Error("Order not found");
+  }
+
+  const updateData = {
+    deliveryState,
+    ...(deliveryState === "DELIVERED" && {
+      state: "COMPLETED",
+      paymentStatus: "PAID",
+      deliveryDate: order.deliveryDate || new Date(),
+    }),
+  };
+
+  await OrderModel.findByIdAndUpdate(orderId, updateData);
+
+  return await OrderModel.findById(orderId).lean();
 };
 
 const getRecentOrders = async (limit = 10) => {

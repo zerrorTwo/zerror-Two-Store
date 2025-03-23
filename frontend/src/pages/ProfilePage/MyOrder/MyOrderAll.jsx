@@ -1,16 +1,21 @@
-import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
-import InputAdornment from "@mui/material/InputAdornment";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../../../redux/features/auth/authSlice";
-import OrderList from "./OrderList";
 import { useGetUserOrderQuery } from "../../../redux/api/checkoutSlice";
+import OrderList from "./OrderList";
+import { selectCurrentUser } from "../../../redux/features/auth/authSlice";
+import {
+  Box,
+  CircularProgress,
+  InputAdornment,
+  TextField,
+  Typography,
+} from "@mui/material";
 
-function MyOrderAll() {
-  const [searchTerm, setSearchTerm] = useState("");
+const MyOrderAll = () => {
   const [page, setPage] = useState(1);
   const [allOrders, setAllOrders] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isFetching, setIsFetching] = useState(false);
   const userId = useSelector(selectCurrentUser)?._id;
 
   const { data, isLoading } = useGetUserOrderQuery({
@@ -32,26 +37,37 @@ function MyOrderAll() {
     });
   }, [data, page]);
 
-  // Infinite Scroll
+  // Infinite Scroll với debounce và cải tiến hiệu năng
   const observer = useRef();
   const lastOrderRef = useCallback(
     (node) => {
-      if (isLoading || !data?.hasMore) return;
+      if (isLoading || isFetching || !data?.hasMore) return;
+
       if (observer.current) observer.current.disconnect();
 
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting) {
-          setPage((prevPage) => prevPage + 1);
+      observer.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && !isFetching) {
+            setIsFetching(true);
+            setTimeout(() => {
+              setPage((prevPage) => prevPage + 1);
+              setIsFetching(false);
+            }, 300);
+          }
+        },
+        {
+          rootMargin: "100px",
+          threshold: 0.1,
         }
-      });
+      );
 
       if (node) observer.current.observe(node);
     },
-    [isLoading, data?.hasMore]
+    [isLoading, data?.hasMore, isFetching]
   );
 
   return (
-    <Box sx={{ width: "100%" }}>
+    <Box sx={{ p: 2 }}>
       {/* Search Box */}
       <Box sx={{ mb: 3 }}>
         <TextField
@@ -72,15 +88,27 @@ function MyOrderAll() {
           }}
         />
       </Box>
-
-      {/* Orders List */}
       <OrderList
         allOrders={allOrders}
         lastOrderRef={lastOrderRef}
-        isLoading={isLoading}
+        isLoading={isLoading || isFetching}
+        isFetching={isFetching}
+        fetchMoreOrders={() => setPage((prev) => prev + 1)}
       />
+
+      {(isLoading || isFetching) && (
+        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
+          <CircularProgress />
+        </Box>
+      )}
+
+      {!isLoading && allOrders.length === 0 && (
+        <Typography variant="body1" sx={{ textAlign: "center", mt: 2 }}>
+          Không có đơn hàng nào
+        </Typography>
+      )}
     </Box>
   );
-}
+};
 
 export default MyOrderAll;
