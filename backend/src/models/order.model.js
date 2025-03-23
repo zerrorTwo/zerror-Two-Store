@@ -35,13 +35,13 @@ const orderSchema = new mongoose.Schema(
     deliveryState: {
       type: String,
       enum: [
-        "PROCESSING", // Đang xử lý
-        "SHIPPED", // Đã giao cho đơn vị vận chuyển
-        "IN_TRANSIT", // Đang giao hàng
-        "DELIVERED", // Đã giao thành công
-        "FAILED", // Giao hàng thất bại
-        "RETURNED", // Trả hàng
-        "CANCELLED", // Đơn hàng đã bị hủy
+        "PROCESSING",
+        "SHIPPED",
+        "IN_TRANSIT",
+        "DELIVERED",
+        "FAILED",
+        "RETURNED",
+        "CANCELLED",
       ],
       default: "PROCESSING",
     },
@@ -66,12 +66,13 @@ const orderSchema = new mongoose.Schema(
     },
 
     deliveryFee: { type: Number, required: true, default: 30000 },
+    deliveryDate: { type: Date },
 
     // Tổng giá trị đơn hàng
-    totalItems: { type: Number, required: true, default: 0 }, // Tổng số sản phẩm
-    totalPrice: { type: Number, required: true, default: 0 }, // Tổng tiền hàng
-    totalDiscount: { type: Number, required: true, default: 0 }, // Tổng tiền giảm giá
-    finalTotal: { type: Number, required: true, default: 0 }, // Tổng tiền thanh toán sau giảm giá
+    totalItems: { type: Number, required: true, default: 0 },
+    totalPrice: { type: Number, required: true, default: 0 },
+    totalDiscount: { type: Number, required: true, default: 0 },
+    finalTotal: { type: Number, required: true, default: 0 },
 
     // Ghi chú đơn hàng
     notes: { type: String, default: "" },
@@ -79,10 +80,16 @@ const orderSchema = new mongoose.Schema(
     paymentUrl: { type: String, default: "" },
     momoRequestId: { type: String, default: "" },
   },
-  { timestamps: true }
+  { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
-const OrderModel =
-  mongoose.models.order || mongoose.model("Order", orderSchema);
+orderSchema.virtual("canReview").get(function () {
+  if (!this.deliveryDate) return false;
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  return this.deliveryDate >= sevenDaysAgo;
+});
+
+const OrderModel = mongoose.models.Order || mongoose.model("Order", orderSchema);
 
 export default OrderModel;

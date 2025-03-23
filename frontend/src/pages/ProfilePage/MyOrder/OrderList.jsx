@@ -22,32 +22,59 @@ import {
   useCreateMomoPaymentMutation,
   useVerifyPaymentUrlExpirationMutation,
 } from "../../../redux/api/checkoutSlice";
-function OrderList({ allOrders, lastOrderRef, isLoading }) {
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [selectedOrder, setSelectedOrder] = useState(null);
-  const [paymentLoading, setPaymentLoading] = useState(false);
+import CommentPopover from "../../../components/CommentPopover";
+import SkeletonOrder from "../../../components/SkeletonOrder";
 
-  const [createMomoPayment] = useCreateMomoPaymentMutation();
-  const [verifyPaymentUrl] = useVerifyPaymentUrlExpirationMutation();
+const styles = {
+  "@keyframes fadeIn": {
+    "0%": { opacity: 0 },
+    "100%": { opacity: 1 },
+  },
+};
+
+function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [ratingAnchorEl, setRatingAnchorEl] = useState(null);
+  const [paymentAnchorEl, setPaymentAnchorEl] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const handleRatingClick = (event, order) => {
+    if (paymentAnchorEl) setPaymentAnchorEl(null);
+    setRatingAnchorEl(event.currentTarget);
+    setSelectedOrder(order);
+  };
 
   const handlePayClick = (event, order) => {
-    setAnchorEl(event.currentTarget);
+    if (ratingAnchorEl) setRatingAnchorEl(null);
+    setPaymentAnchorEl(event.currentTarget);
     setSelectedOrder(order);
   };
 
   const handleClose = () => {
-    setAnchorEl(null);
+    setRatingAnchorEl(null);
+    setPaymentAnchorEl(null);
+    setTimeout(() => {
+      setSelectedOrder(null);
+    }, 300);
   };
+
+  const handleSubmitReview = ({ rating, comment }) => {
+    console.log("Submitting review for order:", selectedOrder._id);
+    console.log("Rating:", rating);
+    console.log("Comment:", comment);
+    handleClose();
+  };
+
+  const [createMomoPayment] = useCreateMomoPaymentMutation();
+  const [verifyPaymentUrl] = useVerifyPaymentUrlExpirationMutation();
 
   const handlePaymentMethodSelect = async (method) => {
     if (!selectedOrder) return;
 
-    // Tạm thời đóng popover
     handleClose();
     setPaymentLoading(true);
 
     try {
-      // Xử lý thanh toán dựa trên phương thức được chọn
       switch (method) {
         case "MOMO":
           await processMomoPayment(selectedOrder);
@@ -73,40 +100,28 @@ function OrderList({ allOrders, lastOrderRef, isLoading }) {
 
   const processMomoPayment = async (order) => {
     try {
-      // Nếu order đã có paymentUrl
       if (order.paymentUrl) {
-        console.log("Checking existing payment link:", order.paymentUrl);
-
-        // Kiểm tra xem link còn hạn không
         const verifyResult = await verifyPaymentUrl(order._id).unwrap();
 
-        console.log("Verify result:", verifyResult);
-
         if (verifyResult.resultCode !== 49) {
-          // Nếu link còn hạn, mở ngay
           window.location.href = order.paymentUrl;
           return;
         }
 
-        // Nếu link hết hạn, tạo mới
         const response = await createMomoPayment({
           orderId: order._id,
         }).unwrap();
 
         if (response.payUrl) {
-          console.log("New MoMo payment link:", response.payUrl);
           window.location.href = response.payUrl;
         } else {
           toast.error("Không thể tạo link thanh toán MoMo");
         }
       }
 
-      // Gọi API tạo link thanh toán mới
-      console.log("Creating new MoMo payment link...");
       const response = await createMomoPayment({ orderId: order._id }).unwrap();
 
       if (response.payUrl) {
-        console.log("New MoMo payment link:", response.payUrl);
         window.location.href = response.payUrl;
       } else {
         toast.error("Không thể tạo link thanh toán MoMo");
@@ -120,11 +135,20 @@ function OrderList({ allOrders, lastOrderRef, isLoading }) {
     }
   };
 
-  const open = Boolean(anchorEl);
-  const id = open ? "payment-popover" : undefined;
+  const ratingOpen = Boolean(ratingAnchorEl);
+  const paymentOpen = Boolean(paymentAnchorEl);
+  const ratingId = ratingOpen ? "rating-popover" : undefined;
+  const paymentId = paymentOpen ? "payment-popover" : undefined;
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        pb: isFetching ? 0 : 2,
+      }}
+    >
       {allOrders.map((order, index) => (
         <Card
           key={index}
@@ -167,16 +191,10 @@ function OrderList({ allOrders, lastOrderRef, isLoading }) {
                         animation: "shine 2s infinite",
                       },
                       "@keyframes shine": {
-                        "0%": {
-                          transform: "translateX(-100%) rotate(45deg)",
-                        },
-                        "100%": {
-                          transform: "translateX(100%) rotate(45deg)",
-                        },
+                        "0%": { transform: "translateX(-100%) rotate(45deg)" },
+                        "100%": { transform: "translateX(100%) rotate(45deg)" },
                       },
-                      "&:hover": {
-                        bgcolor: "secondary.light",
-                      },
+                      "&:hover": { bgcolor: "secondary.light" },
                     }}
                     variant="outlined"
                     size="small"
@@ -260,6 +278,20 @@ function OrderList({ allOrders, lastOrderRef, isLoading }) {
                 Phí vận chuyển: ₫{order.deliveryFee?.toLocaleString()}
               </Typography>
               <Box sx={{ display: "flex", gap: 1 }}>
+                {order.canReview && (
+                  <Button
+                    sx={{
+                      color: "white",
+                      bgcolor: "secondary.main",
+                      border: "none",
+                    }}
+                    variant="outlined"
+                    size="small"
+                    onClick={(e) => handleRatingClick(e, order)}
+                  >
+                    Đánh giá
+                  </Button>
+                )}
                 <Button
                   sx={{ color: "black", bgcolor: "#F5F5F5", border: "none" }}
                   variant="outlined"
@@ -301,9 +333,9 @@ function OrderList({ allOrders, lastOrderRef, isLoading }) {
         </Card>
       ))}
 
-      {isLoading && (
-        <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}>
-          <CircularProgress />
+      {(isLoading || isFetching) && (
+        <Box sx={styles}>
+          <SkeletonOrder />
         </Box>
       )}
 
@@ -313,11 +345,19 @@ function OrderList({ allOrders, lastOrderRef, isLoading }) {
         </Box>
       )}
 
+      {/* Comment Popover */}
+      <CommentPopover
+        id={ratingId}
+        anchorEl={ratingAnchorEl}
+        onClose={handleClose}
+        onSubmit={handleSubmitReview}
+      />
+
       {/* Payment Method Popover */}
       <Popover
-        id={id}
-        open={open}
-        anchorEl={anchorEl}
+        id={paymentId}
+        open={paymentOpen}
+        anchorEl={paymentAnchorEl}
         onClose={handleClose}
         anchorOrigin={{
           vertical: "bottom",
@@ -373,6 +413,7 @@ OrderList.propTypes = {
   allOrders: PropTypes.array.isRequired,
   lastOrderRef: PropTypes.func.isRequired,
   isLoading: PropTypes.bool.isRequired,
+  isFetching: PropTypes.bool.isRequired,
 };
 
 export default OrderList;
