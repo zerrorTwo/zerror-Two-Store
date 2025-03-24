@@ -4,7 +4,12 @@ import Dialog from "@mui/material/Dialog";
 import DialogContent from "@mui/material/DialogContent";
 import DialogActions from "@mui/material/DialogActions";
 import Typography from "@mui/material/Typography";
-import { Box, Button, useTheme, Tabs, Tab, TextField } from "@mui/material";
+import { Box } from "@mui/material/Box";
+import { Button } from "@mui/material/Button";
+import { useTheme } from "@mui/material/styles";
+import { Tabs } from "@mui/material/Tabs";
+import { Tab } from "@mui/material/Tab";
+import { TextField } from "@mui/material/TextField";
 import InputBase from "../InputBase";
 import ButtonPrimary from "../ButtonPrimary";
 import InputSets from "../InputSets"; // Import the new component

@@ -1,4 +1,6 @@
-import { FormControl, TextField, useTheme } from "@mui/material";
+import  FormControl  from "@mui/material/FormControl";
+import  TextField  from "@mui/material/TextField";
+import  {useTheme}  from "@mui/material/styles";
 import PropTypes from "prop-types";
 
 function InputBase({

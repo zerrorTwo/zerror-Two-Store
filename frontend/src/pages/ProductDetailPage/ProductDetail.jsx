@@ -1,10 +1,7 @@
-import {
-  Box,
-  Container,
-  Grid2,
-  CircularProgress,
-  useTheme,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
+import CircularProgress from "@mui/material/CircularProgress";
+import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import Link from "@mui/material/Link";
@@ -17,9 +14,11 @@ import { useParams } from "react-router";
 import ProductDetailCarousel from "../../components/Carousel/ProductDetailCarousel";
 import Detail from "./components/Detail";
 import CustomTabPanel from "../../components/CustomTabPanel";
-import { Tabs, Tab } from "@mui/material";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
 import a11yProps from "../../../utils/a11yProps";
 import FlashSale from "../../components/Carousel/FlashSale";
+import { Grid2 } from "@mui/material";
 const Specification = lazy(() => import("./components/Specification"));
 const Description = lazy(() => import("./components/Description"));
 const CommentCom = lazy(() => import("./components/CommentCom"));

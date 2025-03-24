@@ -1,25 +1,18 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useSelector } from "react-redux";
 import { useGetUserOrderQuery } from "../../../redux/api/checkoutSlice";
 import OrderList from "./OrderList";
-import { selectCurrentUser } from "../../../redux/features/auth/authSlice";
-import {
-  Box,
-  CircularProgress,
-  InputAdornment,
-  TextField,
-  Typography,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import InputAdornment from "@mui/material/InputAdornment";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 
 const MyOrderAll = () => {
   const [page, setPage] = useState(1);
   const [allOrders, setAllOrders] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFetching, setIsFetching] = useState(false);
-  const userId = useSelector(selectCurrentUser)?._id;
 
   const { data, isLoading } = useGetUserOrderQuery({
-    userId,
     page,
     limit: 2,
   });
@@ -49,10 +42,10 @@ const MyOrderAll = () => {
         (entries) => {
           if (entries[0].isIntersecting && !isFetching) {
             setIsFetching(true);
-            setTimeout(() => {
+            // setTimeout(() => {
               setPage((prevPage) => prevPage + 1);
               setIsFetching(false);
-            }, 300);
+            // }, 300);
           }
         },
         {
@@ -96,11 +89,7 @@ const MyOrderAll = () => {
         fetchMoreOrders={() => setPage((prev) => prev + 1)}
       />
 
-      {(isLoading || isFetching) && (
-        <Box sx={{ display: "flex", justifyContent: "center", mt: 2 }}>
-          <CircularProgress />
-        </Box>
-      )}
+     
 
       {!isLoading && allOrders.length === 0 && (
         <Typography variant="body1" sx={{ textAlign: "center", mt: 2 }}>

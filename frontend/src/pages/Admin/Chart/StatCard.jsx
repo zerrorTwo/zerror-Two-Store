@@ -1,10 +1,8 @@
 import PropTypes from 'prop-types';
-import { 
-  Box, 
-  Paper, 
-  Typography, 
-  LinearProgress 
-} from '@mui/material';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import LinearProgress from '@mui/material/LinearProgress';
 import { TrendingUp, TrendingDown } from '@mui/icons-material';
 
 const StatCard = ({ title, value, subtext, icon, color, trend, percentage }) => {

@@ -1,14 +1,12 @@
-import {
-  Box,
-  Card,
-  CardContent,
-  CardMedia,
-  Rating,
-  Typography,
-  useTheme,
-  Skeleton,
-  Divider,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import CardContent from "@mui/material/CardContent";
+import CardMedia from "@mui/material/CardMedia";
+import Rating from "@mui/material/Rating";
+import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
+import Skeleton from "@mui/material/Skeleton";
+import Divider from "@mui/material/Divider";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import { PRIMITIVE_URL } from "../redux/constants";

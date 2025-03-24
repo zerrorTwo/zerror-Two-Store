@@ -1,29 +1,24 @@
 import Checkbox from "@mui/material/Checkbox";
-import {
-  Backdrop,
-  Box,
-  Button,
-  CircularProgress,
-  Container,
-  Divider,
-  Grid2,
-  Typography,
-} from "@mui/material";
+import Backdrop from "@mui/material/Backdrop";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import Container from "@mui/material/Container";
+import Divider from "@mui/material/Divider";
+import Typography from "@mui/material/Typography";
 import CartDetailItem from "../components/Cart/CartDetailItem";
 import {
   useGetAllCartQuery,
   useUpdateAllCheckoutMutation,
 } from "../redux/api/cartSlice";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../redux/features/auth/authSlice";
 import CartEmpty from "../components/Cart/CartEmpty";
 import { toast } from "react-toastify";
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router";
+import Grid2  from "@mui/material/Grid2";
 
 function Cart() {
-  const userId = useSelector(selectCurrentUser)?._id;
-  const { data, refetch } = useGetAllCartQuery(userId);
+  const { data, refetch } = useGetAllCartQuery();
   const navigate = useNavigate();
   const [updateAllCheckout, { isLoading }] = useUpdateAllCheckoutMutation();
 
@@ -73,7 +68,6 @@ function Cart() {
   const handleSelectAll = async (isChecked) => {
     try {
       await updateAllCheckout({
-        userId,
         checkoutState: isChecked,
       }).unwrap();
       refetch();
@@ -88,7 +82,7 @@ function Cart() {
         Your Shopping Cart
       </Typography>
       <Grid2 container spacing={2}>
-        <Grid2 size={8.5}>
+        <Grid2 size={{xs: 8.5}}>
           <Box display={"flex"} flexDirection={"column"} gap={2} mb={5}>
             {/* Cart Header */}
             <Box
@@ -102,7 +96,7 @@ function Cart() {
               }}
             >
               <Grid2 container sx={{ alignItems: "center" }}>
-                <Grid2 size={6}>
+                <Grid2 size={{xs: 6}}>
                   <Box display={"flex"} alignItems={"center"} gap={0}>
                     <Checkbox
                       checked={allChecked}
@@ -117,23 +111,23 @@ function Cart() {
                     <Typography variant="body1">Product</Typography>
                   </Box>
                 </Grid2>
-                <Grid2 size={6}>
+                <Grid2 size={{xs: 6}}>
                   <Grid2 container>
-                    <Grid2 size={4} textAlign={"center"}>
+                    <Grid2 size={{xs: 4}} textAlign={"center"}>
                       <Typography
                         variant="body1"
                       >
                         Unit Price
                       </Typography>
                     </Grid2>
-                    <Grid2 size={5} textAlign={"center"}>
+                    <Grid2 size={{xs: 5}} textAlign={"center"}>
                       <Typography
                         variant="body1"
                       >
                         Quantity
                       </Typography>
                     </Grid2>
-                    <Grid2 size={3} textAlign={"center"}>
+                    <Grid2 size={{xs: 3}} textAlign={"center"}>
                       <Typography
                         variant="body1"
                       >
@@ -170,7 +164,7 @@ function Cart() {
           </Box>
         </Grid2>
 
-        <Grid2 size={3.5}>
+        <Grid2 size={{xs: 3.5}}>
           <Box
             sx={{
               p: 1,

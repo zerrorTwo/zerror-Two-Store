@@ -1,10 +1,8 @@
-import {
-  Box,
-  CardMedia,
-  IconButton,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import  Box  from "@mui/material/Box";
+import  CardMedia  from "@mui/material/CardMedia";
+import  IconButton  from "@mui/material/IconButton";
+import  Typography  from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 import { Link } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Grid, Pagination, Navigation } from "swiper/modules";

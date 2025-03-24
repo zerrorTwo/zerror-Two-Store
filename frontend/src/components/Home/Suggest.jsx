@@ -1,14 +1,12 @@
-import {
-  Box,
-  Button,
-  Divider,
-  Grid2,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import  Box  from "@mui/material/Box";
+import  Button  from "@mui/material/Button";
+import  Divider  from "@mui/material/Divider";
+import  Typography  from "@mui/material/Typography";
+import  {useTheme}  from "@mui/material/styles";
 import ProductMini from "../ProductMini";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
+import  Grid2  from "@mui/material/Grid2";
 
 function Suggest({ listProducts }) {
   const theme = useTheme();

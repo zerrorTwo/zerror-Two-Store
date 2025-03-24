@@ -1,7 +1,10 @@
-import { Box, Divider, IconButton, Typography, useTheme } from "@mui/material";
-// import { useEffect, useState } from "react";
-import { Link } from "react-router-dom"; // Correct import from react-router-dom
-import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import  Box  from "@mui/material/Box";
+import  Divider  from "@mui/material/Divider";
+import  IconButton  from "@mui/material/IconButton";
+import  Typography  from "@mui/material/Typography";
+import  {useTheme}  from "@mui/material/styles";
+import  { Link }  from "react-router-dom"; // Correct import from react-router-dom
+import  NavigateNextIcon  from "@mui/icons-material/NavigateNext";
 import { Swiper, SwiperSlide } from "swiper/react"; // Import Swiper and SwiperSlide from swiper/react
 import { Navigation, Autoplay } from "swiper/modules"; // Import required Swiper modules
 import "swiper/css"; // Import necessary Swiper CSS files

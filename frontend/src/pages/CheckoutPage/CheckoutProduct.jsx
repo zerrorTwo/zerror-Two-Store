@@ -1,8 +1,9 @@
-import { Grid2, Typography } from "@mui/material";
+import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import CardMedia from "@mui/material/CardMedia";
 import PropTypes from "prop-types"; // Import PropTypes
 import { PRIMITIVE_URL } from "../../redux/constants";
+import { Grid2 } from "@mui/material";
 
 function CheckoutProduct({ item, name, img, price }) {
   return (

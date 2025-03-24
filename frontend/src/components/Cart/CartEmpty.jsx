@@ -1,4 +1,7 @@
-import { Box, Button, CardMedia, Typography } from "@mui/material";
+import  Box  from "@mui/material/Box";
+import  Button  from "@mui/material/Button";
+import  CardMedia  from "@mui/material/CardMedia";
+import  Typography  from "@mui/material/Typography";
 import { useNavigate } from "react-router";
 
 function CartEmpty() {

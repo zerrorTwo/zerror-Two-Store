@@ -1,12 +1,10 @@
 import { useState } from "react";
-import {
-  Box,
-  Button,
-  CircularProgress,
-  Popover,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import CircularProgress from "@mui/material/CircularProgress";
+import Popover from "@mui/material/Popover";
+import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 import PropTypes from "prop-types";
 
 function PopoverPaper({

@@ -1,17 +1,15 @@
 // GenericTableToolbar.jsx
 import PropTypes from "prop-types";
-import {
-  Toolbar,
-  Typography,
-  IconButton,
-  Tooltip,
-  Box,
-  CircularProgress,
-  Button,
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import FilterListIcon from "@mui/icons-material/FilterList";
-import AddCircleIcon from "@mui/icons-material/AddCircle";
+import  Toolbar  from "@mui/material/Toolbar";
+import  Typography  from "@mui/material/Typography";
+import  IconButton  from "@mui/material/IconButton";
+import  Tooltip  from "@mui/material/Tooltip";
+import  Box  from "@mui/material/Box";
+import  CircularProgress  from "@mui/material/CircularProgress";
+import  Button  from "@mui/material/Button";
+import  DeleteIcon  from "@mui/icons-material/Delete";
+import  FilterListIcon  from "@mui/icons-material/FilterList";
+import  AddCircleIcon  from "@mui/icons-material/AddCircle";
 
 const GenericTableToolbar = ({
   name = "List User",

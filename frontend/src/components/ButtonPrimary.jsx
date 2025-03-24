@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
-import { Button, CircularProgress } from "@mui/material";
+import  Button  from "@mui/material/Button";
+import  CircularProgress  from "@mui/material/CircularProgress";
 
 function ButtonPrimary({ text, onClick, isLoading }) {
   return (

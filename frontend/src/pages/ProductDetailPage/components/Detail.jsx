@@ -3,8 +3,6 @@ import QuantityGroup from "../../../components/QuantityGroup";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import PropTypes from "prop-types";
 import { useState } from "react";
-import { selectCurrentUser } from "../../../redux/features/auth/authSlice";
-import { useSelector } from "react-redux";
 import { useAddToCartMutation } from "../../../redux/api/cartSlice";
 import { toast } from "react-toastify";
 
@@ -65,13 +63,9 @@ function Detail({ data, quantity, setQuantity }) {
     (attr) => selectedAttributes[attr.key]
   );
 
-  const userId = useSelector(selectCurrentUser)?._id;
 
   const handleAddToCart = async () => {
-    if (!userId) {
-      toast.error("Please log in to add items to your cart.");
-      return;
-    }
+
 
     if (!data?._id || !selectedAttributes || quantity <= 0) {
       toast.error("Please select all required options.");
@@ -80,7 +74,6 @@ function Detail({ data, quantity, setQuantity }) {
     let addToCartData;
     if (selectedAttributes) {
       addToCartData = {
-        userId: userId,
         products: [
           {
             productId: data?._id,
@@ -95,7 +88,6 @@ function Detail({ data, quantity, setQuantity }) {
       };
     } else {
       addToCartData = {
-        userId: userId,
         products: [
           {
             productId: data?._id,

@@ -3,21 +3,17 @@ import QuantityGroup from "./QuantityGroup";
 import { toast } from "react-toastify";
 import { useAddToCartMutation } from "../redux/api/cartSlice";
 import { useDebounce } from "../hooks/useDebounce";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../redux/features/auth/authSlice";
 import PropTypes from "prop-types";
 
 function QuantityGroupWithAPI({ productId, initialQuantity, variationType }) {
   const [quantity, setQuantity] = useState(initialQuantity);
   const debouncedQuantity = useDebounce(quantity, 500); // Giảm tần suất gọi API
   const [updateQuantity, { isLoading }] = useAddToCartMutation();
-  const userId = useSelector(selectCurrentUser)?._id;
 
   useEffect(() => {
     const updateCart = async () => {
       try {
         const payload = {
-          userId,
           state: "ACTIVE",
           products: [
             {
@@ -56,7 +52,6 @@ function QuantityGroupWithAPI({ productId, initialQuantity, variationType }) {
     productId,
     variationType,
     updateQuantity,
-    userId,
     initialQuantity,
   ]);
 

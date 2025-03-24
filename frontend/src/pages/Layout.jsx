@@ -1,4 +1,3 @@
-import * as React from "react";
 import { styled, useTheme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import MuiDrawer from "@mui/material/Drawer";
@@ -19,19 +18,18 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SpaceDashboardIcon from "@mui/icons-material/SpaceDashboard";
 import LoginIcon from "@mui/icons-material/Login";
 import { Outlet, useNavigate } from "react-router";
-import {
-  Button,
-  Dialog,
-  DialogActions,
-  DialogTitle,
-  LinearProgress,
-} from "@mui/material";
+import Button from "@mui/material/Button";
+import Dialog from "@mui/material/Dialog";
+import DialogActions from "@mui/material/DialogActions";
+import DialogTitle from "@mui/material/DialogTitle";
+import LinearProgress from "@mui/material/LinearProgress";
 import NavItem from "../components/NavItem";
 import { useDispatch, useSelector } from "react-redux";
 import { useLogoutMutation } from "../redux/api/authApiSlice";
 import { logOut, selectCurrentUser } from "../redux/features/auth/authSlice";
 import Switcher from "../components/Switcher";
 import { toast } from "react-toastify";
+import { useState } from "react";
 
 const drawerWidth = 240;
 
@@ -117,7 +115,7 @@ const Drawer = styled(MuiDrawer, {
 
 export default function Layout() {
   const theme = useTheme();
-  const [open, setOpen] = React.useState(false);
+  const [open, setOpen] = useState(false);
   const isUser = useSelector(selectCurrentUser);
 
   const admin = isUser?.user?.isAdmin || isUser?.isAdmin;
@@ -132,7 +130,7 @@ export default function Layout() {
     setOpen(false);
   };
 
-  const [openDialog, setOpenDialog] = React.useState(false);
+  const [openDialog, setOpenDialog] = useState(false);
 
   const handleClickOpen = () => {
     setOpenDialog(true);

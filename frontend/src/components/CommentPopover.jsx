@@ -1,13 +1,11 @@
-import { useState, useEffect } from 'react';
+import   { useEffect, useState }  from 'react';
 import PropTypes from 'prop-types';
-import { 
-  Popover,
-  Box,
-  Typography,
-  Rating,
-  TextField,
-  Button
-} from '@mui/material';
+import  Popover  from '@mui/material/Popover';
+import  Box  from '@mui/material/Box';
+import  Typography  from '@mui/material/Typography';
+import  Rating  from '@mui/material/Rating';
+import  TextField  from '@mui/material/TextField';
+import  Button  from '@mui/material/Button';
 
 const labels = {
     0.5: 'Terrible',

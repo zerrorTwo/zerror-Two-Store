@@ -1,7 +1,8 @@
-import HeaderLayout from "../components/HeaderLayout.jsx";
-import { Box, CircularProgress } from "@mui/material";
-import { Outlet } from "react-router";
-import { lazy, Suspense, useEffect, useRef, useState } from "react";
+import  HeaderLayout  from "../components/HeaderLayout.jsx";
+import  Box  from "@mui/material/Box";
+import  CircularProgress  from "@mui/material/CircularProgress";
+import  {Outlet}  from "react-router";
+import  { lazy, Suspense, useEffect, useRef, useState }  from "react";
 
 // Lazy load Footer
 const Footer = lazy(() => import("../components/Footer.jsx"));

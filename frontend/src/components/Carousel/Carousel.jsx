@@ -3,7 +3,10 @@ import { Navigation, Autoplay } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
 import PropTypes from "prop-types";
-import { Box, CardMedia, IconButton } from "@mui/material";
+import  Box  from "@mui/material/Box";
+import  CardMedia  from "@mui/material/CardMedia";
+import  IconButton  from "@mui/material/IconButton";
+
 
 // Tạo các nút tùy chỉnh bằng styled
 import { styled } from "@mui/system";

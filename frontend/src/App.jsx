@@ -3,7 +3,6 @@ import { useEffect } from "react";
 import { setCredentials } from "./redux/features/auth/authSlice";
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
-import Menu from "./pages/Menu";
 import Cart from "./pages/Cart";
 import Login from "./pages/Auth/Login";
 import Register from "./pages/Auth/Register";
@@ -90,7 +89,6 @@ function App() {
 
       <Route path="/" element={<LayoutNew />}>
         <Route index element={<Home />} />
-        <Route path="menu" element={<Menu />} />
         <Route path="products/:slug" element={<ProductDetail />} />
         <Route path="products/category/:category" element={<SearchLayout />} />
 

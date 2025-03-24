@@ -1,7 +1,10 @@
 import { useState } from "react";
 import Box from "@mui/material/Box";
 import PropTypes from "prop-types";
-import { Button, Typography, Popper, Fade } from "@mui/material";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import Popper from "@mui/material/Popper";
+import Fade from "@mui/material/Fade";
 import {
   useCreateNewProductMutation,
   useUpdateProductMutation,

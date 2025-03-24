@@ -1,15 +1,12 @@
 import { Link } from "react-router-dom";
-import Checkbox from "@mui/material/Checkbox";
-import {
-  Backdrop,
-  Box,
-  CardMedia,
-  CircularProgress,
-  Grid2,
-  Popover,
-  Tooltip,
-  Typography,
-} from "@mui/material";
+import  Checkbox  from "@mui/material/Checkbox";
+import  Backdrop  from "@mui/material/Backdrop";
+import  Box  from "@mui/material/Box";
+import  CardMedia  from "@mui/material/CardMedia";
+import  CircularProgress  from "@mui/material/CircularProgress";
+import  Popover  from "@mui/material/Popover";
+import  Tooltip  from "@mui/material/Tooltip";
+import  Typography  from "@mui/material/Typography";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -22,9 +19,8 @@ import {
   useUpdateCheckoutMutation,
 } from "../../redux/api/cartSlice";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../../redux/features/auth/authSlice";
 import QuantityGroupWithAPI from "../QuantityGroupApi";
+import  Grid2  from "@mui/material/Grid2";
 
 function CartDetailItem({
   productId,
@@ -40,7 +36,6 @@ function CartDetailItem({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [backdropOpen, setBackdropOpen] = useState(false);
   const [deleteProduct, { isLoading }] = useRemoveProductMutation();
-  const userId = useSelector(selectCurrentUser)?._id;
   const [updateCheckout] = useUpdateCheckoutMutation();
 
   const handleOpenDialog = () => setDialogOpen(true);
@@ -49,7 +44,6 @@ function CartDetailItem({
   const handleConfirmDelete = async () => {
     try {
       await deleteProduct({
-        userId,
         state: "ACTIVE",
         products: [{ productId, variations: [{ type: variation.type }] }],
       }).unwrap();
@@ -61,11 +55,10 @@ function CartDetailItem({
     }
   };
 
-  // ✅ Thêm backdrop khi cập nhật checkbox
+  // Thêm backdrop khi cập nhật checkbox
   const handleCheckboxChange = async () => {
     setBackdropOpen(true);
     const requestData = {
-      userId,
       state: "ACTIVE",
       products: [
         {
@@ -104,7 +97,7 @@ function CartDetailItem({
           <Box display="flex" alignItems="center" gap={0}>
             <Checkbox
               checked={checkout}
-              onChange={handleCheckboxChange} // ✅ Gọi API khi chọn checkbox
+              onChange={handleCheckboxChange} 
               sx={{
                 color: "text.primary",
                 "&.Mui-checked": { color: "secondary.main" },
@@ -187,7 +180,6 @@ function CartDetailItem({
                     >
                       <CartVariationPopover
                         productId={productId}
-                        userId={userId}
                         data={allVariations}
                         onClose={handleClose}
                         initAttribute={variation?.type}

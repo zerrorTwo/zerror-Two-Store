@@ -1,17 +1,15 @@
-import {
-  Autocomplete,
-  Box,
-  Button,
-  InputBase,
-  TextField,
-  Typography,
-  CircularProgress,
-  FormControlLabel,
-  Checkbox,
-  IconButton,
-} from "@mui/material";
+import Autocomplete from "@mui/material/Autocomplete";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import InputBase from "@mui/material/InputBase";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import CircularProgress from "@mui/material/CircularProgress";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Checkbox from "@mui/material/Checkbox";
+import IconButton from "@mui/material/IconButton";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { Close } from "@mui/icons-material";
+import Close from "@mui/icons-material/Close";
 import PropTypes from "prop-types";
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
@@ -20,8 +18,6 @@ import {
   useLazyGetDistrictQuery,
   useLazyGetWardQuery,
 } from "../../redux/api/addressSlice";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../../redux/features/auth/authSlice";
 import { toast } from "react-toastify";
 
 // Constants
@@ -74,7 +70,6 @@ function AddressPopover({ handleClose, handleOpenDrawer }) {
   const [formData, setFormData] = useState(INITIAL_FORM_STATE);
   const [error, setError] = useState("");
   const [mapSrc, setMapSrc] = useState(INITIAL_MAP_SRC);
-  const userId = useSelector(selectCurrentUser)?._id;
 
   // API Fetch Hooks
   const [createUserAddress, { isLoading }] = useCreateUserAddressMutation();
@@ -190,7 +185,6 @@ function AddressPopover({ handleClose, handleOpenDrawer }) {
 
     try {
       const success = await createUserAddress({
-        userId,
         data: addressData,
       }).unwrap();
       if (success) {

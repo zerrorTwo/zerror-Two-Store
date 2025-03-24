@@ -1,14 +1,12 @@
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
-import {
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Tooltip,
-  Typography,
-} from "@mui/material";
-import { useTheme } from "@mui/material/styles"; // Import useTheme
+import  Link  from "react-router-dom";
+import  ListItem  from "@mui/material/ListItem";
+import  ListItemButton  from "@mui/material/ListItemButton";
+import  ListItemIcon  from "@mui/material/ListItemIcon";
+import  ListItemText  from "@mui/material/ListItemText";
+import  Tooltip  from "@mui/material/Tooltip";
+import  Typography  from "@mui/material/Typography";
+import  {useTheme}  from "@mui/material/styles"; // Import useTheme
 
 const NavItem = ({ to, icon, text, open = false, onClick = undefined }) => {
   const theme = useTheme(); // Correct position of useTheme hook
