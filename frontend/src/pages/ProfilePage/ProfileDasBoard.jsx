@@ -1,19 +1,15 @@
-import {
-  Box,
-  CardMedia,
-  Container,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Typography,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import CardMedia from "@mui/material/CardMedia";
+import Container from "@mui/material/Container";
+import FormControl from "@mui/material/FormControl";
+import InputLabel from "@mui/material/InputLabel";
+import MenuItem from "@mui/material/MenuItem";
+import Select from "@mui/material/Select";
+import Typography from "@mui/material/Typography";
 import { useEffect, useState } from "react";
 import { useLazyGetUserTotalOrderQuery } from "../../redux/api/checkoutSlice";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../../redux/features/auth/authSlice";
+
 function ProfileDashBoard() {
-  const userId = useSelector(selectCurrentUser)?._id;
   const [time, setTime] = useState("year");
   const [totalOrders, setTotalOrders] = useState(0);
   const [totalProducts, setTotalProducts] = useState(0);
@@ -23,8 +19,8 @@ function ProfileDashBoard() {
     useLazyGetUserTotalOrderQuery();
 
   useEffect(() => {
-    triggerGetTotalOrder({ userId, time });
-  }, [time, triggerGetTotalOrder, userId]);
+    triggerGetTotalOrder({ time });
+  }, [time, triggerGetTotalOrder]);
 
   useEffect(() => {
     if (data) {

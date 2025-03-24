@@ -1,13 +1,11 @@
 import PropTypes from "prop-types";
-import {
-  Box,
-  TextField,
-  Button,
-  Typography,
-  IconButton,
-  InputAdornment,
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
+import  Box  from "@mui/material/Box";
+import  TextField  from "@mui/material/TextField";
+import  Button  from "@mui/material/Button";
+import  Typography  from "@mui/material/Typography";
+import  IconButton  from "@mui/material/IconButton";
+import  InputAdornment  from "@mui/material/InputAdornment";
+import  DeleteIcon  from "@mui/icons-material/Delete";
 
 const InputSets = ({
   variations,

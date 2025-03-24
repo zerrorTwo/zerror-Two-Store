@@ -1,10 +1,8 @@
 import PropTypes from 'prop-types';
-import { 
-  Paper, 
-  Typography,
-  Fade,
-  Box
-} from '@mui/material';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import Fade from '@mui/material/Fade';
+import Box from '@mui/material/Box';
 import { 
   PieChart, 
   Pie, 

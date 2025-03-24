@@ -1,23 +1,18 @@
-import {
-  Typography,
-  Box,
-  Drawer,
-  Divider,
-  Button,
-  DialogActions,
-  CircularProgress,
-  Popover,
-  CardMedia,
-  // CardMedia,
-} from "@mui/material";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import Drawer from "@mui/material/Drawer";
+import Divider from "@mui/material/Divider";
+import Button from "@mui/material/Button";
+import DialogActions from "@mui/material/DialogActions";
+import CircularProgress from "@mui/material/CircularProgress";
+import Popover from "@mui/material/Popover";
+import CardMedia from "@mui/material/CardMedia";
 import AddLocationIcon from "@mui/icons-material/AddLocation";
 import PropTypes from "prop-types";
 import AddressItem from "./AddressItem";
 import { useEffect, useState } from "react";
 import AddressPopover from "./AddressPopover";
 import { useGetAllUserAddressQuery } from "../../redux/api/addressSlice";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../../redux/features/auth/authSlice";
 
 const isLoading = false;
 
@@ -149,8 +144,7 @@ const list = (
 function AddressDrawer({ anchor, state, toggleDrawer, setConfirmAddress }) {
   const [selectedAddress, setSelectedAddress] = useState("");
   const [anchorEl, setAnchorEl] = useState(null);
-  const userId = useSelector(selectCurrentUser)?._id;
-  const { data: allAddress } = useGetAllUserAddressQuery(userId);
+  const { data: allAddress } = useGetAllUserAddressQuery();
 
   // ✅ Hàm tối ưu: Đóng Drawer & mở Popover cùng lúc
   const handleOpenPopover = (event) => {

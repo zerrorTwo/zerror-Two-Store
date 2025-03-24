@@ -2,13 +2,11 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import Popover from "@mui/material/Popover";
 import Typography from "@mui/material/Typography";
-import {
-  Box,
-  TextField,
-  Button,
-  useTheme,
-  LinearProgress,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import { useTheme } from "@mui/material/styles";
+import LinearProgress from "@mui/material/LinearProgress";
 import { useUpdateUserMutation } from "../redux/api/userSlice.js"; // Điều chỉnh đường dẫn import
 import { toast } from "react-toastify";
 

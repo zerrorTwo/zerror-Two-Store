@@ -1,10 +1,8 @@
-import {
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  useTheme,
-} from "@mui/material";
+import { FormControl } from "@mui/material/FormControl";
+import { InputLabel } from "@mui/material/InputLabel";
+import { Select } from "@mui/material/Select";
+import { MenuItem } from "@mui/material/MenuItem";
+import { useTheme } from "@mui/material/styles";
 import PropTypes from "prop-types"; // Import PropTypes for prop validation
 
 function CustomSelect({ label, options, value, onChange }) {

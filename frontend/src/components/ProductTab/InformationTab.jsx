@@ -1,14 +1,12 @@
 import PropTypes from "prop-types";
-import {
-  Box,
-  Card,
-  FormControl,
-  FormControlLabel,
-  FormLabel,
-  Radio,
-  RadioGroup,
-  Typography,
-} from "@mui/material";
+import { Box } from "@mui/material/Box";
+import { Card } from "@mui/material/Card";
+import { FormControl } from "@mui/material/FormControl";
+import { FormControlLabel } from "@mui/material/FormControlLabel";
+import { FormLabel } from "@mui/material/FormLabel";
+import { Radio } from "@mui/material/Radio";
+import { RadioGroup } from "@mui/material/RadioGroup";
+import { Typography } from "@mui/material/Typography";
 import InputBase from "../InputBase";
 import { PRIMITIVE_URL } from "../../redux/constants";
 import CategorySelect from "../CategorySelect";

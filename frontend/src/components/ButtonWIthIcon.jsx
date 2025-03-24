@@ -1,5 +1,5 @@
-import { Button } from "@mui/material";
-import { Link } from "react-router-dom";
+import Button from "@mui/material/Button";
+import {Link} from "react-router-dom";
 import PropTypes from "prop-types"; // Import PropTypes for prop validation
 
 function ButtonWithIcon({ text, icon, link }) {

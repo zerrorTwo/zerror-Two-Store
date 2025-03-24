@@ -1,4 +1,4 @@
-import React, { memo, useRef, useState } from "react";
+import { memo, useState } from "react"; 
 import PropTypes from "prop-types";
 import {
   Box,
@@ -29,7 +29,7 @@ const CategoryList = memo(({ category, isLoading }) => {
     useUpdateCategoryMutation();
   const [deleteCategory, { isLoading: isLoadingDelete }] =
     useDeleteCategoryMutation();
-  const [uploadCategoryImage, { isLoading: isLoadingUpload }] =
+  const [uploadCategoryImage] =
     useUploadCategoryImageMutation();
 
   if (isLoading) {

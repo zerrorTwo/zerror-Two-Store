@@ -1,12 +1,9 @@
-import {
-  Button,
-  Container,
-  Divider,
-  Grid2,
-  Typography,
-  Backdrop,
-  CircularProgress,
-} from "@mui/material"; // Import Backdrop and CircularProgress
+import Button from "@mui/material/Button";
+import Container from "@mui/material/Container";
+import Divider from "@mui/material/Divider";
+import Typography from "@mui/material/Typography";
+import Backdrop from "@mui/material/Backdrop";
+import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
 import { useEffect, useState, useMemo } from "react";
 import AddressDrawer from "./AddressDrawer";
@@ -16,13 +13,12 @@ import {
   useCreateOrderMutation,
   useGetProductCheckoutQuery,
 } from "../../redux/api/checkoutSlice";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../../redux/features/auth/authSlice";
 import { useLazyGetUserAddressByIdQuery } from "../../redux/api/addressSlice";
 import CashPaymentMethod from "./CashPaymentMethod";
 import MomoPaymentMethod from "./MomoPaymentMethod";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
+import { Grid2 } from "@mui/material";
 
 function CheckoutPage() {
   const [state, setState] = useState({
@@ -32,14 +28,14 @@ function CheckoutPage() {
     right: false,
   });
   const [confirmAddress, setConfirmAddress] = useState("");
-  const userId = useSelector(selectCurrentUser)?._id;
-  const { data } = useGetProductCheckoutQuery(userId);
+  const { data } = useGetProductCheckoutQuery();
   const [getUserAddressById] = useLazyGetUserAddressByIdQuery();
   const [selectedAddress, setSelectedAddress] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cash");
   const navigate = useNavigate();
 
   const [createOrder, { isLoading }] = useCreateOrderMutation();
+
 
 
   useEffect(() => {
@@ -57,6 +53,8 @@ function CheckoutPage() {
       fetchUserAddress();
     }
   }, [confirmAddress, getUserAddressById]);
+
+
 
   const toggleDrawer = (anchor, open) => (event) => {
     if (

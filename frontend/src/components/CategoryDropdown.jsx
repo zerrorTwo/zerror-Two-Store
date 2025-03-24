@@ -1,7 +1,9 @@
 import { memo } from "react";
 import PropTypes from "prop-types";
-import { Box, Typography, ClickAwayListener } from "@mui/material";
-import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { Box } from "@mui/material/Box";
+import { Typography } from "@mui/material/Typography";
+import { ClickAwayListener } from "@mui/material/ClickAwayListener";
+import { KeyboardArrowDownIcon } from "@mui/icons-material/KeyboardArrowDown";
 
 const CategoryDropdown = memo(
   ({

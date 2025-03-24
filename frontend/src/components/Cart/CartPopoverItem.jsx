@@ -1,4 +1,8 @@
-import { Box, CardMedia, Typography, useTheme } from "@mui/material";
+import  Box  from "@mui/material/Box";
+import  CardMedia  from "@mui/material/CardMedia";
+import  Typography  from "@mui/material/Typography";
+import  {useTheme}  from "@mui/material/styles";
+
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { PRIMITIVE_URL } from "../../redux/constants";

@@ -1,4 +1,8 @@
-import { alpha, Box, Button, TextField, useTheme } from "@mui/material";
+import { alpha } from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import TextField from "@mui/material/TextField";
+import { useTheme } from "@mui/material/styles";
 import PropTypes from "prop-types";
 
 function QuantityGroup({ quantity, setQuantity }) {

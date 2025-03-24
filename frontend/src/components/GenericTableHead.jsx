@@ -1,12 +1,10 @@
 import PropTypes from "prop-types";
-import {
-  TableHead,
-  TableRow,
-  TableCell,
-  Checkbox,
-  TableSortLabel,
-} from "@mui/material";
-import { useTheme } from "@mui/material/styles";
+import  TableHead  from "@mui/material/TableHead";
+import  TableRow  from "@mui/material/TableRow";
+import  TableCell  from "@mui/material/TableCell";
+import  Checkbox  from "@mui/material/Checkbox";
+import  TableSortLabel  from "@mui/material/TableSortLabel";
+import  {useTheme}  from "@mui/material/styles";
 
 const GenericTableHead = ({
   headCells,

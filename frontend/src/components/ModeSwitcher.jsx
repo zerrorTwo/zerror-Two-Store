@@ -1,14 +1,12 @@
 import PropTypes from "prop-types";
-import {
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Tooltip,
-  Select,
-  MenuItem,
-  useColorScheme,
-} from "@mui/material";
+import { ListItem } from "@mui/material/ListItem";
+import { ListItemButton } from "@mui/material/ListItemButton";
+import { ListItemIcon } from "@mui/material/ListItemIcon";
+import { ListItemText } from "@mui/material/ListItemText";
+import { Tooltip } from "@mui/material/Tooltip";
+import { Select } from "@mui/material/Select";
+import { MenuItem } from "@mui/material/MenuItem";
+import { useColorScheme } from "@mui/material/styles";
 import { LightMode, DarkMode } from "@mui/icons-material";
 
 const ModeSwitcher = ({ open = false }) => {

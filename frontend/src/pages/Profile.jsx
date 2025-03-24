@@ -1,13 +1,10 @@
-import {
-  Avatar,
-  Box,
-  Container,
-  Divider,
-  Grid2,
-  List,
-  Typography,
-  useTheme,
-} from "@mui/material";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
+import Divider from "@mui/material/Divider";
+import List from "@mui/material/List";
+import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 import { memo, useEffect, useState } from "react";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
@@ -20,6 +17,7 @@ import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../redux/features/auth/authSlice";
 import { Outlet } from "react-router";
 import { useLocation } from "react-router";
+import { Grid2 } from "@mui/material";
 
 function Profile() {
   const theme = useTheme();

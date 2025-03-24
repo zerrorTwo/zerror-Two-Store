@@ -1,15 +1,12 @@
-import {
-  Box,
-  Container,
-  Grid2,
-  Button,
-  Divider,
-  Input,
-  Rating,
-  Skeleton,
-  Alert,
-  AlertTitle,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import Input from "@mui/material/Input";
+import Rating from "@mui/material/Rating";
+import Skeleton from "@mui/material/Skeleton";
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
 import Typography from "@mui/material/Typography";
 import MenuIcon from "@mui/icons-material/Menu";
 import Link from "@mui/material/Link";
@@ -18,6 +15,7 @@ import { lazy, Suspense, useState } from "react";
 import { useGetPageProductQuery } from "../redux/api/productSlice";
 import { useInView } from "react-intersection-observer";
 import { useParams } from "react-router";
+import { Grid2 } from "@mui/material";
 
 function SearchLayout() {
   const [rating, setRating] = useState(0);

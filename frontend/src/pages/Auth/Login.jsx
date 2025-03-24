@@ -1,25 +1,23 @@
-import {
-  Avatar,
-  Box,
-  Button,
-  Checkbox,
-  CircularProgress,
-  Container,
-  Divider,
-  FormControlLabel,
-  Grid,
-  Paper,
-  TextField,
-  Typography,
-} from "@mui/material";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import CircularProgress from "@mui/material/CircularProgress";
+import Container from "@mui/material/Container";
+import Divider from "@mui/material/Divider";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Grid from "@mui/material/Grid";
+import Paper from "@mui/material/Paper";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
 import theme from "../../theme";
-import { Link, useNavigate } from "react-router-dom"; // Corrected import
+import { Link, useNavigate } from "react-router-dom"; 
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { useState } from "react";
 import { useLoginMutation } from "../../redux/api/authApiSlice";
-import { toast } from "react-toastify"; // Import only toast
-import "react-toastify/dist/ReactToastify.css"; // Đảm bảo import CSS của Toastify
+import { toast } from "react-toastify"; 
+import "react-toastify/dist/ReactToastify.css"; 
 import ButtonWithIcon from "../../components/ButtonWIthIcon";
 import { BASE_URL } from "../../redux/constants";
 
@@ -61,12 +59,12 @@ function Login() {
     <Box
       sx={{
         backgroundImage: `url("/Assets/background_login.webp")`,
-        backgroundSize: "cover", // Ensures the image covers the entire area
-        backgroundPosition: "center", // Centers the image
+        backgroundSize: "cover", 
+        backgroundPosition: "center", 
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        minHeight: "100vh", // Ensures it takes the full viewport height
+        minHeight: "100vh", 
         bgcolor: theme.palette.secondary.main,
       }}
     >

@@ -1,17 +1,13 @@
 import Box from "@mui/material/Box";
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useSelector } from "react-redux";
-import { selectCurrentUser } from "../../../redux/features/auth/authSlice";
 import OrderList from "./OrderList";
 import { useGetUserOrderQuery } from "../../../redux/api/checkoutSlice";
 
 function MyOrdertoReturn() {
   const [page, setPage] = useState(1);
   const [allOrders, setAllOrders] = useState([]);
-  const userId = useSelector(selectCurrentUser)?._id;
 
   const { data, isLoading } = useGetUserOrderQuery({
-    userId,
     page,
     limit: 2,
     filter: "return",

@@ -1,4 +1,8 @@
-import { Box, TextField, Button, Typography, useTheme } from "@mui/material";
+import Box from "@mui/material/Box";
+import TextField from "@mui/material/TextField";
+import Button from "@mui/material/Button";
+import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import PropTypes from "prop-types";

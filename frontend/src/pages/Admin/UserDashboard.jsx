@@ -6,7 +6,9 @@ import GenericTable from "../../components/GenericTable.jsx";
 import { useState, useCallback } from "react";
 import PopoverCom from "../../components/PopoverCom.jsx";
 import { toast } from "react-toastify";
-import { Box, Divider, Typography } from "@mui/material";
+import  Box  from "@mui/material/Box";
+import  Divider  from "@mui/material/Divider";
+import  Typography  from "@mui/material/Typography";
 
 const UserDashboard = () => {
   const [page, setPage] = useState(1);

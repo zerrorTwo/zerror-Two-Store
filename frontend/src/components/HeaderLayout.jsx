@@ -12,7 +12,9 @@ import SearchIcon from "@mui/icons-material/Search";
 import AccountCircle from "@mui/icons-material/AccountCircle";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import MoreIcon from "@mui/icons-material/MoreVert";
-import { Button, CardMedia, Container } from "@mui/material";
+import Button from "@mui/material/Button";
+import CardMedia from "@mui/material/CardMedia";
+import Container from "@mui/material/Container";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import CartPopover from "./Cart/CartPopover";
@@ -71,13 +73,12 @@ export default function HeaderLayout() {
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
   const [searchText, setSearchText] = useState("");
 
-  const userId = useSelector(selectCurrentUser)?._id;
 
   const {
     data,
     error: cartError,
     isLoading: cartLoading,
-  } = useGetMiniCartQuery(userId) || {}; // Tránh lỗi khi data là undefined
+  } = useGetMiniCartQuery() || {}; 
 
   const handleCartClick = () => {
     navigate("/cart");
@@ -214,7 +215,11 @@ export default function HeaderLayout() {
       onClose={handleMobileMenuClose}
     >
       <MenuItem>
-        <IconButton size="large" aria-label="show 4 new mails" color="inherit">
+        <IconButton
+          size="large"
+          aria-label="show 4 new mails"
+          color="inherit"
+        >
           <Badge badgeContent={data?.totalItems} color="error">
             <ShoppingCartIcon />
           </Badge>
@@ -347,19 +352,6 @@ export default function HeaderLayout() {
               </Box>
 
               {!a ? (
-                // <Box
-                //   mx={1}
-                //   px={1}
-                //   py={0.5}
-                //   border={"1px solid #999"}
-                //   borderRadius={2}
-                //   display={"flex"}
-                //   alignItems={"center"}
-                //   gap={1}
-                //   sx={{
-                //     cursor: "pointer",
-                //   }}
-                // >
                 <Button
                   onClick={() => {
                     navigate("/login");
@@ -374,7 +366,6 @@ export default function HeaderLayout() {
                   Login
                 </Button>
               ) : (
-                // </Box>
                 <IconButton
                   size="large"
                   edge="end"

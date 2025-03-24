@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import Box from "@mui/material/Box";
 import PropTypes from "prop-types";
 import InputBase from "./InputBase";
 import { forwardRef, useImperativeHandle, useState } from "react";

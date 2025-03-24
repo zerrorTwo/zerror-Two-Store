@@ -1,9 +1,7 @@
-import {
-  CardMedia,
-  Checkbox,
-  FormControlLabel,
-  Typography,
-} from "@mui/material";
+import CardMedia from "@mui/material/CardMedia";
+import Checkbox from "@mui/material/Checkbox";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import RadioButtonUncheckedIcon from "@mui/icons-material/RadioButtonUnchecked";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";

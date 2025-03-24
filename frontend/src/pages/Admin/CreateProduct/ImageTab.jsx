@@ -1,4 +1,6 @@
-import { Button, Card, Typography } from "@mui/material";
+import Button from "@mui/material/Button";
+import Card from "@mui/material/Card";
+import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import { PRIMITIVE_URL } from "../../../redux/constants";
 import PropTypes from "prop-types";

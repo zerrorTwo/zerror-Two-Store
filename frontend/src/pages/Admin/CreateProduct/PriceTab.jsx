@@ -1,7 +1,7 @@
 import Box from "@mui/material/Box";
 import InputBase from "../../../components/InputBase";
 import PropTypes from "prop-types";
-import { Button } from "@mui/material";
+import Button from "@mui/material/Button";
 import { toast } from "react-toastify";
 
 function PriceTab({ formData, setFormData, onNext, onPre }) {

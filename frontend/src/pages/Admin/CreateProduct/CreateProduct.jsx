@@ -1,7 +1,9 @@
 import { useParams } from "react-router-dom";
 import { useLazyGetProductByIdQuery } from "../../../redux/api/productSlice";
 import { useState, useEffect } from "react";
-import { Box, Tab, Tabs } from "@mui/material";
+import Box from "@mui/material/Box";
+import Tab from "@mui/material/Tab";
+import Tabs from "@mui/material/Tabs";
 import TabPanel from "../../../components/ProductTab/TabPanel";
 import InforTab from "./InforTab";
 import ImageTab from "./ImageTab";

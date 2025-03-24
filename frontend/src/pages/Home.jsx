@@ -1,11 +1,9 @@
-import {
-  Box,
-  Container,
-  CircularProgress,
-  AlertTitle,
-  Alert,
-  CardMedia,
-} from "@mui/material";
+import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
+import CircularProgress from "@mui/material/CircularProgress";
+import AlertTitle from "@mui/material/AlertTitle";
+import Alert from "@mui/material/Alert";
+import CardMedia from "@mui/material/CardMedia";
 import Carousel from "../components/Carousel/Carousel";
 import CategoryTable from "../components/Home/CategoryTable";
 import { useGetCommonCategoryQuery } from "../redux/api/categorySlice";
