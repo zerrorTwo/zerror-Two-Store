@@ -2,12 +2,17 @@ import { useDispatch } from "react-redux";
 import { useEffect, lazy, Suspense } from "react";
 import { setCredentials } from "./redux/features/auth/authSlice";
 import { Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "@mui/material";
+import theme from "./theme";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Common components that might be used frequently
 import RequireAuth from "./pages/Auth/RequireAuth";
 import AdminAuth from "./pages/Auth/AdminAuth";
 import LayoutAdmin from "./pages/Admin/LayoutAdmin";
 import LayoutNew from "./pages/LayoutNew";
+import CreateNewCoupon from "./pages/Admin/Coupon/CreateNewCoupon";
 
 // Lazy load all other components
 const Home = lazy(() => import("./pages/Home"));
@@ -30,6 +35,7 @@ const MyAccount = lazy(() => import("./pages/ProfilePage/MyAccount"));
 const OrderDashBoard = lazy(() => import("./pages/Admin/OrderDashBoard"));
 const OrderDetailDashBoard = lazy(() => import("./pages/Admin/OrderDetailDashBoard"));
 const MainDashBoard = lazy(() => import("./pages/Admin/MainDashBoard"));
+const CouponDashBoard = lazy(() => import("./pages/Admin/Coupon/CouponDashBoard"));
 
 // Loading component
 const Loading = () => (
@@ -74,87 +80,109 @@ function App() {
   }, [dispatch]);
 
   return (
-    <Suspense fallback={<Loading />}>
-      <Routes>
-        <Route path="login" element={<Login />} />
-        <Route path="register" element={<Register />} />
-        <Route element={<RequireAuth />}>
-          <Route element={<AdminAuth />}>
-            <Route path="admin" element={<LayoutAdmin />}>
-              <Route path="dashboard" element={
-                <Suspense fallback={<Loading />}>
-                  <MainDashBoard />
-                </Suspense>
-              } />
-              <Route path="cate" element={
-                <Suspense fallback={<Loading />}>
-                  <CateDashBoard />
-                </Suspense>
-              } />
-              <Route path="product" element={
-                <Suspense fallback={<Loading />}>
-                  <ProductDashboard />
-                </Suspense>
-              } />
-              <Route path="user" element={
-                <Suspense fallback={<Loading />}>
-                  <UserDashboard />
-                </Suspense>
-              } />
-              <Route path="order" element={
-                <Suspense fallback={<Loading />}>
-                  <OrderDashBoard />
-                </Suspense>
-              } />
-              <Route path="order/detail/:orderId" element={
-                <Suspense fallback={<Loading />}>
-                  <OrderDetailDashBoard />
-                </Suspense>
-              } />
-              <Route path="update-product/:id" element={
-                <Suspense fallback={<Loading />}>
-                  <CreateProduct />
-                </Suspense>
-              } />
-              <Route path="create-product" element={
-                <Suspense fallback={<Loading />}>
-                  <CreateProduct />
-                </Suspense>
-              } />
-              <Route path="user" element={
-                <Suspense fallback={<Loading />}>
-                  <UserDashboard />
-                </Suspense>
-              } />
-            </Route>
-          </Route>
-        </Route>
-
-        <Route path="/" element={<LayoutNew />}>
-          <Route index element={<Home />} />
-          <Route path="products/:slug" element={<ProductDetail />} />
-          <Route path="products/category/:category" element={<SearchLayout />} />
-
-          {/* Need login to access */}
+    <ThemeProvider theme={theme}>
+       <ToastContainer
+          position="bottom-right"
+          autoClose={1000}
+          hideProgressBar={false}
+          newestOnTop={true}
+          closeOnClick={true}
+          rtl={false}
+          pauseOnFocusLoss={false}
+          draggable={false}
+        />
+      <Suspense fallback={<Loading />}>
+        <Routes>
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
           <Route element={<RequireAuth />}>
-            <Route path="cart" element={<Cart />} />
-            <Route path="checkout" element={<CheckoutPage />} />
-            <Route path="thanks" element={<Thanks />} />
-            <Route path="profile" element={<Profile />}>
-              <Route index element={<ProfileDashBoard />} />
-              <Route path="dashboard" element={<ProfileDashBoard />} />
-              <Route path="my-order" element={<MyOrder />} />
-              <Route path="my-account" element={<MyAccount />} />
-            </Route>
-
             <Route element={<AdminAuth />}>
-              <Route path="user" element={<UserDashboard />} />
-              <Route path="category" element={<CategoryDashBoard />} />
+              <Route path="admin" element={<LayoutAdmin />}>
+                <Route path="dashboard" element={
+                  <Suspense fallback={<Loading />}>
+                    <MainDashBoard />
+                  </Suspense>
+                } />
+                <Route path="cate" element={
+                  <Suspense fallback={<Loading />}>
+                    <CateDashBoard />
+                  </Suspense>
+                } />
+                <Route path="coupon" element={
+                  <Suspense fallback={<Loading />}>
+                    <CouponDashBoard />
+                  </Suspense>
+                } />
+                <Route path="create-coupon" element={
+                  <Suspense fallback={<Loading />}>
+                    <CreateNewCoupon />
+                  </Suspense>
+                } />
+                <Route path="product" element={
+                  <Suspense fallback={<Loading />}>
+                    <ProductDashboard />
+                  </Suspense>
+                } />
+                <Route path="user" element={
+                  <Suspense fallback={<Loading />}>
+                    <UserDashboard />
+                  </Suspense>
+                } />
+                <Route path="order" element={
+                  <Suspense fallback={<Loading />}>
+                    <OrderDashBoard />
+                  </Suspense>
+                } />
+                <Route path="order/detail/:orderId" element={
+                  <Suspense fallback={<Loading />}>
+                    <OrderDetailDashBoard />
+                  </Suspense>
+                } />
+                <Route path="update-product/:id" element={
+                  <Suspense fallback={<Loading />}>
+                    <CreateProduct />
+                  </Suspense>
+                } />
+                <Route path="create-product" element={
+                  <Suspense fallback={<Loading />}>
+                    <CreateProduct />
+                  </Suspense>
+                } />
+                <Route path="user" element={
+                  <Suspense fallback={<Loading />}>
+                    <UserDashboard />
+                  </Suspense>
+                } />
+              </Route>
             </Route>
           </Route>
-        </Route>
-      </Routes>
-    </Suspense>
+
+          <Route path="/" element={<LayoutNew />}>
+            <Route index element={<Home />} />
+            <Route path="products/:slug" element={<ProductDetail />} />
+            <Route path="products/category/:category" element={<SearchLayout />} />
+
+            {/* Need login to access */}
+            <Route element={<RequireAuth />}>
+              <Route path="cart" element={<Cart />} />
+              <Route path="checkout" element={<CheckoutPage />} />
+              <Route path="thanks" element={<Thanks />} />
+              <Route path="profile" element={<Profile />}>
+                <Route index element={<ProfileDashBoard />} />
+                <Route path="dashboard" element={<ProfileDashBoard />} />
+                <Route path="my-order" element={<MyOrder />} />
+                <Route path="my-account" element={<MyAccount />} />
+              </Route>
+
+              <Route element={<AdminAuth />}>
+                <Route path="user" element={<UserDashboard />} />
+                <Route path="category" element={<CategoryDashBoard />} />
+              </Route>
+            </Route>
+          </Route>
+        </Routes>
+      </Suspense>
+    </ThemeProvider>
   );
 }
 

@@ -92,7 +92,7 @@ GenericTableToolbar.propTypes = {
   create: PropTypes.bool,
   handleCreateClick: PropTypes.func,
   handleOpenDialog: PropTypes.func.isRequired,
-  isLoading: PropTypes.bool.isRequired,
+  isLoading: PropTypes.bool,
 };
 
 export default GenericTableToolbar;

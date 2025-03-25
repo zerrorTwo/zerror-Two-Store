@@ -14,6 +14,13 @@ import {
 import { useNavigate } from "react-router";
 import { useGetAllOrdersQuery } from "../..//redux/api/checkoutSlice.js";
 
+const headCells = [
+  { id: "_id", label: "Order ID", disablePadding: false },
+  { id: "userName", label: "User Name", disablePadding: false },
+  { id: "state", label: "State", disablePadding: false, state: true },
+  { id: "finalTotal", label: "Final Price", money: true },
+  { id: "createdAt", label: "Order Time" },
+];
 const OrderDashBoard = () => {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
@@ -22,13 +29,6 @@ const OrderDashBoard = () => {
   const [inputSearch, setInputSearch] = useState("");
   const [search, setSearch] = useState("");
 
-  const headCells = [
-    { id: "_id", label: "Order ID", disablePadding: false },
-    { id: "userName", label: "User Name", disablePadding: false },
-    { id: "state", label: "State", disablePadding: false, state: true },
-    { id: "finalTotal", label: "Final Price", money: true },
-    { id: "createdAt", label: "Order Time" },
-  ];
 
   const {
     data: { orders: rows = [], totalPages } = {},

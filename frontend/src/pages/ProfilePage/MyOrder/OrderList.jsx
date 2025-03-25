@@ -89,6 +89,7 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
           productId: selectedOrder?.products[0]?.productId,
         },
       });
+      toast.success("Review added successfully!");
     } catch (error) {
       console.log(error);
     }

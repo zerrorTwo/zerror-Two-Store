@@ -21,11 +21,11 @@ import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
 import PeopleOutlinedIcon from "@mui/icons-material/PeopleOutlined";
-import SettingsOutlinedIcon from "@mui/icons-material/SettingsOutlined";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { EventBusyOutlined, LogoutOutlined, Menu as MenuIcon } from "@mui/icons-material";
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import BarChartIcon from "@mui/icons-material/BarChart";
+import ReceiptOutlinedIcon from '@mui/icons-material/ReceiptOutlined';
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: "transparent",
@@ -45,7 +45,7 @@ const menuItems = [
   { icon: <ShoppingCartOutlinedIcon />, text: "Order", path: "/admin/order" },
   { icon: <CategoryOutlinedIcon />, text: "Category", path: "/admin/cate" },
   { icon: <PeopleOutlinedIcon />, text: "User", path: "/admin/user" },
-  { icon: <SettingsOutlinedIcon />, text: "Settings", path: "/admin/settings" },
+  { icon: <ReceiptOutlinedIcon />, text: "Coupon", path: "/admin/coupon" },
   { icon: <EventBusyOutlined />, text: "Event", path: "/admin/event" },
   { icon: <LogoutOutlined />, text: "Logout", path: "/admin/logout" },
 ];

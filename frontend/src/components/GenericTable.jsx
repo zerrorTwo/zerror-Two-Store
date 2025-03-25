@@ -97,7 +97,7 @@ const GenericTable = ({
         alignItems: "center",
       }}
     >
-      <Paper sx={{ width: "100%", backgroundColor: "transparent" }}>
+      <Paper elevation={3} sx={{ width: "100%", backgroundColor: "transparent" }}>
         <GenericTableToolbar
           name={name}
           create={create}
@@ -247,7 +247,7 @@ const GenericTable = ({
                               ) : (
                                 <Box
                                   sx={{
-                                    maxWidth: "200px",
+                                    maxWidth: "150px",
                                     whiteSpace: "nowrap",
                                     overflow: "hidden",
                                     textOverflow: "ellipsis",

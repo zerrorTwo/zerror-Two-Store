@@ -389,6 +389,46 @@ const getTopSoldProducts = async () => {
   ]);
 };
 
+const findProductsByIds = async (ids) => {
+  try {
+    return await ProductModel.aggregate([
+      { $match: { _id: { $in: ids } } },
+      {
+        $addFields: {
+          normalizedPricing: {
+            $cond: {
+              if: { $isArray: "$variations.pricing" },
+              then: "$variations.pricing",
+              else: {
+                $cond: {
+                  if: { $eq: [{ $type: "$variations.pricing" }, "object"] },
+                  then: [{ $ifNull: ["$variations.pricing", {}] }],
+                  else: [],
+                },
+              },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          minPrice: {
+            $cond: {
+              if: {
+                $gt: [{ $size: { $ifNull: ["$normalizedPricing", []] } }, 0],
+              },
+              then: { $min: "$normalizedPricing.price" },
+              else: "$price",
+            },
+          },
+        },
+      },
+    ]);
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const productRepository = {
   findProductByName,
   findCategoryBySlug,
@@ -402,4 +442,5 @@ export const productRepository = {
   getAllProducts,
   getPageProducts,
   getTopSoldProducts,
+  findProductsByIds,
 };

@@ -8,3 +8,4 @@ export const CHECKOUT_URL = "http://localhost:5000/v1/api/order";
 export const PAYMENT_URL = "http://localhost:5000/v1/api/payment";
 export const ADDRESS_URL = "http://localhost:5000/v1/api/address";
 export const REVIEW_URL = "http://localhost:5000/v1/api/review";
+export const COUPON_URL = "http://localhost:5000/v1/api/coupon";

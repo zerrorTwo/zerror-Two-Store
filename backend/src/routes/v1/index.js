@@ -11,6 +11,7 @@ import { paymentRoute } from "./payment.route.js";
 import { orderRoute } from "./order.route.js";
 import dashboardRoute from "./dashboard.route.js";
 import { reviewRoute } from "./review.route.js";
+import { couponRoute } from "../coupon.route.js";
 
 const Router = express.Router();
 
@@ -29,5 +30,6 @@ Router.use("/payment", paymentRoute);
 Router.use("/order", orderRoute);
 Router.use("/dashboard", dashboardRoute);
 Router.use("/review", reviewRoute);
+Router.use("/coupon", couponRoute);
 
 export const APIS_V1 = Router;
