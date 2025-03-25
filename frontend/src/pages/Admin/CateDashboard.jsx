@@ -26,6 +26,17 @@ import { useNavigate, useSearchParams } from "react-router";
 const MemoizedGenericTable = memo(GenericTable);
 const MemoizedPopoverPaper = memo(PopoverPaper);
 
+const headCells = [
+  { id: "name", numeric: false, disablePadding: false, label: "Name" },
+  {
+    id: "img",
+    numeric: false,
+    disablePadding: false,
+    label: "Image",
+    img: true,
+  },
+];
+
 function CateDashBoard() {
   const theme = useTheme();
   const [searchParams] = useSearchParams();
@@ -38,16 +49,7 @@ function CateDashBoard() {
     setParentId(parent);
   }, [parent]);
 
-  const headCells = [
-    { id: "name", numeric: false, disablePadding: false, label: "Name" },
-    {
-      id: "img",
-      numeric: false,
-      disablePadding: false,
-      label: "Image",
-      img: true,
-    },
-  ];
+
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 

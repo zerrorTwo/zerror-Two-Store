@@ -9,7 +9,23 @@ import { toast } from "react-toastify";
 import  Box  from "@mui/material/Box";
 import  Divider  from "@mui/material/Divider";
 import  Typography  from "@mui/material/Typography";
-
+const headCells = [
+  // { id: "_id", numeric: true, disablePadding: false, label: "ID" },
+  {
+    id: "userName",
+    numeric: false,
+    disablePadding: false,
+    label: "User Name",
+  },
+  { id: "email", numeric: false, disablePadding: false, label: "Email" },
+  {
+    id: "phoneNumber",
+    numeric: false,
+    disablePadding: false,
+    label: "Phone Number",
+  },
+  { id: "isAdmin", numeric: false, disablePadding: false, label: "Admin" },
+];
 const UserDashboard = () => {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -47,23 +63,7 @@ const UserDashboard = () => {
     }
   };
 
-  const headCells = [
-    // { id: "_id", numeric: true, disablePadding: false, label: "ID" },
-    {
-      id: "userName",
-      numeric: false,
-      disablePadding: false,
-      label: "User Name",
-    },
-    { id: "email", numeric: false, disablePadding: false, label: "Email" },
-    {
-      id: "phoneNumber",
-      numeric: false,
-      disablePadding: false,
-      label: "Phone Number",
-    },
-    { id: "isAdmin", numeric: false, disablePadding: false, label: "Admin" },
-  ];
+
 
   if (isLoading) return <div>Loading...</div>;
   if (error) return <div>Error loading data</div>;

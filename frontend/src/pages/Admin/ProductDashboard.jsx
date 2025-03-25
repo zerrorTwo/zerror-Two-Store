@@ -18,6 +18,33 @@ import {
 } from "@mui/material";
 import CategoryDropdown2 from "../../components/CategoryDropdown2.jsx";
 import { useNavigate } from "react-router";
+const headCells = [
+  { id: "name", disablePadding: false, label: "Name" },
+  {
+    id: "mainImg",
+    img: true,
+    disablePadding: false,
+    label: "Img",
+  },
+  {
+    id: "price",
+    money: true,
+    disablePadding: false,
+    label: "Price",
+  },
+  { id: "stock", numeric: true, disablePadding: false, label: "Stock" },
+  {
+    id: "type",
+    disablePadding: false,
+    label: "Type",
+  },
+  {
+    id: "status",
+    boolean: true,
+    disablePadding: false,
+    label: "Status",
+  },
+];
 
 const ProductDashboard = () => {
   const theme = useTheme();
@@ -32,33 +59,6 @@ const ProductDashboard = () => {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const headCells = [
-    { id: "name", disablePadding: false, label: "Name" },
-    {
-      id: "mainImg",
-      img: true,
-      disablePadding: false,
-      label: "Img",
-    },
-    {
-      id: "price",
-      money: true,
-      disablePadding: false,
-      label: "Price",
-    },
-    { id: "stock", numeric: true, disablePadding: false, label: "Stock" },
-    {
-      id: "type",
-      disablePadding: false,
-      label: "Type",
-    },
-    {
-      id: "status",
-      boolean: true,
-      disablePadding: false,
-      label: "Status",
-    },
-  ];
 
   const {
     data: { products: rows = [], totalPages } = {},
