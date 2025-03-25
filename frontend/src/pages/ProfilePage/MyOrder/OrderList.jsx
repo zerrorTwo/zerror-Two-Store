@@ -17,18 +17,28 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import PaymentIcon from "@mui/icons-material/Payment";
 import AccountBalanceIcon from "@mui/icons-material/AccountBalance";
 import PhoneAndroidIcon from "@mui/icons-material/PhoneAndroid";
-import { toast } from "react-toastify";
 import {
   useCreateMomoPaymentMutation,
   useVerifyPaymentUrlExpirationMutation,
 } from "../../../redux/api/checkoutSlice";
 import CommentPopover from "../../../components/CommentPopover";
 import SkeletonOrder from "../../../components/SkeletonOrder";
+import { useAddReviewMutation } from "../../../redux/api/reviewSlice";
+import { toast } from "react-toastify";
 
+// Add this style at the top
 const styles = {
   "@keyframes fadeIn": {
     "0%": { opacity: 0 },
     "100%": { opacity: 1 },
+  },
+  loadingContainer: {
+    minHeight: "200px", // Set a minimum height
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "16px",
+    backgroundColor: "background.paper",
   },
 };
 
@@ -58,10 +68,30 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
     }, 300);
   };
 
-  const handleSubmitReview = ({ rating, comment }) => {
-    console.log("Submitting review for order:", selectedOrder._id);
-    console.log("Rating:", rating);
-    console.log("Comment:", comment);
+  const [addReview, { isLoading: isAddingReview }] = useAddReviewMutation();
+
+  const handleSubmitReview = async ({ rating, comment }) => {
+    try {
+      const json = selectedOrder?.products[0]?.variations[0]?.type;
+
+      const result = json
+        ? Object.entries(json)
+            .map(([key, value]) => `${key}:${value}`)
+            .join(",")
+        : "";
+
+      await addReview({
+        data: {
+          rating: rating,
+          comment: comment,
+          variations: result,
+          orderId: selectedOrder._id,
+          productId: selectedOrder?.products[0]?.productId,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+    }
     handleClose();
   };
 
@@ -80,13 +110,13 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
           await processMomoPayment(selectedOrder);
           break;
         case "VNPAY":
-          toast.info("Chức năng thanh toán VNPAY đang được phát triển");
+          alert("Chức năng thanh toán VNPAY đang được phát triển");
           break;
         case "BANK_TRANSFER":
-          toast.info("Chức năng thanh toán chuyển khoản đang được phát triển");
+          alert("Chức năng thanh toán chuyển khoản đang được phát triển");
           break;
         default:
-          toast.error("Phương thức thanh toán không hợp lệ");
+          alert("Phương thức thanh toán không hợp lệ");
       }
     } catch (error) {
       toast.error(
@@ -115,7 +145,7 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
         if (response.payUrl) {
           window.location.href = response.payUrl;
         } else {
-          toast.error("Không thể tạo link thanh toán MoMo");
+          alert("Không thể tạo link thanh toán MoMo");
         }
       }
 
@@ -124,7 +154,7 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
       if (response.payUrl) {
         window.location.href = response.payUrl;
       } else {
-        toast.error("Không thể tạo link thanh toán MoMo");
+        alert("Không thể tạo link thanh toán MoMo");
       }
     } catch (error) {
       toast.error(
@@ -274,9 +304,14 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
                 mt: 2,
               }}
             >
-              <Typography variant="body1">
-                Phí vận chuyển: ₫{order.deliveryFee?.toLocaleString()}
-              </Typography>
+              <Box sx={{ display: "flex", gap: 1 , flexDirection: "column" }}>
+                <Typography variant="body1">
+                  Phí vận chuyển: ₫{order.deliveryFee?.toLocaleString()}
+                </Typography>
+                {order?.canReview && <Typography variant="body1" color="secondary.main">
+                  Đánh giá san pham di con cho
+                 </Typography >}
+              </Box>
               <Box sx={{ display: "flex", gap: 1 }}>
                 {order.canReview && (
                   <Button
@@ -334,7 +369,7 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
       ))}
 
       {(isLoading || isFetching) && (
-        <Box sx={styles}>
+        <Box sx={styles.loadingContainer}>
           <SkeletonOrder />
         </Box>
       )}
@@ -351,6 +386,7 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
         anchorEl={ratingAnchorEl}
         onClose={handleClose}
         onSubmit={handleSubmitReview}
+        isLoading={isAddingReview}
       />
 
       {/* Payment Method Popover */}

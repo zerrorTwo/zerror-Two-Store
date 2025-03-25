@@ -1,31 +1,42 @@
 import { useDispatch } from "react-redux";
-import { useEffect } from "react";
+import { useEffect, lazy, Suspense } from "react";
 import { setCredentials } from "./redux/features/auth/authSlice";
 import { Routes, Route } from "react-router-dom";
-import Home from "./pages/Home";
-import Cart from "./pages/Cart";
-import Login from "./pages/Auth/Login";
-import Register from "./pages/Auth/Register";
+
+// Common components that might be used frequently
 import RequireAuth from "./pages/Auth/RequireAuth";
-import UserDashboard from "./pages/Admin/UserDashboard";
 import AdminAuth from "./pages/Auth/AdminAuth";
-import Profile from "./pages/Profile";
 import LayoutAdmin from "./pages/Admin/LayoutAdmin";
-import CategoryDashBoard from "./pages/Admin/CategoryDashBoard";
 import LayoutNew from "./pages/LayoutNew";
-import SearchLayout from "./pages/SearchLayout";
-import ProductDetail from "./pages/ProductDetailPage/ProductDetail";
-import CreateProduct from "./pages/Admin/CreateProduct/CreateProduct";
-import CheckoutPage from "./pages/CheckoutPage/CheckoutPage";
-import Thanks from "./pages/Thanks";
-import CateDashBoard from "./pages/Admin/CateDashboard";
-import ProductDashboard from "./pages/Admin/ProductDashboard";
-import ProfileDashBoard from "./pages/ProfilePage/ProfileDasBoard";
-import MyOrder from "./pages/ProfilePage/MyOrder/MyOrder";
-import MyAccount from "./pages/ProfilePage/MyAccount";
-import OrderDashBoard from "./pages/Admin/OrderDashBoard";
-import OrderDetailDashBoard from "./pages/Admin/OrderDetailDashBoard";
-import MainDashBoard from "./pages/Admin/MainDashBoard";
+
+// Lazy load all other components
+const Home = lazy(() => import("./pages/Home"));
+const Cart = lazy(() => import("./pages/Cart"));
+const Login = lazy(() => import("./pages/Auth/Login"));
+const Register = lazy(() => import("./pages/Auth/Register"));
+const UserDashboard = lazy(() => import("./pages/Admin/UserDashboard"));
+const Profile = lazy(() => import("./pages/Profile"));
+const CategoryDashBoard = lazy(() => import("./pages/Admin/CategoryDashBoard"));
+const SearchLayout = lazy(() => import("./pages/SearchLayout"));
+const ProductDetail = lazy(() => import("./pages/ProductDetailPage/ProductDetail"));
+const CreateProduct = lazy(() => import("./pages/Admin/CreateProduct/CreateProduct"));
+const CheckoutPage = lazy(() => import("./pages/CheckoutPage/CheckoutPage"));
+const Thanks = lazy(() => import("./pages/Thanks"));
+const CateDashBoard = lazy(() => import("./pages/Admin/CateDashboard"));
+const ProductDashboard = lazy(() => import("./pages/Admin/ProductDashboard"));
+const ProfileDashBoard = lazy(() => import("./pages/ProfilePage/ProfileDasBoard"));
+const MyOrder = lazy(() => import("./pages/ProfilePage/MyOrder/MyOrder"));
+const MyAccount = lazy(() => import("./pages/ProfilePage/MyAccount"));
+const OrderDashBoard = lazy(() => import("./pages/Admin/OrderDashBoard"));
+const OrderDetailDashBoard = lazy(() => import("./pages/Admin/OrderDetailDashBoard"));
+const MainDashBoard = lazy(() => import("./pages/Admin/MainDashBoard"));
+
+// Loading component
+const Loading = () => (
+  <div className="flex justify-center items-center h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-gray-900"></div>
+  </div>
+);
 
 function App() {
   const dispatch = useDispatch();
@@ -46,7 +57,6 @@ function App() {
 
           const now = new Date().getTime();
           if (now < tokenExpires && now < userExpires) {
-            // Chỉ dispatch nếu đang không có user trong state
             dispatch(setCredentials({ user, accessToken: token }));
           } else {
             localStorage.removeItem("userInfo");
@@ -64,53 +74,87 @@ function App() {
   }, [dispatch]);
 
   return (
-    <Routes>
-      <Route path="login" element={<Login />} />
-      <Route path="register" element={<Register />} />
-      <Route element={<RequireAuth />}>
-        <Route element={<AdminAuth />}>
-          <Route path="admin" element={<LayoutAdmin />}>
-            <Route path="dashboard" element={<MainDashBoard />} />
-            <Route path="cate" element={<CateDashBoard />} />
-            <Route path="product" element={<ProductDashboard />} />
-            <Route path="user" element={<UserDashboard />} />
-            <Route path="order" element={<OrderDashBoard />} />
-            <Route
-              path="order/detail/:orderId"
-              element={<OrderDetailDashBoard />}
-            />
-            <Route path="update-product/:id" element={<CreateProduct />} />
-            <Route path="create-product" element={<CreateProduct />} />
-
-            <Route path="user" element={<UserDashboard />} />
-          </Route>
-        </Route>
-      </Route>
-
-      <Route path="/" element={<LayoutNew />}>
-        <Route index element={<Home />} />
-        <Route path="products/:slug" element={<ProductDetail />} />
-        <Route path="products/category/:category" element={<SearchLayout />} />
-
-        {/* Need login to access */}
+    <Suspense fallback={<Loading />}>
+      <Routes>
+        <Route path="login" element={<Login />} />
+        <Route path="register" element={<Register />} />
         <Route element={<RequireAuth />}>
-          <Route path="cart" element={<Cart />} />
-          <Route path="checkout" element={<CheckoutPage />} />
-          <Route path="thanks" element={<Thanks />} />
-          <Route path="profile" element={<Profile />}>
-            <Route index element={<ProfileDashBoard />} />
-            <Route path="dashboard" element={<ProfileDashBoard />} />
-            <Route path="my-order" element={<MyOrder />} />
-            <Route path="my-account" element={<MyAccount />} />
-          </Route>
-
           <Route element={<AdminAuth />}>
-            <Route path="user" element={<UserDashboard />} />
-            <Route path="category" element={<CategoryDashBoard />} />
+            <Route path="admin" element={<LayoutAdmin />}>
+              <Route path="dashboard" element={
+                <Suspense fallback={<Loading />}>
+                  <MainDashBoard />
+                </Suspense>
+              } />
+              <Route path="cate" element={
+                <Suspense fallback={<Loading />}>
+                  <CateDashBoard />
+                </Suspense>
+              } />
+              <Route path="product" element={
+                <Suspense fallback={<Loading />}>
+                  <ProductDashboard />
+                </Suspense>
+              } />
+              <Route path="user" element={
+                <Suspense fallback={<Loading />}>
+                  <UserDashboard />
+                </Suspense>
+              } />
+              <Route path="order" element={
+                <Suspense fallback={<Loading />}>
+                  <OrderDashBoard />
+                </Suspense>
+              } />
+              <Route path="order/detail/:orderId" element={
+                <Suspense fallback={<Loading />}>
+                  <OrderDetailDashBoard />
+                </Suspense>
+              } />
+              <Route path="update-product/:id" element={
+                <Suspense fallback={<Loading />}>
+                  <CreateProduct />
+                </Suspense>
+              } />
+              <Route path="create-product" element={
+                <Suspense fallback={<Loading />}>
+                  <CreateProduct />
+                </Suspense>
+              } />
+              <Route path="user" element={
+                <Suspense fallback={<Loading />}>
+                  <UserDashboard />
+                </Suspense>
+              } />
+            </Route>
           </Route>
         </Route>
-      </Route>
-    </Routes>
+
+        <Route path="/" element={<LayoutNew />}>
+          <Route index element={<Home />} />
+          <Route path="products/:slug" element={<ProductDetail />} />
+          <Route path="products/category/:category" element={<SearchLayout />} />
+
+          {/* Need login to access */}
+          <Route element={<RequireAuth />}>
+            <Route path="cart" element={<Cart />} />
+            <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="thanks" element={<Thanks />} />
+            <Route path="profile" element={<Profile />}>
+              <Route index element={<ProfileDashBoard />} />
+              <Route path="dashboard" element={<ProfileDashBoard />} />
+              <Route path="my-order" element={<MyOrder />} />
+              <Route path="my-account" element={<MyAccount />} />
+            </Route>
+
+            <Route element={<AdminAuth />}>
+              <Route path="user" element={<UserDashboard />} />
+              <Route path="category" element={<CategoryDashBoard />} />
+            </Route>
+          </Route>
+        </Route>
+      </Routes>
+    </Suspense>
   );
 }
 

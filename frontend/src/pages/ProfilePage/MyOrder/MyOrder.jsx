@@ -1,17 +1,28 @@
+import { lazy, Suspense } from 'react';
 import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 import { useState } from "react";
 import { useTheme } from "@emotion/react";
-import MyOrderAll from "./MyOrderAll";
 import CustomTabPanel from "../../../components/CustomTabPanel";
 import a11yProps from "../../../../utils/a11yProps";
-import MyOrdertoPay from "./MyOrderToPay";
-import MyOrdertoShip from "./MyOrderToShip";
-import MyOrdertoConfirm from "./MyOrderToConfirm";
-import MyOrdertoCompleted from "./MyOrderToCompleted";
-import MyOrdertoCancelled from "./MyOrderToCancelled";
-import MyOrdertoReturn from "./MyOrderToReturn";
+import CircularProgress from '@mui/material/CircularProgress';
+
+// Lazy load all order components
+const MyOrderAll = lazy(() => import("./MyOrderAll"));
+const MyOrdertoPay = lazy(() => import("./MyOrderToPay"));
+const MyOrdertoShip = lazy(() => import("./MyOrderToShip"));
+const MyOrdertoConfirm = lazy(() => import("./MyOrderToConfirm"));
+const MyOrdertoCompleted = lazy(() => import("./MyOrderToCompleted"));
+const MyOrdertoCancelled = lazy(() => import("./MyOrderToCancelled"));
+const MyOrdertoReturn = lazy(() => import("./MyOrderToReturn"));
+
+// Loading component
+const Loading = () => (
+  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+    <CircularProgress />
+  </Box>
+);
 
 export default function MyOrder() {
   const [value, setValue] = useState(0);
@@ -34,29 +45,22 @@ export default function MyOrder() {
               color: `${theme.palette.secondary.main} !important`,
             },
             "& .MuiTabs-indicator": {
-              backgroundColor: "secondary.main",
-            },
-            "& .MuiTab-root": {
-              minWidth: 0,
-              flex: 1,
-              textTransform: "none",
+              backgroundColor: `${theme.palette.secondary.main} !important`,
             },
           }}
         >
-          <Tab sx={{ fontSize: "16px" }} label="All" {...a11yProps(0)} />
-          <Tab sx={{ fontSize: "16px" }} label="To Pay" {...a11yProps(1)} />
-          <Tab sx={{ fontSize: "16px" }} label="To Confirm" {...a11yProps(2)} />
-          <Tab sx={{ fontSize: "16px" }} label="To Ship" {...a11yProps(3)} />
-          <Tab sx={{ fontSize: "16px" }} label="Completed" {...a11yProps(4)} />
-          <Tab sx={{ fontSize: "16px" }} label="Cancelled" {...a11yProps(5)} />
-          <Tab
-            sx={{ fontSize: "16px" }}
-            label="Return Refund"
-            {...a11yProps(5)}
-          />
+          <Tab label="Tất cả" {...a11yProps(0)} />
+          <Tab label="Chờ thanh toán" {...a11yProps(1)} />
+          <Tab label="Đang giao" {...a11yProps(2)} />
+          <Tab label="Chờ xác nhận" {...a11yProps(3)} />
+          <Tab label="Hoàn thành" {...a11yProps(4)} />
+          <Tab label="Đã hủy" {...a11yProps(5)} />
+          <Tab label="Trả hàng" {...a11yProps(6)} />
         </Tabs>
       </Box>
-      <Box sx={{ padding: 3 }}>
+
+      {/* Render tab panels with Suspense */}
+      <Suspense fallback={<Loading />}>
         <CustomTabPanel value={value} index={0}>
           <MyOrderAll />
         </CustomTabPanel>
@@ -64,10 +68,10 @@ export default function MyOrder() {
           <MyOrdertoPay />
         </CustomTabPanel>
         <CustomTabPanel value={value} index={2}>
-          <MyOrdertoConfirm />
+          <MyOrdertoShip />
         </CustomTabPanel>
         <CustomTabPanel value={value} index={3}>
-          <MyOrdertoShip />
+          <MyOrdertoConfirm />
         </CustomTabPanel>
         <CustomTabPanel value={value} index={4}>
           <MyOrdertoCompleted />
@@ -78,7 +82,7 @@ export default function MyOrder() {
         <CustomTabPanel value={value} index={6}>
           <MyOrdertoReturn />
         </CustomTabPanel>
-      </Box>
+      </Suspense>
     </Box>
   );
 }

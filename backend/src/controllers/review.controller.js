@@ -3,15 +3,16 @@ import asyncHandeler from "../middlewares/async.handler.js";
 import { reviewService } from "../services/review.service.js";
 
 const addReview = asyncHandeler(async (req, res) => {
-  const { productId, rating, comment } = req.body;
+  const { orderId, productId, rating, comment, variations } = req.body;
   const userId = req.userId;
-  const review = await reviewService.addReview(productId, userId, rating, comment);
+  const review = await reviewService.addReview(orderId, productId, userId, variations, rating, comment);
   res.status(StatusCodes.CREATED).json(review);
 });
 
 const deleteReview = asyncHandeler(async (req, res) => {
   const { productId, reviewId } = req.body;
-  const review = await reviewService.deleteReview(productId, reviewId);
+  const userId = req.userId;
+  const review = await reviewService.deleteReview(productId, userId, reviewId);
   res.status(StatusCodes.OK).json(review);
 });
 

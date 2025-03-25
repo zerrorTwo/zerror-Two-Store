@@ -6,6 +6,8 @@ import { useGetUserOrderQuery } from "../../../redux/api/checkoutSlice";
 function MyOrdertoPay() {
   const [page, setPage] = useState(1);
   const [allOrders, setAllOrders] = useState([]);
+  const [isFetching, setIsFetching] = useState(false);
+
 
   const { data, isLoading } = useGetUserOrderQuery({
     page,
@@ -30,18 +32,29 @@ function MyOrdertoPay() {
   const observer = useRef();
   const lastOrderRef = useCallback(
     (node) => {
-      if (isLoading || !data?.hasMore) return;
+      if (isLoading || isFetching || !data?.hasMore) return;
+
       if (observer.current) observer.current.disconnect();
 
-      observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting) {
-          setPage((prevPage) => prevPage + 1);
+      observer.current = new IntersectionObserver(
+        (entries) => {
+          if (entries[0].isIntersecting && !isFetching) {
+            setIsFetching(true);
+            setTimeout(() => {
+              setPage((prevPage) => prevPage + 1);
+              setIsFetching(false);
+            }, 300);
+          }
+        },
+        {
+          rootMargin: "100px",
+          threshold: 0.1,
         }
-      });
+      );
 
       if (node) observer.current.observe(node);
     },
-    [isLoading, data?.hasMore]
+    [isLoading, data?.hasMore, isFetching]
   );
 
   return (
@@ -50,7 +63,9 @@ function MyOrdertoPay() {
       <OrderList
         allOrders={allOrders}
         lastOrderRef={lastOrderRef}
-        isLoading={isLoading}
+        isLoading={isLoading || isFetching}
+        isFetching={isFetching}
+        fetchMoreOrders={() => setPage((prev) => prev + 1)}
       />
     </Box>
   );

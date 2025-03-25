@@ -1,57 +1,66 @@
-import  HeaderLayout  from "../components/HeaderLayout.jsx";
-import  Box  from "@mui/material/Box";
-import  CircularProgress  from "@mui/material/CircularProgress";
-import  {Outlet}  from "react-router";
-import  { lazy, Suspense, useEffect, useRef, useState }  from "react";
+import { lazy, Suspense, useEffect, useRef, useState, memo } from "react";
+import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
+import { Outlet } from "react-router";
+import HeaderLayout from "../components/HeaderLayout.jsx";
 
-// Lazy load Footer
-const Footer = lazy(() => import("../components/Footer.jsx"));
+// Memoize HeaderLayout
+const MemoizedHeader = memo(HeaderLayout);
+
+// Lazy load Footer and memoize it
+const Footer = lazy(() => 
+  import("../components/Footer.jsx").then(module => {
+    // Memoize the Footer component when it's loaded
+    return { default: memo(module.default) };
+  })
+);
 
 function LayoutNew() {
-  const footerRef = useRef(null);
-  const [isFooterInView, setIsFooterInView] = useState(false);
+  const footerContainerRef = useRef(null);
+  const [shouldLoadFooter, setShouldLoadFooter] = useState(false);
 
   useEffect(() => {
-    const currentFooterRef = footerRef.current; // Lưu trữ giá trị của ref vào biến
+    const footerContainer = footerContainerRef.current;
 
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
-          setIsFooterInView(true);
+          setShouldLoadFooter(true);
           observer.disconnect(); // Ngắt kết nối sau khi đã vào viewport
         }
       },
       {
-        threshold: 0.5, // Kích hoạt khi ít nhất 50% Footer vào viewport
+        threshold: 0.1, // Kích hoạt khi chỉ cần 10% container vào viewport
       }
     );
 
-    if (currentFooterRef) {
-      observer.observe(currentFooterRef);
+    if (footerContainer) {
+      observer.observe(footerContainer);
     }
 
     return () => {
-      if (currentFooterRef) {
-        observer.unobserve(currentFooterRef);
+      if (footerContainer) {
+        observer.unobserve(footerContainer);
       }
     };
   }, []);
 
   return (
     <>
-      <HeaderLayout />
+      <MemoizedHeader />
       <Box mt={12}>
         <Outlet />
       </Box>
 
-      {/* Lazy load Footer when it's in view */}
-      <Suspense
-        fallback={
-          <CircularProgress sx={{ display: "block", margin: "auto" }} />
-        }
-      >
-        <div ref={footerRef}>{isFooterInView && <Footer />}</div>
-      </Suspense>
+      {/* Container rỗng sẽ được quan sát */}
+      <div ref={footerContainerRef} style={{ minHeight: '50px' }}>
+        {/* Lazy load Footer khi container vào view */}
+        {shouldLoadFooter && (
+          <Suspense fallback={<CircularProgress sx={{ display: "block", margin: "auto" }} />}>
+            <Footer />
+          </Suspense>
+        )}
+      </div>
     </>
   );
 }

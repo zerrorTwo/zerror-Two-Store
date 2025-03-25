@@ -6,6 +6,7 @@ import  Typography  from '@mui/material/Typography';
 import  Rating  from '@mui/material/Rating';
 import  TextField  from '@mui/material/TextField';
 import  Button  from '@mui/material/Button';
+import { CircularProgress } from '@mui/material';
 
 const labels = {
     0.5: 'Terrible',
@@ -20,7 +21,7 @@ const labels = {
     5: 'Excellent',
 };
 
-const CommentPopover = ({ anchorEl, onClose, onSubmit, id }) => {
+const CommentPopover = ({ anchorEl, onClose, onSubmit, id, isLoading }) => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const open = Boolean(anchorEl);
@@ -122,7 +123,7 @@ const CommentPopover = ({ anchorEl, onClose, onSubmit, id }) => {
         <Button 
           variant="contained" 
           onClick={handleSubmit}
-          disabled={!rating}
+          disabled={!rating || isLoading}
           sx={{
             borderRadius: 2,
             textTransform: 'none',
@@ -130,7 +131,11 @@ const CommentPopover = ({ anchorEl, onClose, onSubmit, id }) => {
             '&:hover': { bgcolor: 'primary.dark' }
           }}
         >
-          Submit Review
+          {isLoading ? (
+            <CircularProgress size={24} color="inherit" />
+          ) : (
+            "Submit Review"
+          )}
         </Button>
       </Box>
     </Popover>
@@ -141,6 +146,7 @@ CommentPopover.propTypes = {
   anchorEl: PropTypes.any,  
   onClose: PropTypes.func.isRequired,  
   onSubmit: PropTypes.func.isRequired,  
+  isLoading: PropTypes.bool.isRequired,  
   id: PropTypes.string  
 };
 

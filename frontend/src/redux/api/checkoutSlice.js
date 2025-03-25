@@ -40,30 +40,51 @@ export const checkoutSlice = apiSlice.injectEndpoints({
     }),
 
     getUserOrder: builder.query({
-      query: ({ page, limit, filter }) => ({
+      query: ({ page, limit, filter = "" }) => ({
         url: `${CHECKOUT_URL}/get-all/?page=${page}&limit=${limit}&filter=${filter}`,
         method: "GET",
       }),
+      // Chỉ cần phân biệt theo filter
       serializeQueryArgs: ({ queryArgs }) => {
-        return `${queryArgs.filter}`;
+        return `filter=${queryArgs.filter || ""}`;
       },
-      merge: (currentCache, newItems) => {
-        if (currentCache.page === 1) {
+      merge: (currentCache, newItems, { arg }) => {
+        // Nếu là trang đầu tiên hoặc đổi filter, thay thế toàn bộ dữ liệu
+        if (arg.page === 1) {
           return newItems;
         }
+        
+        // Trường hợp trang tiếp theo, gộp dữ liệu và đảm bảo không trùng lặp
+        const combinedOrders = [...currentCache.orders];
+        const existingIds = new Set(combinedOrders.map(order => order._id));
+        
+        newItems.orders.forEach(order => {
+          if (!existingIds.has(order._id)) {
+            combinedOrders.push(order);
+            existingIds.add(order._id);
+          }
+        });
+        
         return {
-          orders: [...currentCache.orders, ...newItems.orders],
+          orders: combinedOrders,
           hasMore: newItems.hasMore,
+          page: arg.page
         };
       },
+      // Xác định khi nào cần fetch lại dữ liệu
       forceRefetch({ currentArg, previousArg }) {
         return (
           currentArg?.page !== previousArg?.page ||
           currentArg?.filter !== previousArg?.filter
         );
       },
+      // Xử lý lỗi khi fetch
+      onError: (error) => {
+        console.error("Error fetching orders:", error);
+      },
       providesTags: ["Order"],
-      keepUnusedDataFor: 0,
+      // Tăng thời gian cache để giảm số lần gọi API
+      keepUnusedDataFor: 60, // 60 seconds
     }),
 
     createOrder: builder.mutation({

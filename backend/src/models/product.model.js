@@ -4,6 +4,7 @@ const reviewSchema = mongoose.Schema(
   {
     rating: { type: Number, required: true },
     comment: { type: String, required: true },
+    variations: { type: String },
     userId: {
       type: mongoose.Schema.Types.ObjectId,
       required: true,

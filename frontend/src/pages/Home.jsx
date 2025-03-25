@@ -79,9 +79,9 @@ function Home() {
         </Box>
 
         {/* Box content */}
-        <Box mt={5}>
+        <Box mt={5} >
           {/* FlashSale */}
-          <Box ref={flashSaleRef}>
+          <Box mb={5} ref={flashSaleRef}>
             {topSoldError ? (
               <Alert severity="error">
                 <AlertTitle>Error</AlertTitle>
@@ -226,7 +226,7 @@ function Home() {
           </Box>
 
           {/* Suggest */}
-          <Box ref={suggestRef}>
+          <Box ref={suggestRef} mb={5}>
             {listError ? (
               <Alert severity="error">
                 <AlertTitle>Error</AlertTitle>
