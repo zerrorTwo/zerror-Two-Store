@@ -39,7 +39,6 @@ function CartVariationPopover({
   data,
   onClose,
   productId,
-  userId,
 }) {
   const [updateVar] = useUpdateVariationMutation();
   const [selectedAttributes, setSelectedAttributes] = useState(initAttribute);
@@ -103,7 +102,6 @@ function CartVariationPopover({
         return;
       }
       const data = {
-        userId: userId,
         state: "ACTIVE",
         products: [
           {
@@ -218,7 +216,6 @@ CartVariationPopover.propTypes = {
   onClose: PropTypes.func.isRequired,
   data: PropTypes.object.isRequired,
   productId: PropTypes.string.isRequired,
-  userId: PropTypes.string.isRequired,
   initAttribute: PropTypes.object,
 };
 

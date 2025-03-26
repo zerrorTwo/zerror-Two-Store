@@ -1,24 +1,25 @@
-import Button from "@mui/material/Button";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useCreateOrderMutation } from "../../redux/api/checkoutSlice";
 import Container from "@mui/material/Container";
-import Divider from "@mui/material/Divider";
 import Typography from "@mui/material/Typography";
-import Backdrop from "@mui/material/Backdrop";
-import CircularProgress from "@mui/material/CircularProgress";
 import Box from "@mui/material/Box";
-import { useEffect, useState, useMemo } from "react";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import CircularProgress from "@mui/material/CircularProgress";
+import { Grid } from "@mui/material"; 
+import CouponSelector from "../../components/Coupon/CouponSelector";
 import AddressDrawer from "./AddressDrawer";
 import CheckoutProduct from "./CheckoutProduct";
 import AddLocationIcon from "@mui/icons-material/AddLocation";
+import CashPaymentMethod from "./CashPaymentMethod";
+import MomoPaymentMethod from "./MomoPaymentMethod";
+import Backdrop from "@mui/material/Backdrop";
 import {
-  useCreateOrderMutation,
   useGetProductCheckoutQuery,
 } from "../../redux/api/checkoutSlice";
 import { useLazyGetUserAddressByIdQuery } from "../../redux/api/addressSlice";
-import CashPaymentMethod from "./CashPaymentMethod";
-import MomoPaymentMethod from "./MomoPaymentMethod";
-import { toast } from "react-toastify";
-import { useNavigate } from "react-router";
-import { Grid2 } from "@mui/material";
 
 function CheckoutPage() {
   const [state, setState] = useState({
@@ -28,15 +29,62 @@ function CheckoutPage() {
     right: false,
   });
   const [confirmAddress, setConfirmAddress] = useState("");
-  const { data } = useGetProductCheckoutQuery();
   const [getUserAddressById] = useLazyGetUserAddressByIdQuery();
   const [selectedAddress, setSelectedAddress] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cash");
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
+  const [selectedCoupons, setSelectedCoupons] = useState({
+    PRODUCT: null,
+    FREESHIPPING: null,
+    ORDER: null
+  });
+  
   const navigate = useNavigate();
 
-  const [createOrder, { isLoading }] = useCreateOrderMutation();
+  const { data } = useGetProductCheckoutQuery();
+  const [createOrder, { isLoading: loadingOrder }] = useCreateOrderMutation();
 
+  const calculateCouponDiscount = useCallback((coupon) => {
+    if (!coupon || !data?.totalPrice) return 0;
+    
+    if (coupon.type === "PERCENT") {
+      const discount = (data.totalPrice * coupon.value) / 100;
+      return coupon.max_value && discount > coupon.max_value 
+        ? coupon.max_value 
+        : discount;
+    } else {
+      return coupon.value;
+    }
+  }, [data]);
+  
+  const calculateTotalDiscount = useCallback(() => {
+    const coupons = Object.values(selectedCoupons).filter(Boolean);
+    return coupons.reduce((total, coupon) => total + calculateCouponDiscount(coupon), 0);
+  }, [selectedCoupons, calculateCouponDiscount]);
 
+  const totalDiscount = useMemo(() => {
+    return calculateTotalDiscount();
+  }, [calculateTotalDiscount]);
+  
+  const formattedCouponDiscounts = useMemo(() => {
+    return Object.entries(selectedCoupons)
+      .filter(([, coupon]) => Boolean(coupon))
+      .map(([type, coupon]) => ({
+        type,
+        coupon,
+        discount: calculateCouponDiscount(coupon),
+        formattedDiscount: new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(calculateCouponDiscount(coupon))
+      }));
+  }, [selectedCoupons, calculateCouponDiscount]);
+
+  const totalPriceAfterDiscount = useMemo(() => {
+    if (!data?.totalPrice) return 0;
+    const totalDiscount = calculateTotalDiscount();
+    return data.totalPrice - totalDiscount + 30000;
+  }, [data, calculateTotalDiscount]);
 
   useEffect(() => {
     const fetchUserAddress = async () => {
@@ -54,8 +102,6 @@ function CheckoutPage() {
     }
   }, [confirmAddress, getUserAddressById]);
 
-
-
   const toggleDrawer = (anchor, open) => (event) => {
     if (
       event.type === "keydown" &&
@@ -68,29 +114,29 @@ function CheckoutPage() {
 
   const handleSubmit = async () => {
     if (!selectedAddress) {
-      toast.error("Please select a delivery address.");
+      toast.error("Please select an address");
       return;
     }
 
-    const data = {
-      addressId: selectedAddress._id,
-      paymentMethod: selectedPaymentMethod.toUpperCase(),
-      notes: "Giao hàng vào buổi sáng.",
-    };
-
     try {
-      const success = await createOrder(data).unwrap();
-      if (success) {
-        navigate("/profile/my-order");
+      const coupons = Object.values(selectedCoupons).filter(Boolean).map(coupon => coupon._id);
+      
+      const orderData = {
+        address: selectedAddress,
+        paymentMethod: selectedPaymentMethod,
+        coupons: coupons,
+        totalDiscount: totalDiscount
+      };
+
+      const result = await createOrder(orderData).unwrap();
+      
+      if (selectedPaymentMethod === "momo") {
+        window.location.href = result.payUrl;
       } else {
-        toast.error(
-          success?.data?.message || "An error occurred while placing the order."
-        );
+        navigate(`/order/${result._id}`);
       }
     } catch (error) {
-      toast.error(
-        error?.data?.message || "An error occurred while placing the order."
-      );
+      toast.error(error?.data?.message || "Failed to create order");
     }
   };
 
@@ -103,16 +149,35 @@ function CheckoutPage() {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
-    }).format(data?.totalPrice + 30000);
-  }, [data?.totalPrice]);
+    }).format(totalPriceAfterDiscount);
+  }, [totalPriceAfterDiscount]);
+
+  useEffect(() => {
+    if (selectedCoupon) {
+      const type = selectedCoupon.target_type || 'ORDER';
+      setSelectedCoupons(prev => ({
+        ...prev,
+        [type]: selectedCoupon
+      }));
+    }
+  }, [selectedCoupon]);
+
+  useEffect(() => {
+    const coupons = Object.values(selectedCoupons).filter(Boolean);
+    if (coupons.length > 0) {
+      setSelectedCoupon(coupons[0]);
+    } else {
+      setSelectedCoupon(null);
+    }
+  }, [selectedCoupons]);
 
   return (
     <Container>
       <Typography variant="h6" gutterBottom>
         Confirm - payment
       </Typography>
-      <Grid2 container spacing={2}>
-        <Grid2 size={8.5}>
+      <Grid container spacing={2}>
+        <Grid item xs={8.5}>
           <Box display="flex" flexDirection="column" gap={2} mb={5}>
             <Box
               sx={{
@@ -188,9 +253,9 @@ function CheckoutPage() {
               ))
             )}
           </Box>
-        </Grid2>
+        </Grid>
 
-        <Grid2 size={3.5}>
+        <Grid item xs={3.5}>
           <Box
             sx={{
               p: 2,
@@ -221,102 +286,129 @@ function CheckoutPage() {
                 setSelectedMethod={setSelectedPaymentMethod}
               />
 
-              <Box
-                display="flex"
-                justifyContent="space-between"
-                alignItems="center"
-              >
-                <Typography variant="body1">Platform Voucher</Typography>
-                <Typography
-                  sx={{ color: "#05a", cursor: "pointer" }}
-                  variant="body1"
-                >
-                  Select or enter code
-                </Typography>
-              </Box>
-            </Box>
-            <Divider sx={{ my: 2 }} />
-            <Box display="flex" flexDirection="column" gap={2}>
-              <Box
-                display="flex"
-                flexDirection={"row"}
-                gap={1}
-                alignItems={"center"}
-                justifyContent={"space-between"}
-              >
-                <Typography variant="body1">
-                  Subtotal ({data?.totalItems} item):
-                </Typography>
-                <Typography variant="body1" sx={{ color: "black" }}>
-                  {new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(data?.totalPrice)}
-                </Typography>
-              </Box>
-              <Box
-                display="flex"
-                flexDirection={"row"}
-                gap={1}
-                alignItems={"center"}
-                justifyContent={"space-between"}
-              >
-                <Typography variant="body1">Delivery fee:</Typography>
-                <Typography variant="body1" sx={{ color: "black" }}>
-                  {new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(30000)}
-                </Typography>
-              </Box>
-              <Box
-                display="flex"
-                flexDirection={"row"}
-                gap={1}
-                alignItems={"center"}
-                justifyContent={"space-between"}
-              >
-                <Typography variant="body1">Coupon: </Typography>
-                <Typography variant="body1" sx={{ color: "black" }}>
-                  {new Intl.NumberFormat("vi-VN", {
-                    style: "currency",
-                    currency: "VND",
-                  }).format(0)}
-                </Typography>
-              </Box>
-              <Box
-                display="flex"
-                alignItems="center"
-                gap={1}
-                justifyContent={"space-between"}
-              >
-                <Typography variant="body1">
-                  Total ({data?.totalItems} item):
-                </Typography>
-                <Typography variant="h6" sx={{ color: "secondary.main" }}>
-                  {formattedTotalPrice}
-                </Typography>
-              </Box>
-              <Button
-                onClick={handleSubmit}
-                sx={{
-                  boxShadow: "none",
-                  bgcolor: "secondary.main",
-                  color: "white",
-                  px: 5,
+              <Box height={10}></Box>
+
+              <CouponSelector
+                selectedCoupon={selectedCoupon}
+                setSelectedCoupon={(coupon) => {
+                  setSelectedCoupon(coupon);
+                  if (coupon) {
+                    const type = coupon.target_type || 'ORDER';
+                    setSelectedCoupons(prev => ({
+                      ...prev,
+                      [type]: coupon
+                    }));
+                  } else {
+                    setSelectedCoupons({
+                      PRODUCT: null,
+                      FREESHIPPING: null,
+                      ORDER: null
+                    });
+                  }
                 }}
-                fullWidth
-                variant="contained"
-              >
-                Place Order
-              </Button>
+              />
+
+              <Divider sx={{ my: 2 }} />
+              <Box display="flex" flexDirection="column" gap={2}>
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap={1}
+                  justifyContent={"space-between"}
+                >
+                  <Typography variant="body1">Subtotal:</Typography>
+                  <Typography variant="body1">
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(data?.totalPrice || 0)}
+                  </Typography>
+                </Box>
+
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap={1}
+                  justifyContent={"space-between"}
+                >
+                  <Typography variant="body1">Phí vận chuyển:</Typography>
+                  <Typography variant="body1">
+                    {new Intl.NumberFormat("vi-VN", {
+                      style: "currency",
+                      currency: "VND",
+                    }).format(30000)}
+                  </Typography>
+                </Box>
+
+                {formattedCouponDiscounts.length > 0 ? (
+                  formattedCouponDiscounts.map(({ coupon, formattedDiscount }) => (
+                    <Box
+                      key={coupon._id}
+                      display="flex"
+                      alignItems="center"
+                      gap={1}
+                      justifyContent={"space-between"}
+                    >
+                      <Typography variant="body1" sx={{ color: "secondary.main" }}>
+                        Giảm giá ({coupon.code}):
+                      </Typography>
+                      <Typography variant="body1" sx={{ color: "secondary.main" }}>
+                        -{formattedDiscount}
+                      </Typography>
+                    </Box>
+                  ))
+                ) : (
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    gap={1}
+                    justifyContent={"space-between"}
+                  >
+                    <Typography variant="body1">Giảm giá:</Typography>
+                    <Typography variant="body1">
+                      {new Intl.NumberFormat("vi-VN", {
+                        style: "currency",
+                        currency: "VND",
+                      }).format(0)}
+                    </Typography>
+                  </Box>
+                )}
+
+                <Box
+                  display="flex"
+                  alignItems="center"
+                  gap={1}
+                  justifyContent={"space-between"}
+                >
+                  <Typography variant="body1">
+                    Tổng ({data?.totalItems} sản phẩm):
+                  </Typography>
+                  <Typography variant="h6" sx={{ color: "secondary.main" }}>
+                    {formattedTotalPrice}
+                  </Typography>
+                </Box>
+                
+                <Button
+                  onClick={handleSubmit}
+                  sx={{
+                    boxShadow: "none",
+                    bgcolor: "secondary.main",
+                    color: "white",
+                    px: 5,
+                  }}
+                  fullWidth
+                  variant="contained"
+                >
+                  Place Order
+                </Button>
+              </Box>
             </Box>
           </Box>
-        </Grid2>
-      </Grid2>
+        </Grid>
+      </Grid>
       <Backdrop
         sx={{ color: "#fff", zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={isLoading}
+        open={loadingOrder}
       >
         <CircularProgress color="inherit" />
       </Backdrop>

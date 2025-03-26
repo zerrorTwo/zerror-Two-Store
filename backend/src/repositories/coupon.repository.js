@@ -1,4 +1,5 @@
 import CouponModel from "../models/coupon.model.js";
+import CartModel from "../models/cart.model.js";
 
 const findAllCoupons = async (page = 1, limit = 10, search = "") => {
   try {
@@ -67,6 +68,62 @@ const findCouponByCode = async (code) => {
   return await CouponModel.findOne({ code }).lean();
 };
 
+const getAllCouponAvailable = async (userId) => {
+  try {
+    // Get current date in YYYY-MM-DD format
+    const today = new Date();
+    const currentDateString = today.toISOString().split('T')[0]; // Format: YYYY-MM-DD
+    
+    const allCoupons = await CouponModel.find({ 
+      is_active: true, 
+      is_public: true,
+      end_day: { $gte: currentDateString } // Compare with string date format
+    }).lean();
+    
+    if (!userId) return allCoupons;
+    
+    // Separate coupons by target_type
+    const productCoupons = allCoupons.filter(coupon => coupon.target_type === "PRODUCT");
+    const otherCoupons = allCoupons.filter(coupon => coupon.target_type !== "PRODUCT");
+    
+    const userCart = await CartModel.findOne({ 
+      userId, 
+      state: "ACTIVE" 
+    }).lean();
+    
+    // If no cart or empty cart, return only non-product coupons
+    if (!userCart || !userCart.products || userCart.products.length === 0) {
+      return otherCoupons;
+    }
+    
+    const checkoutProducts = userCart.products.filter(product => 
+      product.variations && product.variations.some(variation => variation.checkout === true)
+    );
+    
+    // If no products are marked for checkout, return only non-product coupons
+    if (checkoutProducts.length === 0) {
+      return otherCoupons;
+    }
+    
+    const checkoutProductIds = checkoutProducts.map(item => item.productId.toString());
+    
+    // Filter only product coupons based on checkout items
+    const filteredProductCoupons = productCoupons.filter(coupon => {
+      if (!coupon.target_ids || coupon.target_ids.length === 0) return true;
+      
+      return coupon.target_ids.some(targetId => 
+        checkoutProductIds.includes(targetId.toString())
+      );
+    });
+    
+    // Return filtered product coupons + all other coupons
+    return [...filteredProductCoupons, ...otherCoupons];
+  } catch (error) {
+    console.error("Error in getAllCouponAvailable:", error);
+    throw error;
+  }
+};
+
 const createNewCoupon = async (data) => {
   return await CouponModel.create(data);
 };
@@ -75,4 +132,5 @@ export const couponRepository = {
   findAllCoupons,
   findCouponByCode,
   createNewCoupon,
+  getAllCouponAvailable
 };

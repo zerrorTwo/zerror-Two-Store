@@ -16,6 +16,7 @@ import { toast } from "react-toastify";
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router";
 import Grid2  from "@mui/material/Grid2";
+import CouponSelector from "../components/Coupon/CouponSelector";
 
 function Cart() {
   const { data, refetch } = useGetAllCartQuery();
@@ -23,6 +24,12 @@ function Cart() {
   const [updateAllCheckout, { isLoading }] = useUpdateAllCheckoutMutation();
 
   const [allChecked, setAllChecked] = useState(false);
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
+  const [selectedCoupons, setSelectedCoupons] = useState({
+    PRODUCT: null,
+    FREESHIPPING: null,
+    ORDER: null
+  });
   
   // Kiểm tra xem có bất kỳ sản phẩm nào được check không
   const hasCheckedItems = useMemo(() => {
@@ -54,6 +61,62 @@ function Cart() {
     return { checkedTotalPrice: totalPrice, checkedTotalItems: totalItems };
   }, [data]);
 
+  // Tính số tiền giảm giá dựa trên coupon được chọn
+  const calculateCouponDiscount = useMemo(() => {
+    return (coupon) => {
+      if (!coupon || !checkedTotalPrice) return 0;
+      
+      if (coupon.type === "PERCENT") {
+        const discount = (checkedTotalPrice * coupon.value) / 100;
+        return coupon.max_value && discount > coupon.max_value 
+          ? coupon.max_value 
+          : discount;
+      } else {
+        return coupon.value;
+      }
+    };
+  }, [checkedTotalPrice]);
+  
+  // Tính tổng số tiền giảm giá từ tất cả các coupon
+  const calculateTotalDiscount = useMemo(() => {
+    const coupons = Object.values(selectedCoupons).filter(Boolean);
+    return coupons.reduce((total, coupon) => total + calculateCouponDiscount(coupon), 0);
+  }, [selectedCoupons, calculateCouponDiscount]);
+  
+  // Format tổng số tiền giảm giá
+  const formattedTotalDiscount = useMemo(() => {
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(calculateTotalDiscount);
+  }, [calculateTotalDiscount]);
+  
+  // Tính tổng tiền sau khi áp dụng giảm giá
+  const finalTotal = useMemo(() => {
+    return Math.max(0, checkedTotalPrice - calculateTotalDiscount);
+  }, [checkedTotalPrice, calculateTotalDiscount]);
+
+  // Update selectedCoupons when selectedCoupon changes (for backward compatibility)
+  useEffect(() => {
+    if (selectedCoupon) {
+      const type = selectedCoupon.target_type || 'ORDER';
+      setSelectedCoupons(prev => ({
+        ...prev,
+        [type]: selectedCoupon
+      }));
+    }
+  }, [selectedCoupon]);
+
+  // Update selectedCoupon when selectedCoupons changes (for backward compatibility)
+  useEffect(() => {
+    const coupons = Object.values(selectedCoupons).filter(Boolean);
+    if (coupons.length > 0) {
+      setSelectedCoupon(coupons[0]);
+    } else {
+      setSelectedCoupon(null);
+    }
+  }, [selectedCoupons]);
+  
   // Cập nhật trạng thái "Select All" dựa vào dữ liệu giỏ hàng
   useEffect(() => {
     if (data?.products?.length) {
@@ -76,6 +139,11 @@ function Cart() {
       toast.error("Không thể cập nhật trạng thái giỏ hàng.");
     }
   };
+
+  const handleCheckout = () => {
+    navigate("/checkout");
+  };
+
   return (
     <Container>
       <Typography variant="h6" gutterBottom>
@@ -176,49 +244,57 @@ function Cart() {
                 " rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px",
             }}
           >
-            <Box
-              display={"flex"}
-              justifyContent={"space-between"}
-              alignItems={"center"}
-            >
-              <Typography sx={{ color: "text.blackColor" }} variant="body1">
-                Platform Voucher
-              </Typography>
-              <Typography
-                sx={{ color: "#05a", cursor: "pointer" }}
-                variant="body1"
-              >
-                Select or enter code
-              </Typography>
-            </Box>
+
+              <CouponSelector 
+                selectedCoupon={selectedCoupon}
+                setSelectedCoupon={setSelectedCoupon}
+                selectedCoupons={selectedCoupons}
+                setSelectedCoupons={setSelectedCoupons}
+              />
 
             <Divider sx={{ my: 2 }} />
 
             <Box display={"flex"} flexDirection={"column"} gap={2}>
               <Box display={"flex"} alignItems={"center"} gap={1}>
                 <Typography variant="body1">
-                  Total ({checkedTotalItems || 0} selected items):
+                  Tổng ({checkedTotalItems || 0} sản phẩm):
                 </Typography>
-                <Typography variant="h6" sx={{ color: "primary.main" }}>
+                <Typography
+                  variant="h6"
+                  sx={{ color: "secondary.main", fontWeight: "bold" }}
+                >
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
                     currency: "VND",
-                  }).format(checkedTotalPrice || 0)}
+                  }).format(finalTotal)}
                 </Typography>
               </Box>
+              
+              <Box display="flex" justifyContent="space-between" alignItems="center">
+                <Typography variant="body2" sx={{ color: calculateTotalDiscount > 0 ? "secondary.main" : "inherit" }}>
+                  Giảm giá{calculateTotalDiscount > 0 ? ` (${Object.values(selectedCoupons).filter(Boolean).map(c => c.code).join(', ')})` : ''}:
+                </Typography>
+                <Typography variant="body2" sx={{ color: calculateTotalDiscount > 0 ? "secondary.main" : "inherit" }}>
+                  {calculateTotalDiscount > 0 ? '-' : ''}{formattedTotalDiscount}
+                </Typography>
+              </Box>
+              
               <Button
-                onClick={() => navigate("/checkout")}
+                disabled={!hasCheckedItems}
+                onClick={handleCheckout}
                 sx={{
                   boxShadow: "none",
+                  bgcolor: "secondary.main",
                   color: "white",
-                  px: 5,
-                  opacity: !hasCheckedItems ? 0.7 : 1,
+                  "&:disabled": {
+                    bgcolor: "grey.300",
+                    color: "grey.500",
+                  },
                 }}
                 fullWidth
                 variant="contained"
-                disabled={!hasCheckedItems}
               >
-                {hasCheckedItems ? "Check out" : "Please select products"}
+                Check Out
               </Button>
             </Box>
           </Box>
