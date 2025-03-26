@@ -3,8 +3,8 @@ import asyncHandeler from "../middlewares/async.handler.js";
 import { couponService } from "../services/coupon.service.js";
 
 const findAllCoupons = asyncHandeler(async (req, res) => {
-  const { page, limit } = req.query;
-  const coupons = await couponService.findAllCoupons(page, limit);
+  const { page, limit, search } = req.query;
+  const coupons = await couponService.findAllCoupons(page, limit, search);
   res.status(StatusCodes.OK).json(coupons);
 });
 
@@ -22,13 +22,15 @@ const createNewCoupon = asyncHandeler(async (req, res) => {
     start_day,
     end_day,
     type,
-    discount,
-    max_discount,
+    value,
+    max_value,
     min_value,
     max_uses,
     max_uses_per_user,
     target_type,
-    target_ids
+    target_ids,
+    is_public,
+    is_active
   } = req.body;
   const coupon = await couponService.createNewCoupon(
     name,
@@ -37,13 +39,15 @@ const createNewCoupon = asyncHandeler(async (req, res) => {
     start_day,
     end_day,
     type,
-    discount,
-    max_discount,
+    value,
+    max_value,
     min_value,
     max_uses,
     max_uses_per_user,
     target_type,
-    target_ids
+    target_ids,
+    is_public,
+    is_active
   );
   res.status(StatusCodes.CREATED).json(coupon);
 });

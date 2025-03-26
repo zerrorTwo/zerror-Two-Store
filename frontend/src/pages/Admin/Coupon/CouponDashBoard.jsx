@@ -25,7 +25,7 @@ const headCells = [
     label: "Start Day",
   },
   { id: "end_day", numeric: false, disablePadding: false, label: "End Day" },
-  { id: "discount", numeric: false, disablePadding: false, label: "Discount" },
+  { id: "value", numeric: false, disablePadding: false, label: "Value" },
   {
     id: "target_type",
     numeric: false,
@@ -57,17 +57,23 @@ const headCells = [
 function CouponDashBoard() {
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [selected, setSelected] = useState([]);
+  const [rows, setRows] = useState([]);
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
   const navigate = useNavigate();
 
   const {
     data: { coupons: coupons = [], totalPages: totalPagesCoupon } = {},
     error: couponError,
     isLoading: couponLoading,
-  } = useGetAllCouponsQuery({ page, limit: rowsPerPage });
+  } = useGetAllCouponsQuery({ page, limit: rowsPerPage, search: search });
 
-  const [selected, setSelected] = useState([]);
-  const [rows, setRows] = useState([]);
-  const [search, setSearch] = useState("");
+  // Handle search button click
+  const handleSearch = () => {
+    setSearch(searchInput);
+    setPage(1); // Reset to first page when searching
+  };
 
   useEffect(() => {
     if (coupons && coupons.length > 0) {
@@ -77,7 +83,8 @@ function CouponDashBoard() {
         code: coupon.code,
         start_day: coupon.start_day,
         end_day: coupon.end_day,
-        discount: coupon.discount,
+        value: coupon.value,
+        type: coupon.type,
         target_type: coupon.target_type,
         uses_count: coupon.uses_count,
         is_public: coupon.is_public,
@@ -90,14 +97,12 @@ function CouponDashBoard() {
   const handleCreateClick = (event) => {
     event.stopPropagation();
     navigate("/admin/create-coupon");
-    
   };
 
   const handleDeleteConfirm = async () => {};
   const handleUpdateClick = (event, row) => {
     event.stopPropagation();
-        console.log(row._id); 
-        // navigate("/admin/coupon", { state: { row: selected[0] } }); // Uncomment to navigate to update page
+    console.log(row._id);
   };
 
   if (couponLoading) return <div>Loading...</div>;
@@ -117,14 +122,19 @@ function CouponDashBoard() {
         </Box>
       </Box>
 
-      <Box display={"flex"} justifyContent={"space-between"} my={2} alignItems={"center"}>
-      <Button variant="contained" onClick={handleCreateClick}>
+      <Box
+        display={"flex"}
+        justifyContent={"space-between"}
+        my={2}
+        alignItems={"center"}
+      >
+        <Button variant="contained" onClick={handleCreateClick}>
           Create New
         </Button>
         <Box display={"flex"} gap={2} alignItems={"center"}>
           <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
             sx={{
               "&::before": {
                 borderBottom: "1px solid black",
@@ -141,11 +151,10 @@ function CouponDashBoard() {
             }}
             placeholder="Search name product"
           />
-          <Button variant="contained" color="primary" >
+          <Button variant="contained" color="primary" onClick={handleSearch}>
             Search
           </Button>
         </Box>
-        
       </Box>
 
       <Box>
@@ -161,7 +170,6 @@ function CouponDashBoard() {
               setSelected={setSelected}
               handleUpdateClick={handleUpdateClick}
               onDeleteConfirm={handleDeleteConfirm}
-            
               page={page - 1}
               rowsPerPage={rowsPerPage}
               totalPages={totalPagesCoupon}

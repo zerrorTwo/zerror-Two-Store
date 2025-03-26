@@ -391,8 +391,13 @@ const getTopSoldProducts = async () => {
 
 const findProductsByIds = async (ids) => {
   try {
+    // Convert string IDs to MongoDB ObjectIDs
+    const objectIds = ids.map(id => new mongoose.Types.ObjectId(id));
+    
+    console.log("Looking for products with IDs:", objectIds);
+    
     return await ProductModel.aggregate([
-      { $match: { _id: { $in: ids } } },
+      { $match: { _id: { $in: objectIds } } },
       {
         $addFields: {
           normalizedPricing: {
@@ -425,6 +430,7 @@ const findProductsByIds = async (ids) => {
       },
     ]);
   } catch (error) {
+    console.error("Error finding products by IDs:", error);
     throw error;
   }
 };

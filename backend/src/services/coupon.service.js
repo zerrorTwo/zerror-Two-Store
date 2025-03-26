@@ -10,13 +10,15 @@ const createNewCoupon = async (
   start_day,
   end_day,
   type,
-  discount,
-  max_discount,
+  value,
+  max_value,
   min_value,
   max_uses,
   max_uses_per_user,
   target_type,
-  target_ids
+  target_ids,
+  is_public,
+  is_active
 ) => {
   try {
     if (
@@ -25,13 +27,15 @@ const createNewCoupon = async (
       !start_day ||
       !end_day ||
       !type ||
-      !discount ||
-      !max_discount ||
+      !value ||
+      !max_value ||
       !min_value ||
       !max_uses ||
       !max_uses_per_user ||
       !target_type ||
-      !target_ids
+      !target_ids ||
+      typeof is_public !== "boolean" ||
+      typeof is_active !== "boolean"
     ) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Missing required fields");
     }
@@ -41,19 +45,25 @@ const createNewCoupon = async (
     }
     if (
       new Date(start_day) > new Date(end_day) ||
-      new Date(start_day) < new Date() ||
-      new Date(end_day) < new Date()
+      new Date(start_day).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0) ||
+      new Date(end_day).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)
     ) {
+      console.log("Date validation failed:");
+      console.log("Start day:", new Date(start_day));
+      console.log("End day:", new Date(end_day));
+      console.log("Current date:", new Date());
+      console.log("Start day < Current:", new Date(start_day) < new Date());
+      console.log("End day < Current:", new Date(end_day) < new Date());
       throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid date range");
     }
     if (type !== "PERCENT" && type !== "AMOUNT") {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid type");
     }
-    if (type === "PERCENT" && (discount < 0 || discount > 100)) {
+    if (type === "PERCENT" && (value < 0 || value > 100)) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid discount");
     }
-    if (type === "AMOUNT" && (discount < 0 || discount > max_discount)) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid discount");
+    if (type === "AMOUNT" && (value < 0 || value > max_value)) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, "Value must be between 0 and max_value");
     }
     if (target_type !== "FREESHIPPING" && target_type !== "PRODUCT" && target_type !== "ORDER" && target_type !== "DISCOUNT") {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid target type");
@@ -70,7 +80,7 @@ const createNewCoupon = async (
         }
         
         const minProductPrice = Math.min(...products.map(product => product.minPrice));
-        if (discount >= minProductPrice) {
+        if (value >= minProductPrice) {
           throw new ApiError(StatusCodes.BAD_REQUEST, "Discount amount must be less than the minimum price of targeted products");
         }
       }
@@ -84,6 +94,7 @@ const createNewCoupon = async (
     if (max_uses_per_user < 0) {
       throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid max uses per user");
     }
+    code = code.toUpperCase();
     const data = {
       name,
       description,
@@ -91,15 +102,18 @@ const createNewCoupon = async (
       start_day,
       end_day,
       type,
-      discount,
-      max_discount,
+      value,
+      max_value,
       min_value,
       max_uses,
       max_uses_per_user,
       target_type,
-      target_ids
+      target_ids,
+      is_public,
+      is_active
     };
-    const newCoupon = await couponRepository.createCoupon(data);
+
+    const newCoupon = await couponRepository.createNewCoupon(data);
 
     return newCoupon;
   } catch (error) {
@@ -107,13 +121,8 @@ const createNewCoupon = async (
   }
 };
 
-const findAllCoupons = async (page, limit) => {
-  try {
-    const coupons = await couponRepository.findAllCoupons(page, limit);
-    return coupons;
-  } catch (error) {
-    throw error;
-  }
+const findAllCoupons = async (page, limit, search) => {
+  return await couponRepository.findAllCoupons(page, limit, search);
 };
 
 const findCouponByCode = async (code) => {
