@@ -48,12 +48,6 @@ const createNewCoupon = async (
       new Date(start_day).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0) ||
       new Date(end_day).setHours(0, 0, 0, 0) < new Date().setHours(0, 0, 0, 0)
     ) {
-      console.log("Date validation failed:");
-      console.log("Start day:", new Date(start_day));
-      console.log("End day:", new Date(end_day));
-      console.log("Current date:", new Date());
-      console.log("Start day < Current:", new Date(start_day) < new Date());
-      console.log("End day < Current:", new Date(end_day) < new Date());
       throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid date range");
     }
     if (type !== "PERCENT" && type !== "AMOUNT") {
@@ -134,8 +128,13 @@ const findCouponByCode = async (code) => {
   }
 };
 
+const getAllCouponAvailable = async (userId) => {
+  return await couponRepository.getAllCouponAvailable(userId);
+};
+
 export const couponService = {
   createNewCoupon,
   findAllCoupons,
   findCouponByCode,
+  getAllCouponAvailable
 };

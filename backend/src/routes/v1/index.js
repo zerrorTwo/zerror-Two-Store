@@ -11,7 +11,7 @@ import { paymentRoute } from "./payment.route.js";
 import { orderRoute } from "./order.route.js";
 import dashboardRoute from "./dashboard.route.js";
 import { reviewRoute } from "./review.route.js";
-import { couponRoute } from "../coupon.route.js";
+import { couponRoute } from "./coupon.route.js";
 
 const Router = express.Router();
 

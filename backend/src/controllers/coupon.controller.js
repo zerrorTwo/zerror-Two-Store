@@ -14,6 +14,12 @@ const findCouponByCode = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(coupon || null);
 });
 
+const getAllCouponAvailable = asyncHandeler(async (req, res) => {
+  const userId = req.userId;
+  const coupons = await couponService.getAllCouponAvailable(userId);
+  res.status(StatusCodes.OK).json(coupons);
+});
+
 const createNewCoupon = asyncHandeler(async (req, res) => {
   const {
     name,
@@ -52,4 +58,4 @@ const createNewCoupon = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.CREATED).json(coupon);
 });
 
-export { findAllCoupons, findCouponByCode, createNewCoupon };
+export { findAllCoupons, findCouponByCode, getAllCouponAvailable, createNewCoupon };

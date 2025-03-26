@@ -12,6 +12,14 @@ export const couponSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 20,
     }),
    
+    getAvailableCoupons: builder.query({
+      query: () => ({
+        url: `${COUPON_URL}/available`,
+        method: "GET",
+      }),
+      providesTags: ["Coupon"],
+      keepUnusedDataFor: 5,
+    }),
 
     createNewCoupon: builder.mutation({
       query: ({ data }) => ({
@@ -23,11 +31,21 @@ export const couponSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
 
+    applyCoupon: builder.mutation({
+      query: (couponCode) => ({
+        url: `${COUPON_URL}/apply`,
+        method: "POST",
+        body: { code: couponCode },
+      }),
+      invalidatesTags: ["Coupon"],
+    }),
  
   }),
 });
 
 export const {
   useGetAllCouponsQuery,
-  useCreateNewCouponMutation
+  useCreateNewCouponMutation,
+  useGetAvailableCouponsQuery,
+  useApplyCouponMutation
 } = couponSlice;
