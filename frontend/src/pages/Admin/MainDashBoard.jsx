@@ -33,7 +33,7 @@ import {
 } from "@mui/icons-material";
 import Chart from "chart.js/auto";
 import StatCard from "./Chart/StatCard";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import {
   useGetChartDataQuery,
   useGetProductDistributionQuery,

@@ -17,7 +17,7 @@ import {
   useTheme,
 } from "@mui/material";
 import CategoryDropdown2 from "../../components/CategoryDropdown2.jsx";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 const headCells = [
   { id: "name", disablePadding: false, label: "Name" },
   {

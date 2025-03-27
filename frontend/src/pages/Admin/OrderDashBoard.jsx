@@ -11,7 +11,7 @@ import {
   Input,
   Typography,
 } from "@mui/material";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useGetAllOrdersQuery } from "../..//redux/api/checkoutSlice.js";
 
 const headCells = [

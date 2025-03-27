@@ -9,6 +9,7 @@ const getProductCheckout = asyncHandeler(async (req, res) => {
 
 const createOrder = asyncHandeler(async (req, res) => {
   const data = req.body;
+  console.log(data);
   data.userId = req.userId;
   const products = await orderService.createOrder(data);
   res.status(StatusCodes.CREATED).json(products);

@@ -50,6 +50,8 @@ const CreateNewCoupon = () => {
     description: '',
     start_day: '',
     end_day: '',
+    start_time: null,
+    end_time: null,
     type: 'PERCENT',
     value: '',
     min_value: '',
@@ -58,8 +60,8 @@ const CreateNewCoupon = () => {
     max_uses_per_user: '1',
     target_type: 'PRODUCT',
     target_ids: [],
-    is_public: false,
-    is_active: true
+    is_public: false, // Đảm bảo là boolean
+    is_active: true   // Đảm bảo là boolean
   });
 
   const [productAnchorEl, setProductAnchorEl] = useState(null);
@@ -85,7 +87,6 @@ const CreateNewCoupon = () => {
     category: categoryQuery,
     search: searchQuery,
   });
-
 
   const {
     data: listCate = [],
@@ -113,7 +114,6 @@ const CreateNewCoupon = () => {
   const handleScroll = useCallback(() => {
     if (listRef.current && !isLoadingMore && hasMore) {
       const { scrollTop, scrollHeight, clientHeight } = listRef.current;
-      
       if (scrollTop + clientHeight >= scrollHeight - 50) {
         setIsLoadingMore(true);
         setPage(prevPage => prevPage + 1);
@@ -125,9 +125,16 @@ const CreateNewCoupon = () => {
     return loadedProducts;
   }, [loadedProducts]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setCouponData(prev => ({ ...prev, [name]: value }));
+  const handleChange = (e, field, value) => {
+    if (field === 'start_time' || field === 'end_time') {
+      setCouponData(prev => ({ ...prev, [field]: value }));
+    } else if (e.target.type === 'checkbox') {
+      // Xử lý riêng cho Checkbox để đảm bảo giá trị là boolean
+      setCouponData(prev => ({ ...prev, [e.target.name]: e.target.checked }));
+    } else {
+      const { name, value: targetValue } = e.target;
+      setCouponData(prev => ({ ...prev, [name]: targetValue }));
+    }
   };
 
   const handleProductPopoverOpen = (event) => {
@@ -175,7 +182,6 @@ const CreateNewCoupon = () => {
     }
   };
 
-  // Calculate minimum price of selected products
   const minProductPrice = useMemo(() => {
     if (selectedProducts.length === 0) return 0;
     return Math.min(...selectedProducts.map(product => 
@@ -183,7 +189,6 @@ const CreateNewCoupon = () => {
     ));
   }, [selectedProducts]);
 
-  // Format currency
   const formatCurrency = (value) => {
     return new Intl.NumberFormat("vi-VN", { 
       style: "currency", 
@@ -194,28 +199,33 @@ const CreateNewCoupon = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Format dates to avoid timezone issues - ensure valid dates
       let startDate = new Date();
-      try {
-        if (couponData.start_day) {
-          startDate = new Date(couponData.start_day);
-          startDate.setHours(12, 0, 0, 0);
+      if (couponData.start_day) {
+        startDate = new Date(couponData.start_day);
+        if (couponData.start_time) {
+          startDate.setHours(couponData.start_time.getHours());
+          startDate.setMinutes(couponData.start_time.getMinutes());
+        } else {
+          startDate.setHours(0, 0, 0, 0);
         }
-      } catch (err) {
-        console.error("Invalid start date:", err);
       }
-      
+      if (isNaN(startDate.getTime())) throw new Error("Invalid start date");
+
       let endDate = new Date();
       endDate.setDate(endDate.getDate() + 30);
-      try {
-        if (couponData.end_day) {
-          endDate = new Date(couponData.end_day);
-          endDate.setHours(12, 0, 0, 0);
+      if (couponData.end_day) {
+        endDate = new Date(couponData.end_day);
+        if (couponData.end_time) {
+          endDate.setHours(couponData.end_time.getHours());
+          endDate.setMinutes(couponData.end_time.getMinutes());
+        } else {
+          endDate.setHours(23, 59, 59, 999);
         }
-      } catch (err) {
-        console.error("Invalid end date:", err);
       }
-      
+      if (isNaN(endDate.getTime())) throw new Error("Invalid end date");
+
+      if (endDate <= startDate) throw new Error("End date must be after start date");
+
       const formattedData = {
         name: couponData.name,
         description: couponData.description,
@@ -233,22 +243,23 @@ const CreateNewCoupon = () => {
         is_public: couponData.is_public,
         is_active: couponData.is_active
       };
-      
-      const result = await createNewCoupon({data: formattedData}).unwrap();
+
+      const result = await createNewCoupon({ data: formattedData }).unwrap();
       if (result) {
         toast.success('Coupon Created Successfully!');
-        // Reset form
         setCouponData({
           name: '',
-          description: '',
           code: '',
-          start_day: new Date(),
-          end_day: new Date(new Date().setDate(new Date().getDate() + 30)),
+          description: '',
+          start_day: '',
+          end_day: '',
+          start_time: null,
+          end_time: null,
           type: 'PERCENT',
-          value: 0,
-          max_value: 0,
-          min_value: 0,
-          max_uses: 0,
+          value: '',
+          min_value: '',
+          max_value: '',
+          max_uses: '',
           max_uses_per_user: '1',
           target_type: 'PRODUCT',
           target_ids: [],
@@ -259,19 +270,15 @@ const CreateNewCoupon = () => {
       }
     } catch (error) {
       console.error('Error creating coupon:', error);
-      const errorMessage = error.data?.message || 'Failed to create coupon';
+      const errorMessage = error.message || error.data?.message || 'Failed to create coupon';
       toast.error(errorMessage);
     }
   };
 
-  // Get unique categories from API data
   const categories = useMemo(() => {
-    return listCate && listCate.length > 0 
-      ? listCate 
-      : [];
+    return listCate && listCate.length > 0 ? listCate : [];
   }, [listCate]);
 
-  // Handle search button click
   const handleSearch = () => {
     setSearchQuery(searchTerm);
     setCategoryQuery(categoryFilter);
@@ -295,7 +302,6 @@ const CreateNewCoupon = () => {
         </Box>
 
         <form onSubmit={handleSubmit}>
-          {/* General Information Section */}
           <Box sx={{ mb: 4 }}>
             <Typography variant="h6" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               General Information
@@ -364,7 +370,6 @@ const CreateNewCoupon = () => {
             </Card>
           </Box>
 
-          {/* Time Range & Limits Section */}
           <Box sx={{ mb: 4 }}>
             <Typography variant="h6" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               Time Range & Limits
@@ -378,7 +383,7 @@ const CreateNewCoupon = () => {
                       label="Start Date"
                       type="date"
                       name="start_day"
-                      value={couponData.start_day || new Date().toISOString().split('T')[0]}
+                      value={couponData.start_day}
                       onChange={handleChange}
                       variant="outlined"
                       InputLabelProps={{ shrink: true }}
@@ -391,6 +396,29 @@ const CreateNewCoupon = () => {
                         )
                       }}
                     />
+                    <TextField
+                      fullWidth
+                      label="Start Time"
+                      type="time"
+                      name="start_time"
+                      value={couponData.start_time ? couponData.start_time.toTimeString().slice(0, 5) : ''}
+                      onChange={(e) => {
+                        const [hours, minutes] = e.target.value.split(':');
+                        const time = new Date();
+                        time.setHours(parseInt(hours), parseInt(minutes));
+                        handleChange(e, 'start_time', time);
+                      }}
+                      variant="outlined"
+                      InputLabelProps={{ shrink: true }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CalendarIcon color="primary" />
+                          </InputAdornment>
+                        )
+                      }}
+                      sx={{ mt: 2 }}
+                    />
                   </Grid>
                   <Grid item xs={12} sm={6}>
                     <TextField
@@ -398,7 +426,7 @@ const CreateNewCoupon = () => {
                       label="End Date"
                       type="date"
                       name="end_day"
-                      value={couponData.end_day || new Date(new Date().setDate(new Date().getDate() + 30)).toISOString().split('T')[0]}
+                      value={couponData.end_day}
                       onChange={handleChange}
                       variant="outlined"
                       InputLabelProps={{ shrink: true }}
@@ -410,6 +438,29 @@ const CreateNewCoupon = () => {
                           </InputAdornment>
                         )
                       }}
+                    />
+                    <TextField
+                      fullWidth
+                      label="End Time"
+                      type="time"
+                      name="end_time"
+                      value={couponData.end_time ? couponData.end_time.toTimeString().slice(0, 5) : ''}
+                      onChange={(e) => {
+                        const [hours, minutes] = e.target.value.split(':');
+                        const time = new Date();
+                        time.setHours(parseInt(hours), parseInt(minutes));
+                        handleChange(e, 'end_time', time);
+                      }}
+                      variant="outlined"
+                      InputLabelProps={{ shrink: true }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <CalendarIcon color="primary" />
+                          </InputAdornment>
+                        )
+                      }}
+                      sx={{ mt: 2 }}
                     />
                   </Grid>
                   <Grid item xs={12}>
@@ -533,7 +584,6 @@ const CreateNewCoupon = () => {
             </Card>
           </Box>
 
-          {/* Display minimum price of selected products when target_type is PRODUCT */}
           {couponData.target_type === 'PRODUCT' && selectedProducts.length > 0 && (
             <Grid item xs={12}>
               <Box sx={{ mt: 1, mb: 2, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: '1px dashed', borderColor: 'primary.main' }}>
@@ -547,7 +597,6 @@ const CreateNewCoupon = () => {
             </Grid>
           )}
 
-          {/* Target Settings Section */}
           <Box sx={{ mb: 4 }}>
             <Typography variant="h6" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               Target Settings
@@ -613,7 +662,6 @@ const CreateNewCoupon = () => {
             </Card>
           </Box>
 
-          {/* Coupon Status Section */}
           <Box sx={{ mb: 4 }}>
             <Typography variant="h6" color="primary" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               Coupon Status
@@ -626,7 +674,7 @@ const CreateNewCoupon = () => {
                       control={
                         <Checkbox
                           checked={couponData.is_public}
-                          onChange={(e) => handleChange({ target: { name: 'is_public', value: e.target.checked } })}
+                          onChange={(e) => handleChange(e)}
                           name="is_public"
                         />
                       }
@@ -638,7 +686,7 @@ const CreateNewCoupon = () => {
                       control={
                         <Checkbox
                           checked={couponData.is_active}
-                          onChange={(e) => handleChange({ target: { name: 'is_active', value: e.target.checked } })}
+                          onChange={(e) => handleChange(e)}
                           name="is_active"
                         />
                       }
@@ -650,7 +698,6 @@ const CreateNewCoupon = () => {
             </Card>
           </Box>
 
-          {/* Submit Button */}
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 4 }}>
             <Button
               type="submit"
@@ -668,7 +715,7 @@ const CreateNewCoupon = () => {
 
       <Popover
         anchorReference="anchorPosition"
-        anchorPosition={{ top: window.innerHeight / 2  - 500, left: window.innerWidth / 2 +  150 }}
+        anchorPosition={{ top: window.innerHeight / 2 - 500, left: window.innerWidth / 2 + 150 }}
         open={Boolean(productAnchorEl)}
         anchorEl={productAnchorEl}
         onClose={handleProductPopoverClose}
@@ -807,7 +854,6 @@ const CreateNewCoupon = () => {
                         '&:hover': { bgcolor: 'action.hover' },
                         ...(selectedProducts.some(p => p._id === product._id) && {
                           bgcolor: 'primary.lighter',
-                          
                         })
                       }}
                     >
@@ -873,7 +919,6 @@ const CreateNewCoupon = () => {
           </Box>
         </Box>
       </Popover>
-
     </Box>
   );
 };

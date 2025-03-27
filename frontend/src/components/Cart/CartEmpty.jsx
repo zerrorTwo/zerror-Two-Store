@@ -2,7 +2,7 @@ import  Box  from "@mui/material/Box";
 import  Button  from "@mui/material/Button";
 import  CardMedia  from "@mui/material/CardMedia";
 import  Typography  from "@mui/material/Typography";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 function CartEmpty() {
   const navigate = useNavigate();

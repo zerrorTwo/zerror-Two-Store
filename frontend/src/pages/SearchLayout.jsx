@@ -14,7 +14,7 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { lazy, Suspense, useState } from "react";
 import { useGetPageProductQuery } from "../redux/api/productSlice";
 import { useInView } from "react-intersection-observer";
-import { useParams } from "react-router";
+import { useParams } from "react-router-dom";
 import { Grid2 } from "@mui/material";
 
 function SearchLayout() {

@@ -20,8 +20,11 @@ import {
   useGetProductCheckoutQuery,
 } from "../../redux/api/checkoutSlice";
 import { useLazyGetUserAddressByIdQuery } from "../../redux/api/addressSlice";
+import { useLocation } from "react-router-dom";
 
 function CheckoutPage() {
+  const location = useLocation();
+  const { selectedCoupons : couponCart } = location.state || { selectedCoupons: {} };
   const [state, setState] = useState({
     top: false,
     left: false,
@@ -32,12 +35,7 @@ function CheckoutPage() {
   const [getUserAddressById] = useLazyGetUserAddressByIdQuery();
   const [selectedAddress, setSelectedAddress] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cash");
-  const [selectedCoupon, setSelectedCoupon] = useState(null);
-  const [selectedCoupons, setSelectedCoupons] = useState({
-    PRODUCT: null,
-    FREESHIPPING: null,
-    ORDER: null
-  });
+  const [selectedCoupons, setSelectedCoupons] = useState(couponCart);
   
   const navigate = useNavigate();
 
@@ -120,20 +118,22 @@ function CheckoutPage() {
 
     try {
       const coupons = Object.values(selectedCoupons).filter(Boolean).map(coupon => coupon._id);
-      
-      const orderData = {
-        address: selectedAddress,
-        paymentMethod: selectedPaymentMethod,
+      const data = {
+        addressId: selectedAddress._id,
+        paymentMethod: selectedPaymentMethod.toUpperCase(),
         coupons: coupons,
         totalDiscount: totalDiscount
       };
 
-      const result = await createOrder(orderData).unwrap();
-      
-      if (selectedPaymentMethod === "momo") {
-        window.location.href = result.payUrl;
+      console.log(data);
+
+      const success = await createOrder(data).unwrap();
+      if (success) {
+        navigate("/profile/my-order");
       } else {
-        navigate(`/order/${result._id}`);
+        toast.error(
+          success?.data?.message || "An error occurred while placing the order."
+        );
       }
     } catch (error) {
       toast.error(error?.data?.message || "Failed to create order");
@@ -152,24 +152,7 @@ function CheckoutPage() {
     }).format(totalPriceAfterDiscount);
   }, [totalPriceAfterDiscount]);
 
-  useEffect(() => {
-    if (selectedCoupon) {
-      const type = selectedCoupon.target_type || 'ORDER';
-      setSelectedCoupons(prev => ({
-        ...prev,
-        [type]: selectedCoupon
-      }));
-    }
-  }, [selectedCoupon]);
 
-  useEffect(() => {
-    const coupons = Object.values(selectedCoupons).filter(Boolean);
-    if (coupons.length > 0) {
-      setSelectedCoupon(coupons[0]);
-    } else {
-      setSelectedCoupon(null);
-    }
-  }, [selectedCoupons]);
 
   return (
     <Container>
@@ -289,23 +272,9 @@ function CheckoutPage() {
               <Box height={10}></Box>
 
               <CouponSelector
-                selectedCoupon={selectedCoupon}
-                setSelectedCoupon={(coupon) => {
-                  setSelectedCoupon(coupon);
-                  if (coupon) {
-                    const type = coupon.target_type || 'ORDER';
-                    setSelectedCoupons(prev => ({
-                      ...prev,
-                      [type]: coupon
-                    }));
-                  } else {
-                    setSelectedCoupons({
-                      PRODUCT: null,
-                      FREESHIPPING: null,
-                      ORDER: null
-                    });
-                  }
-                }}
+                disabled={true}
+                selectedCoupons={selectedCoupons}
+                setSelectedCoupons={setSelectedCoupons}
               />
 
               <Divider sx={{ my: 2 }} />

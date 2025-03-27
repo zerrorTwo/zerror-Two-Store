@@ -7,7 +7,7 @@ import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router-dom";
 import theme from "../../theme";
 import { toast } from "react-toastify"; // Import only toast
 import "react-toastify/dist/ReactToastify.css"; // Đảm bảo import CSS của Toastify

@@ -4,9 +4,6 @@
         "~/*": ["./src/*"],
         "history": ["./node_modules/history"],
         "prop-types": ["./node_modules/prop-types"],
-        "react": ["./node_modules/react"],
-        "react-router": ["./node_modules/react-router"],
-        "react-transition-group": ["./node_modules/react-transition-group"]
       },
     }
 }

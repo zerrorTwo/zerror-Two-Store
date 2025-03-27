@@ -13,8 +13,7 @@ import {
   useGetPageProductQuery,
   useGetTopSoldQuery,
 } from "../redux/api/productSlice";
-import { Link } from "react-router";
-
+import { Link } from "react-router-dom";
 // Lazy-load các component
 const FlashSale = React.lazy(() => import("../components/Carousel/FlashSale"));
 const Banner = React.lazy(() => import("../components/Home/Banner"));
