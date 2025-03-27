@@ -496,7 +496,7 @@ CouponPopover.propTypes = {
     max_value: PropTypes.number,
     end_day: PropTypes.string
   }),
-  setSelectedCoupon: PropTypes.func.isRequired,
+  setSelectedCoupon: PropTypes.func,
   selectedCoupons: PropTypes.object,
   setSelectedCoupons: PropTypes.func
 };

@@ -14,7 +14,7 @@ import {
 import CartEmpty from "../components/Cart/CartEmpty";
 import { toast } from "react-toastify";
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import Grid2  from "@mui/material/Grid2";
 import CouponSelector from "../components/Coupon/CouponSelector";
 
@@ -117,7 +117,6 @@ function Cart() {
     }
   }, [selectedCoupons]);
   
-  // Cập nhật trạng thái "Select All" dựa vào dữ liệu giỏ hàng
   useEffect(() => {
     if (data?.products?.length) {
       const isAllChecked = data.products.every((product) =>
@@ -127,7 +126,6 @@ function Cart() {
     }
   }, [data]);
 
-  // Hàm xử lý chọn/bỏ chọn tất cả sản phẩm
   const handleSelectAll = async (isChecked) => {
     try {
       await updateAllCheckout({
@@ -141,7 +139,7 @@ function Cart() {
   };
 
   const handleCheckout = () => {
-    navigate("/checkout");
+    navigate("/checkout", { state: { selectedCoupons } });
   };
 
   return (

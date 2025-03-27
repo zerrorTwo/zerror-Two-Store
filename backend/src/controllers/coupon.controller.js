@@ -58,4 +58,11 @@ const createNewCoupon = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.CREATED).json(coupon);
 });
 
-export { findAllCoupons, findCouponByCode, getAllCouponAvailable, createNewCoupon };
+const checkPrivateCoupon = asyncHandeler(async (req, res) => {
+  const { code } = req.body;
+  const userId = req.userId;
+  const coupon = await couponService.checkPrivateCode(code, userId);
+  res.status(StatusCodes.OK).json(coupon);
+});
+
+export { findAllCoupons, findCouponByCode, getAllCouponAvailable, createNewCoupon, checkPrivateCoupon };

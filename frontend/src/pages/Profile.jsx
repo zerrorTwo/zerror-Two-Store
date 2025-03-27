@@ -15,8 +15,8 @@ import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined
 import NavAdminItem from "../components/NavAdminItem";
 import { useSelector } from "react-redux";
 import { selectCurrentUser } from "../redux/features/auth/authSlice";
-import { Outlet } from "react-router";
-import { useLocation } from "react-router";
+import { Outlet } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { Grid2 } from "@mui/material";
 
 function Profile() {

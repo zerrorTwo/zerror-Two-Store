@@ -10,7 +10,7 @@ import {
   useGetProductBySlugQuery,
   useGetTopSoldQuery,
 } from "../../redux/api/productSlice";
-import { useParams } from "react-router";
+import { useParams } from "react-router-dom";
 import ProductDetailCarousel from "../../components/Carousel/ProductDetailCarousel";
 import Detail from "./components/Detail";
 import CustomTabPanel from "../../components/CustomTabPanel";
@@ -27,6 +27,8 @@ function ProductDetail() {
   const theme = useTheme();
   const { slug } = useParams();
   const { data, isLoading, error } = useGetProductBySlugQuery(slug);
+
+  console.log(data?._id);
 
   function handleClick(event) {
     event.preventDefault();

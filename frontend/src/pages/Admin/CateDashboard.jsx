@@ -20,7 +20,7 @@ import {
 import FormBase from "../../components/FormBase";
 import PopoverPaper from "../../components/PopoverPaper";
 import { PRIMITIVE_URL } from "../../redux/constants";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 // Wrap GenericTable and PopoverPaper with memo
 const MemoizedGenericTable = memo(GenericTable);

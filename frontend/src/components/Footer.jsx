@@ -10,7 +10,7 @@ import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import FacebookIcon from "@mui/icons-material/Facebook";
 import GitHubIcon from "@mui/icons-material/GitHub";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 import TwitterIcon from "@mui/icons-material/Twitter";
 
 function Footer() {

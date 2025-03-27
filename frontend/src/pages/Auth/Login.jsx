@@ -41,8 +41,6 @@ function Login() {
     e.preventDefault();
     try {
       const data = await login({ email: gmail, password }).unwrap();
-
-      console.log(data);
       dispatch(setCredentials(data));
       navigate("/");
     } catch (err) {

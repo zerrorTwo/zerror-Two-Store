@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState, memo } from "react";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
-import { Outlet } from "react-router";
+import { Outlet } from "react-router-dom";
 import HeaderLayout from "../components/HeaderLayout.jsx";
 
 // Memoize HeaderLayout

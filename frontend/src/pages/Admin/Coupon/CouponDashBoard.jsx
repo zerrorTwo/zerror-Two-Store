@@ -10,7 +10,7 @@ import { useEffect, useState, memo } from "react"; // Import React.memo
 import GenericTable from "../../../components/GenericTable";
 
 import { useGetAllCouponsQuery } from "../../../redux/api/couponSlice";
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 
 // Wrap GenericTable and PopoverPaper with memo
 const MemoizedGenericTable = memo(GenericTable);
