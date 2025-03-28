@@ -4,6 +4,7 @@ import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";
 import CouponPopover from "./CouponPopover";
+import { useGetAvailableCouponsQuery } from "../../redux/api/couponSlice";
 
 function CouponSelector({
   checkedTotalPrice,
@@ -12,6 +13,8 @@ function CouponSelector({
   disabled = false,
 }) {
   const [couponAnchorEl, setCouponAnchorEl] = useState(null);
+  const { data: availableCoupons, isLoading: isLoadingCoupons } =
+    useGetAvailableCouponsQuery();
 
   const handleCouponPopoverOpen = (event) => {
     if (!disabled) {
@@ -105,6 +108,8 @@ function CouponSelector({
         selectedCoupons={selectedCoupons}
         setSelectedCoupons={setSelectedCoupons}
         checkedTotalPrice={checkedTotalPrice} // Truyền thêm prop này
+        availableCoupons={availableCoupons}
+        isLoadingCoupons={isLoadingCoupons}
       />
     </>
   );

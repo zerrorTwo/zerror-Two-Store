@@ -20,6 +20,13 @@ const getAllCouponAvailable = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(coupons);
 });
 
+const getProductCoupon = asyncHandeler(async (req, res) => {
+  const userId = req.userId;
+  const productId = req.params.productId;
+  const coupons = await couponService.getProductCoupon(userId, productId);
+  res.status(StatusCodes.OK).json(coupons);
+});
+
 const createNewCoupon = asyncHandeler(async (req, res) => {
   const {
     name,
@@ -36,7 +43,7 @@ const createNewCoupon = asyncHandeler(async (req, res) => {
     target_type,
     target_ids,
     is_public,
-    is_active
+    is_active,
   } = req.body;
   const coupon = await couponService.createNewCoupon(
     name,
@@ -65,4 +72,11 @@ const checkPrivateCoupon = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(coupon);
 });
 
-export { findAllCoupons, findCouponByCode, getAllCouponAvailable, createNewCoupon, checkPrivateCoupon };
+export {
+  findAllCoupons,
+  findCouponByCode,
+  getAllCouponAvailable,
+  createNewCoupon,
+  checkPrivateCoupon,
+  getProductCoupon,
+};

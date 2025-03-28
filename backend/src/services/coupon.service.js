@@ -112,8 +112,27 @@ const findCouponByCode = async (code) => {
   }
 };
 
-const getProductCoupon = async (productId) => {
-  return await couponRepository.getProductCoupon(productId);
+const getProductCoupon = async (userId, productId) => {
+  const coupons = await couponRepository.getProductCoupon(productId);
+
+  const availableCoupons = coupons.filter((coupon) => {
+    if (coupon?.user_uses && coupon?.user_uses?.length > 0) {
+      const userUsageIndex = coupon.user_uses
+        ? coupon.user_uses.findIndex((user) => user.userId === userId)
+        : -1; // Check if user_uses exists
+
+      const userUsageCount =
+        userUsageIndex !== -1 ? coupon.user_uses[userUsageIndex].usageCount : 0;
+
+      return (
+        userUsageCount < coupon.max_uses_per_user &&
+        coupon.uses_count < coupon.max_uses
+      );
+    }
+    return true;
+  });
+
+  return availableCoupons;
 };
 
 const getAllCouponAvailable = async (userId) => {
@@ -124,7 +143,7 @@ const getAllCouponAvailable = async (userId) => {
   );
 
   const availableCoupons = otherCoupons.filter((coupon) => {
-    if (coupon.target_ids && coupon.target_ids.length > 0) {
+    if (coupon.user_uses && coupon.user_uses.length > 0) {
       const userUsageIndex = coupon.user_uses.findIndex(
         (user) => user.userId === userId
       );
@@ -342,4 +361,5 @@ export const couponService = {
   getAllCouponAvailable,
   checkCoupon,
   checkPrivateCode,
+  getProductCoupon,
 };

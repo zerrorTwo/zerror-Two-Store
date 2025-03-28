@@ -13,7 +13,7 @@ import {
 } from "../redux/api/cartSlice";
 import CartEmpty from "../components/Cart/CartEmpty";
 import { toast } from "react-toastify";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"; // Xóa useState không cần thiết
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Grid2 from "@mui/material/Grid2";
 import CouponSelector from "../components/Coupon/CouponSelector";
@@ -104,15 +104,14 @@ function Cart() {
   );
 
   useEffect(() => {
-    // Kiểm tra khi tổng giá trị hoặc danh sách sản phẩm thay đổi
     const previousPrice = checkedTotalPriceRef.current;
     const previousProductIds = checkedProductIdsRef.current;
     const updatedCoupons = { ...selectedCoupons };
     let hasChanges = false;
 
     if (
-      previousPrice > checkedTotalPrice || // Giá giảm do uncheck
-      JSON.stringify(previousProductIds) !== JSON.stringify(checkedProductIds) // Danh sách sản phẩm thay đổi
+      previousPrice > checkedTotalPrice ||
+      JSON.stringify(previousProductIds) !== JSON.stringify(checkedProductIds)
     ) {
       Object.keys(selectedCoupons).forEach((type) => {
         const coupon = selectedCoupons[type];
@@ -128,7 +127,6 @@ function Cart() {
       }
     }
 
-    // Cập nhật ref
     checkedTotalPriceRef.current = checkedTotalPrice;
     checkedProductIdsRef.current = checkedProductIds;
   }, [
@@ -151,6 +149,28 @@ function Cart() {
             ? (shippingFee * coupon.value) / 100
             : coupon.value;
         return Math.min(discount, shippingFee);
+      } else if (coupon.target_type === "PRODUCT") {
+        // Tính giảm giá cho từng sản phẩm được chọn
+        let totalProductDiscount = 0;
+        data?.products?.forEach((product) => {
+          if (coupon.target_ids?.includes(product.productId)) {
+            product.cartVariations.forEach((variation) => {
+              if (variation.checkout) {
+                const itemPrice =
+                  (variation.price || product.price) * variation.quantity;
+                const discount =
+                  coupon.type === "PERCENT"
+                    ? (itemPrice * coupon.value) / 100
+                    : coupon.value;
+                totalProductDiscount +=
+                  coupon.max_value && discount > coupon.max_value
+                    ? coupon.max_value
+                    : discount;
+              }
+            });
+          }
+        });
+        return totalProductDiscount;
       } else {
         const discount =
           coupon.type === "PERCENT"
@@ -161,7 +181,7 @@ function Cart() {
           : discount;
       }
     };
-  }, [checkedTotalPrice, isCouponApplicable]);
+  }, [checkedTotalPrice, isCouponApplicable, data]);
 
   const calculateTotalDiscount = useMemo(() => {
     const coupons = Object.values(selectedCoupons).filter(Boolean);
@@ -234,6 +254,16 @@ function Cart() {
     dispatch(setCoupons(coupons));
   };
 
+  const handleProductCouponSelect = (coupon) => {
+    if (coupon) {
+      const updatedCoupons = {
+        ...selectedCoupons,
+        PRODUCT: coupon, // Thêm hoặc cập nhật coupon PRODUCT
+      };
+      dispatch(setCoupons(updatedCoupons));
+    }
+  };
+
   return (
     <Container>
       <Typography variant="h6" gutterBottom>
@@ -294,6 +324,7 @@ function Cart() {
                     variation={variation}
                     allVariations={product?.productVariations}
                     refetch={refetch}
+                    onProductCouponSelect={handleProductCouponSelect} // Truyền callback
                   />
                 ))
               )
@@ -320,8 +351,8 @@ function Cart() {
             />
 
             <Divider sx={{ my: 2 }} />
+
             <Box display="flex" flexDirection="column" gap={2}>
-              {/* Tiền hàng */}
               <Box
                 display="flex"
                 justifyContent="space-between"
@@ -338,7 +369,6 @@ function Cart() {
                 </Typography>
               </Box>
 
-              {/* Phí vận chuyển */}
               <Box
                 display="flex"
                 justifyContent="space-between"
@@ -353,7 +383,6 @@ function Cart() {
                 </Typography>
               </Box>
 
-              {/* Giảm giá */}
               {calculateTotalDiscount > 0 && (
                 <Box display="flex" flexDirection="column" gap={1}>
                   {Object.values(selectedCoupons)
@@ -376,10 +405,11 @@ function Cart() {
                           color="secondary.main"
                           fontWeight={500}
                         >
+                          -
                           {new Intl.NumberFormat("vi-VN", {
                             style: "currency",
                             currency: "VND",
-                          }).format(-coupon.value)}
+                          }).format(calculateCouponDiscount(coupon))}
                         </Typography>
                       </Box>
                     ))}
@@ -408,7 +438,6 @@ function Cart() {
 
               <Divider sx={{ my: 1 }} />
 
-              {/* Tổng thanh toán */}
               <Box
                 display="flex"
                 justifyContent="space-between"
@@ -429,7 +458,6 @@ function Cart() {
                 </Typography>
               </Box>
 
-              {/* Nút Check Out */}
               <Button
                 disabled={!hasCheckedItems}
                 onClick={handleCheckout}
