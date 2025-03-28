@@ -5,16 +5,27 @@ export const couponSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     getAllCoupons: builder.query({
       query: ({ page, limit, search = "" }) => ({
-        url: `${COUPON_URL}/?page=${page}&limit=${limit}${search ? `&search=${search}` : ''}`,
+        url: `${COUPON_URL}/?page=${page}&limit=${limit}${
+          search ? `&search=${search}` : ""
+        }`,
         method: "GET",
       }),
       providesTags: ["Coupon"],
       keepUnusedDataFor: 20,
     }),
-   
+
     getAvailableCoupons: builder.query({
       query: () => ({
         url: `${COUPON_URL}/available`,
+        method: "GET",
+      }),
+      providesTags: ["Coupon"],
+      keepUnusedDataFor: 5,
+    }),
+
+    getProductCoupon: builder.query({
+      query: (productId) => ({
+        url: `${COUPON_URL}/${productId}`,
         method: "GET",
       }),
       providesTags: ["Coupon"],
@@ -39,7 +50,6 @@ export const couponSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Coupon"],
     }),
- 
   }),
 });
 
@@ -47,5 +57,6 @@ export const {
   useGetAllCouponsQuery,
   useCreateNewCouponMutation,
   useGetAvailableCouponsQuery,
-  useApplyCouponMutation
+  useApplyCouponMutation,
+  useGetProductCouponQuery,
 } = couponSlice;

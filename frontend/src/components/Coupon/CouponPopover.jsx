@@ -8,7 +8,6 @@ import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
 import { toast } from "react-toastify";
-import { useGetAvailableCouponsQuery } from "../../redux/api/couponSlice";
 import Chip from "@mui/material/Chip";
 import InputAdornment from "@mui/material/InputAdornment";
 import ClearIcon from "@mui/icons-material/Clear";
@@ -20,10 +19,10 @@ function CouponPopover({
   onClose,
   setSelectedCoupons,
   selectedCoupons: initialSelectedCoupons,
+  availableCoupons,
+  isLoadingCoupons,
 }) {
   const [couponCode, setCouponCode] = useState("");
-  const { data: availableCoupons, isLoading: isLoadingCoupons } =
-    useGetAvailableCouponsQuery();
 
   const [localSelectedCoupons, setLocalSelectedCoupons] = useState({
     PRODUCT: null,
@@ -75,8 +74,8 @@ function CouponPopover({
         return;
       }
 
-      if (selectedCount >= 2 && !localSelectedCoupons[type]) {
-        toast.warning("You can only select up to 2 coupons");
+      if (selectedCount >= 3 && !localSelectedCoupons[type]) {
+        toast.warning("You can only select up to 3 coupons");
         return;
       }
 
@@ -112,13 +111,13 @@ function CouponPopover({
           [type]: null,
         }));
         toast.info(`Coupon "${coupon.name}" removed`);
-      } else if (selectedCount < 2 || localSelectedCoupons[type]) {
+      } else if (selectedCount < 3 || localSelectedCoupons[type]) {
         setLocalSelectedCoupons((prev) => ({
           ...prev,
           [type]: coupon,
         }));
       } else {
-        toast.warning("You can only select up to 2 coupons");
+        toast.warning("You can only select up to 3 coupons");
       }
     } catch (err) {
       toast.error(
@@ -518,6 +517,8 @@ CouponPopover.propTypes = {
   selectedCoupons: PropTypes.object,
   finalTotal: PropTypes.number,
   checkedTotalPrice: PropTypes.number, // Thêm propType
+  availableCoupons: PropTypes.array,
+  isLoadingCoupons: PropTypes.bool,
 };
 
 export default CouponPopover;

@@ -18,6 +18,8 @@ import MomoPaymentMethod from "./MomoPaymentMethod";
 import Backdrop from "@mui/material/Backdrop";
 import { useGetProductCheckoutQuery } from "../../redux/api/checkoutSlice";
 import { useLazyGetUserAddressByIdQuery } from "../../redux/api/addressSlice";
+import { useDispatch } from "react-redux";
+import { clearAllCoupons } from "../../redux/features/couponSlice";
 
 function CheckoutPage() {
   const location = useLocation();
@@ -38,6 +40,7 @@ function CheckoutPage() {
   const [selectedCoupons, setSelectedCoupons] = useState(couponCart);
 
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { data } = useGetProductCheckoutQuery();
   const [createOrder, { isLoading: loadingOrder }] = useCreateOrderMutation();
 
@@ -141,7 +144,7 @@ function CheckoutPage() {
     try {
       const coupons = Object.values(selectedCoupons)
         .filter(Boolean)
-        .map((coupon) => coupon._id);
+        .map((coupon) => coupon?.code);
       const dataOrder = {
         addressId: selectedAddress._id,
         paymentMethod: selectedPaymentMethod.toUpperCase(),
@@ -152,6 +155,8 @@ function CheckoutPage() {
       console.log(dataOrder);
 
       const success = await createOrder(dataOrder).unwrap();
+
+      dispatch(clearAllCoupons());
       if (success) {
         navigate("/profile/my-order");
       } else {
