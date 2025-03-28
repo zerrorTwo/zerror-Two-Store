@@ -79,7 +79,7 @@ const getAllActivePublicCoupons = async () => {
   return await CouponModel.find({
     is_active: true,
     is_public: true,
-    end_day: { $gte: today }, 
+    end_day: { $gte: today },
   }).lean();
 };
 
@@ -87,9 +87,14 @@ const createNewCoupon = async (data) => {
   return await CouponModel.create(data);
 };
 
+const getProductCoupon = async (productId) => {
+  return await CouponModel.find({ target_ids: { $in: [productId] } }).lean();
+};
+
 export const couponRepository = {
   findAllCoupons,
   findCouponByCode,
   createNewCoupon,
   getAllActivePublicCoupons,
+  getProductCoupon,
 };

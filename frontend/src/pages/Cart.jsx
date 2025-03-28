@@ -13,110 +13,198 @@ import {
 } from "../redux/api/cartSlice";
 import CartEmpty from "../components/Cart/CartEmpty";
 import { toast } from "react-toastify";
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"; // Xóa useState không cần thiết
 import { useNavigate } from "react-router-dom";
-import Grid2  from "@mui/material/Grid2";
+import Grid2 from "@mui/material/Grid2";
 import CouponSelector from "../components/Coupon/CouponSelector";
+import { useDispatch, useSelector } from "react-redux";
+import { selectCoupons, setCoupons } from "../redux/features/couponSlice";
 
 function Cart() {
   const { data, refetch } = useGetAllCartQuery();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const selectedCoupons = useSelector(selectCoupons);
   const [updateAllCheckout, { isLoading }] = useUpdateAllCheckoutMutation();
 
   const [allChecked, setAllChecked] = useState(false);
-  const [selectedCoupon, setSelectedCoupon] = useState(null);
-  const [selectedCoupons, setSelectedCoupons] = useState({
-    PRODUCT: null,
-    FREESHIPPING: null,
-    ORDER: null
-  });
-  
-  // Kiểm tra xem có bất kỳ sản phẩm nào được check không
+  const checkedTotalPriceRef = useRef(0);
+  const checkedProductIdsRef = useRef([]);
+  const shippingFee = 30000;
+
   const hasCheckedItems = useMemo(() => {
     if (!data?.products?.length) return false;
-    
-    return data.products.some(product => 
-      product.cartVariations.some(variation => variation.checkout)
+    return data.products.some((product) =>
+      product.cartVariations.some((variation) => variation.checkout)
     );
   }, [data]);
 
-  // Tính tổng giá và số lượng cho các sản phẩm đã được checked
-  const { checkedTotalPrice, checkedTotalItems } = useMemo(() => {
-    if (!data?.products?.length) return { checkedTotalPrice: 0, checkedTotalItems: 0 };
-    
-    let totalPrice = 0;
-    let totalItems = 0;
-    
-    data.products.forEach(product => {
-      product.cartVariations.forEach(variation => {
-        if (variation.checkout) {
-          // Sử dụng giá của biến thể nếu có, nếu không thì sử dụng giá của sản phẩm
-          const itemPrice = variation.price || product.price;
-          totalPrice += itemPrice * variation.quantity;
-          totalItems += variation.quantity;
+  const { checkedTotalPrice, checkedTotalItems, checkedProductIds } =
+    useMemo(() => {
+      if (!data?.products?.length)
+        return {
+          checkedTotalPrice: 0,
+          checkedTotalItems: 0,
+          checkedProductIds: [],
+        };
+
+      let totalPrice = 0;
+      let totalItems = 0;
+      const productIds = [];
+
+      data.products.forEach((product) => {
+        product.cartVariations.forEach((variation) => {
+          if (variation.checkout) {
+            const itemPrice = variation.price || product.price;
+            totalPrice += itemPrice * variation.quantity;
+            totalItems += variation.quantity;
+            if (!productIds.includes(product.productId)) {
+              productIds.push(product.productId);
+            }
+          }
+        });
+      });
+
+      return {
+        checkedTotalPrice: totalPrice,
+        checkedTotalItems: totalItems,
+        checkedProductIds: productIds,
+      };
+    }, [data]);
+
+  const isCouponApplicable = useCallback(
+    (coupon) => {
+      if (!coupon) return false;
+      if (checkedTotalPrice < coupon.min_value) return false;
+      if (coupon.target_type === "PRODUCT" && coupon.target_ids) {
+        return coupon.target_ids.some((id) => checkedProductIds.includes(id));
+      }
+      return true;
+    },
+    [checkedTotalPrice, checkedProductIds]
+  );
+
+  const getCouponInapplicabilityMessage = useCallback(
+    (coupon) => {
+      if (checkedTotalPrice < coupon.min_value) {
+        const requiredPrice = coupon.min_value - checkedTotalPrice;
+        return `Coupon "${
+          coupon.code
+        }" không còn áp dụng được, cần thêm ${new Intl.NumberFormat("vi-VN", {
+          style: "currency",
+          currency: "VND",
+        }).format(requiredPrice)} để áp dụng.`;
+      }
+      if (coupon.target_type === "PRODUCT" && coupon.target_ids) {
+        return `Coupon "${coupon.code}" không còn áp dụng được vì không có sản phẩm tương ứng được chọn.`;
+      }
+      return `Coupon "${coupon.code}" không còn áp dụng được.`;
+    },
+    [checkedTotalPrice]
+  );
+
+  useEffect(() => {
+    // Kiểm tra khi tổng giá trị hoặc danh sách sản phẩm thay đổi
+    const previousPrice = checkedTotalPriceRef.current;
+    const previousProductIds = checkedProductIdsRef.current;
+    const updatedCoupons = { ...selectedCoupons };
+    let hasChanges = false;
+
+    if (
+      previousPrice > checkedTotalPrice || // Giá giảm do uncheck
+      JSON.stringify(previousProductIds) !== JSON.stringify(checkedProductIds) // Danh sách sản phẩm thay đổi
+    ) {
+      Object.keys(selectedCoupons).forEach((type) => {
+        const coupon = selectedCoupons[type];
+        if (coupon && !isCouponApplicable(coupon)) {
+          updatedCoupons[type] = null;
+          hasChanges = true;
+          toast.warning(getCouponInapplicabilityMessage(coupon));
         }
       });
-    });
-    
-    return { checkedTotalPrice: totalPrice, checkedTotalItems: totalItems };
-  }, [data]);
 
-  // Tính số tiền giảm giá dựa trên coupon được chọn
+      if (hasChanges) {
+        dispatch(setCoupons(updatedCoupons));
+      }
+    }
+
+    // Cập nhật ref
+    checkedTotalPriceRef.current = checkedTotalPrice;
+    checkedProductIdsRef.current = checkedProductIds;
+  }, [
+    checkedTotalPrice,
+    checkedProductIds,
+    selectedCoupons,
+    dispatch,
+    isCouponApplicable,
+    getCouponInapplicabilityMessage,
+  ]);
+
   const calculateCouponDiscount = useMemo(() => {
     return (coupon) => {
-      if (!coupon || !checkedTotalPrice) return 0;
-      
-      if (coupon.type === "PERCENT") {
-        const discount = (checkedTotalPrice * coupon.value) / 100;
-        return coupon.max_value && discount > coupon.max_value 
-          ? coupon.max_value 
-          : discount;
+      if (!coupon || !checkedTotalPrice || !isCouponApplicable(coupon))
+        return 0;
+
+      if (coupon.target_type === "FREESHIPPING") {
+        const discount =
+          coupon.type === "PERCENT"
+            ? (shippingFee * coupon.value) / 100
+            : coupon.value;
+        return Math.min(discount, shippingFee);
       } else {
-        return coupon.value;
+        const discount =
+          coupon.type === "PERCENT"
+            ? (checkedTotalPrice * coupon.value) / 100
+            : coupon.value;
+        return coupon.max_value && discount > coupon.max_value
+          ? coupon.max_value
+          : discount;
       }
     };
-  }, [checkedTotalPrice]);
-  
-  // Tính tổng số tiền giảm giá từ tất cả các coupon
+  }, [checkedTotalPrice, isCouponApplicable]);
+
   const calculateTotalDiscount = useMemo(() => {
     const coupons = Object.values(selectedCoupons).filter(Boolean);
-    return coupons.reduce((total, coupon) => total + calculateCouponDiscount(coupon), 0);
+    return coupons.reduce(
+      (total, coupon) => total + calculateCouponDiscount(coupon),
+      0
+    );
   }, [selectedCoupons, calculateCouponDiscount]);
-  
-  // Format tổng số tiền giảm giá
+
   const formattedTotalDiscount = useMemo(() => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
     }).format(calculateTotalDiscount);
   }, [calculateTotalDiscount]);
-  
-  // Tính tổng tiền sau khi áp dụng giảm giá
+
   const finalTotal = useMemo(() => {
-    return Math.max(0, checkedTotalPrice - calculateTotalDiscount);
-  }, [checkedTotalPrice, calculateTotalDiscount]);
+    if (!checkedTotalPrice) return 0;
+    const productDiscount = Object.values(selectedCoupons)
+      .filter(
+        (coupon) =>
+          coupon &&
+          coupon.target_type !== "FREESHIPPING" &&
+          isCouponApplicable(coupon)
+      )
+      .reduce((total, coupon) => total + calculateCouponDiscount(coupon), 0);
+    const shippingDiscount =
+      selectedCoupons.FREESHIPPING &&
+      isCouponApplicable(selectedCoupons.FREESHIPPING)
+        ? calculateCouponDiscount(selectedCoupons.FREESHIPPING)
+        : 0;
+    const totalBeforeShipping = Math.max(
+      0,
+      checkedTotalPrice - productDiscount
+    );
+    return totalBeforeShipping + shippingFee - shippingDiscount;
+  }, [
+    checkedTotalPrice,
+    selectedCoupons,
+    isCouponApplicable,
+    calculateCouponDiscount,
+  ]);
 
-  // Update selectedCoupons when selectedCoupon changes (for backward compatibility)
-  useEffect(() => {
-    if (selectedCoupon) {
-      const type = selectedCoupon.target_type || 'ORDER';
-      setSelectedCoupons(prev => ({
-        ...prev,
-        [type]: selectedCoupon
-      }));
-    }
-  }, [selectedCoupon]);
-
-  // Update selectedCoupon when selectedCoupons changes (for backward compatibility)
-  useEffect(() => {
-    const coupons = Object.values(selectedCoupons).filter(Boolean);
-    if (coupons.length > 0) {
-      setSelectedCoupon(coupons[0]);
-    } else {
-      setSelectedCoupon(null);
-    }
-  }, [selectedCoupons]);
-  
   useEffect(() => {
     if (data?.products?.length) {
       const isAllChecked = data.products.every((product) =>
@@ -128,9 +216,7 @@ function Cart() {
 
   const handleSelectAll = async (isChecked) => {
     try {
-      await updateAllCheckout({
-        checkoutState: isChecked,
-      }).unwrap();
+      await updateAllCheckout({ checkoutState: isChecked }).unwrap();
       refetch();
     } catch (error) {
       console.error("Lỗi khi cập nhật trạng thái giỏ hàng:", error);
@@ -139,7 +225,13 @@ function Cart() {
   };
 
   const handleCheckout = () => {
-    navigate("/checkout", { state: { selectedCoupons } });
+    navigate("/checkout", {
+      state: { selectedCoupons, finalTotal, shippingFee },
+    });
+  };
+
+  const handleSetSelectedCoupons = (coupons) => {
+    dispatch(setCoupons(coupons));
   };
 
   return (
@@ -148,57 +240,38 @@ function Cart() {
         Your Shopping Cart
       </Typography>
       <Grid2 container spacing={2}>
-        <Grid2 size={{xs: 8.5}}>
+        <Grid2 size={{ xs: 8.5 }}>
           <Box display={"flex"} flexDirection={"column"} gap={2} mb={5}>
-            {/* Cart Header */}
             <Box
               sx={{
                 display: data?.products?.length === 0 ? "none" : "block",
                 border: "1px solid silver",
                 p: 1.5,
                 borderRadius: 1,
-                boxShadow:
-                  " rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px",
+                boxShadow: "rgba(0, 0, 0, 0.1) 0px 0px 5px 0px",
               }}
             >
               <Grid2 container sx={{ alignItems: "center" }}>
-                <Grid2 size={{xs: 6}}>
+                <Grid2 size={{ xs: 6 }}>
                   <Box display={"flex"} alignItems={"center"} gap={0}>
                     <Checkbox
                       checked={allChecked}
                       onChange={(e) => handleSelectAll(e.target.checked)}
-                      sx={{
-                        color: "text.primary",
-                        "&.Mui-checked": {
-                          color: "secondary.main",
-                        },
-                      }}
+                      sx={{ "&.Mui-checked": { color: "secondary.main" } }}
                     />
                     <Typography variant="body1">Product</Typography>
                   </Box>
                 </Grid2>
-                <Grid2 size={{xs: 6}}>
+                <Grid2 size={{ xs: 6 }}>
                   <Grid2 container>
-                    <Grid2 size={{xs: 4}} textAlign={"center"}>
-                      <Typography
-                        variant="body1"
-                      >
-                        Unit Price
-                      </Typography>
+                    <Grid2 size={{ xs: 4 }} textAlign={"center"}>
+                      <Typography variant="body1">Unit Price</Typography>
                     </Grid2>
-                    <Grid2 size={{xs: 5}} textAlign={"center"}>
-                      <Typography
-                        variant="body1"
-                      >
-                        Quantity
-                      </Typography>
+                    <Grid2 size={{ xs: 5 }} textAlign={"center"}>
+                      <Typography variant="body1">Quantity</Typography>
                     </Grid2>
-                    <Grid2 size={{xs: 3}} textAlign={"center"}>
-                      <Typography
-                        variant="body1"
-                      >
-                        Actions
-                      </Typography>
+                    <Grid2 size={{ xs: 3 }} textAlign={"center"}>
+                      <Typography variant="body1">Actions</Typography>
                     </Grid2>
                   </Grid2>
                 </Grid2>
@@ -208,29 +281,27 @@ function Cart() {
             {data?.products?.length === 0 ? (
               <CartEmpty />
             ) : (
-              <>
-                {data?.products?.map((product) =>
-                  product?.cartVariations?.map((variation, index) => (
-                    <CartDetailItem
-                      key={`${product.productId}-${index}`}
-                      productId={product?.productId}
-                      productName={product?.productName}
-                      productPrice={product?.price}
-                      productSlug={product?.productSlug}
-                      productImages={product?.productImages}
-                      checkout={variation?.checkout}
-                      variation={variation}
-                      allVariations={product?.productVariations}
-                      refetch={refetch}
-                    />
-                  ))
-                )}
-              </>
+              data?.products?.map((product) =>
+                product?.cartVariations?.map((variation, index) => (
+                  <CartDetailItem
+                    key={`${product.productId}-${index}`}
+                    productId={product?.productId}
+                    productName={product?.productName}
+                    productPrice={product?.price}
+                    productSlug={product?.productSlug}
+                    productImages={product?.productImages}
+                    checkout={variation?.checkout}
+                    variation={variation}
+                    allVariations={product?.productVariations}
+                    refetch={refetch}
+                  />
+                ))
+              )
             )}
           </Box>
         </Grid2>
 
-        <Grid2 size={{xs: 3.5}}>
+        <Grid2 size={{ xs: 3.5 }}>
           <Box
             sx={{
               p: 1,
@@ -238,28 +309,118 @@ function Cart() {
               borderRadius: 1,
               position: "sticky",
               top: "96px",
-              boxShadow:
-                " rgba(0, 0, 0, 0.1) 0px 0px 5px 0px, rgba(0, 0, 0, 0.1) 0px 0px 1px 0px",
+              boxShadow: "rgba(0, 0, 0, 0.1) 0px 0px 5px 0px",
             }}
           >
-
-              <CouponSelector 
-                selectedCoupon={selectedCoupon}
-                setSelectedCoupon={setSelectedCoupon}
-                selectedCoupons={selectedCoupons}
-                setSelectedCoupons={setSelectedCoupons}
-              />
+            <CouponSelector
+              finalTotal={finalTotal}
+              checkedTotalPrice={checkedTotalPrice}
+              selectedCoupons={selectedCoupons}
+              setSelectedCoupons={handleSetSelectedCoupons}
+            />
 
             <Divider sx={{ my: 2 }} />
-
-            <Box display={"flex"} flexDirection={"column"} gap={2}>
-              <Box display={"flex"} alignItems={"center"} gap={1}>
+            <Box display="flex" flexDirection="column" gap={2}>
+              {/* Tiền hàng */}
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
                 <Typography variant="body1">
-                  Tổng ({checkedTotalItems || 0} sản phẩm):
+                  Tiền hàng ({checkedTotalItems || 0} sản phẩm):
+                </Typography>
+                <Typography variant="body1" fontWeight={500}>
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(checkedTotalPrice)}
+                </Typography>
+              </Box>
+
+              {/* Phí vận chuyển */}
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography variant="body1">Phí vận chuyển:</Typography>
+                <Typography variant="body1" fontWeight={500}>
+                  {new Intl.NumberFormat("vi-VN", {
+                    style: "currency",
+                    currency: "VND",
+                  }).format(shippingFee)}
+                </Typography>
+              </Box>
+
+              {/* Giảm giá */}
+              {calculateTotalDiscount > 0 && (
+                <Box display="flex" flexDirection="column" gap={1}>
+                  {Object.values(selectedCoupons)
+                    .filter(Boolean)
+                    .map((coupon) => (
+                      <Box
+                        key={coupon._id}
+                        display="flex"
+                        justifyContent="space-between"
+                      >
+                        <Typography
+                          variant="body1"
+                          color="secondary.main"
+                          fontWeight={500}
+                        >
+                          {coupon.code}
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          color="secondary.main"
+                          fontWeight={500}
+                        >
+                          {new Intl.NumberFormat("vi-VN", {
+                            style: "currency",
+                            currency: "VND",
+                          }).format(-coupon.value)}
+                        </Typography>
+                      </Box>
+                    ))}
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    <Typography
+                      variant="body1"
+                      color="secondary.main"
+                      fontWeight={600}
+                    >
+                      Tổng giảm giá:
+                    </Typography>
+                    <Typography
+                      variant="body1"
+                      color="secondary.main"
+                      fontWeight={600}
+                    >
+                      -{formattedTotalDiscount}
+                    </Typography>
+                  </Box>
+                </Box>
+              )}
+
+              <Divider sx={{ my: 1 }} />
+
+              {/* Tổng thanh toán */}
+              <Box
+                display="flex"
+                justifyContent="space-between"
+                alignItems="center"
+              >
+                <Typography variant="body1" fontWeight={600}>
+                  Tổng thanh toán:
                 </Typography>
                 <Typography
                   variant="h6"
-                  sx={{ color: "secondary.main", fontWeight: "bold" }}
+                  color="secondary.main"
+                  fontWeight={700}
                 >
                   {new Intl.NumberFormat("vi-VN", {
                     style: "currency",
@@ -267,16 +428,8 @@ function Cart() {
                   }).format(finalTotal)}
                 </Typography>
               </Box>
-              
-              <Box display="flex" justifyContent="space-between" alignItems="center">
-                <Typography variant="body2" sx={{ color: calculateTotalDiscount > 0 ? "secondary.main" : "inherit" }}>
-                  Giảm giá{calculateTotalDiscount > 0 ? ` (${Object.values(selectedCoupons).filter(Boolean).map(c => c.code).join(', ')})` : ''}:
-                </Typography>
-                <Typography variant="body2" sx={{ color: calculateTotalDiscount > 0 ? "secondary.main" : "inherit" }}>
-                  {calculateTotalDiscount > 0 ? '-' : ''}{formattedTotalDiscount}
-                </Typography>
-              </Box>
-              
+
+              {/* Nút Check Out */}
               <Button
                 disabled={!hasCheckedItems}
                 onClick={handleCheckout}
@@ -284,10 +437,9 @@ function Cart() {
                   boxShadow: "none",
                   bgcolor: "secondary.main",
                   color: "white",
-                  "&:disabled": {
-                    bgcolor: "grey.300",
-                    color: "grey.500",
-                  },
+                  fontWeight: 600,
+                  "&:hover": { bgcolor: "secondary.dark" },
+                  "&:disabled": { bgcolor: "grey.300", color: "grey.500" },
                 }}
                 fullWidth
                 variant="contained"
