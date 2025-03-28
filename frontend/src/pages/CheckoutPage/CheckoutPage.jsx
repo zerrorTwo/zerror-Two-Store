@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useCreateOrderMutation } from "../../redux/api/checkoutSlice";
 import Container from "@mui/material/Container";
@@ -8,7 +8,7 @@ import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import Divider from "@mui/material/Divider";
 import CircularProgress from "@mui/material/CircularProgress";
-import { Grid } from "@mui/material"; 
+import { Grid } from "@mui/material";
 import CouponSelector from "../../components/Coupon/CouponSelector";
 import AddressDrawer from "./AddressDrawer";
 import CheckoutProduct from "./CheckoutProduct";
@@ -16,15 +16,15 @@ import AddLocationIcon from "@mui/icons-material/AddLocation";
 import CashPaymentMethod from "./CashPaymentMethod";
 import MomoPaymentMethod from "./MomoPaymentMethod";
 import Backdrop from "@mui/material/Backdrop";
-import {
-  useGetProductCheckoutQuery,
-} from "../../redux/api/checkoutSlice";
+import { useGetProductCheckoutQuery } from "../../redux/api/checkoutSlice";
 import { useLazyGetUserAddressByIdQuery } from "../../redux/api/addressSlice";
-import { useLocation } from "react-router-dom";
 
 function CheckoutPage() {
   const location = useLocation();
-  const { selectedCoupons : couponCart } = location.state || { selectedCoupons: {} };
+  const {
+    selectedCoupons: couponCart,
+    shippingFee: shippingFeeFromCart = 30000,
+  } = location.state || { selectedCoupons: {} };
   const [state, setState] = useState({
     top: false,
     left: false,
@@ -36,34 +36,50 @@ function CheckoutPage() {
   const [selectedAddress, setSelectedAddress] = useState("");
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("cash");
   const [selectedCoupons, setSelectedCoupons] = useState(couponCart);
-  
-  const navigate = useNavigate();
 
+  const navigate = useNavigate();
   const { data } = useGetProductCheckoutQuery();
   const [createOrder, { isLoading: loadingOrder }] = useCreateOrderMutation();
 
-  const calculateCouponDiscount = useCallback((coupon) => {
-    if (!coupon || !data?.totalPrice) return 0;
-    
-    if (coupon.type === "PERCENT") {
-      const discount = (data.totalPrice * coupon.value) / 100;
-      return coupon.max_value && discount > coupon.max_value 
-        ? coupon.max_value 
-        : discount;
-    } else {
-      return coupon.value;
-    }
-  }, [data]);
-  
+  const shippingFee = shippingFeeFromCart; // Lấy từ Cart hoặc mặc định 30,000 VND
+
+  const calculateCouponDiscount = useCallback(
+    (coupon) => {
+      if (!coupon || !data?.totalPrice) return 0;
+
+      if (coupon.target_type === "FREESHIPPING") {
+        // Đối với coupon FREESHIPPING, giảm tối đa bằng tiền ship
+        const discount =
+          coupon.type === "PERCENT"
+            ? (shippingFee * coupon.value) / 100
+            : coupon.value;
+        return Math.min(discount, shippingFee); // Không vượt quá tiền ship
+      } else {
+        // Đối với các coupon khác (PRODUCT, ORDER)
+        const discount =
+          coupon.type === "PERCENT"
+            ? (data.totalPrice * coupon.value) / 100
+            : coupon.value;
+        return coupon.max_value && discount > coupon.max_value
+          ? coupon.max_value
+          : discount;
+      }
+    },
+    [data, shippingFee]
+  );
+
   const calculateTotalDiscount = useCallback(() => {
     const coupons = Object.values(selectedCoupons).filter(Boolean);
-    return coupons.reduce((total, coupon) => total + calculateCouponDiscount(coupon), 0);
+    return coupons.reduce(
+      (total, coupon) => total + calculateCouponDiscount(coupon),
+      0
+    );
   }, [selectedCoupons, calculateCouponDiscount]);
 
   const totalDiscount = useMemo(() => {
     return calculateTotalDiscount();
   }, [calculateTotalDiscount]);
-  
+
   const formattedCouponDiscounts = useMemo(() => {
     return Object.entries(selectedCoupons)
       .filter(([, coupon]) => Boolean(coupon))
@@ -74,15 +90,21 @@ function CheckoutPage() {
         formattedDiscount: new Intl.NumberFormat("vi-VN", {
           style: "currency",
           currency: "VND",
-        }).format(calculateCouponDiscount(coupon))
+        }).format(calculateCouponDiscount(coupon)),
       }));
   }, [selectedCoupons, calculateCouponDiscount]);
 
   const totalPriceAfterDiscount = useMemo(() => {
     if (!data?.totalPrice) return 0;
-    const totalDiscount = calculateTotalDiscount();
-    return data.totalPrice - totalDiscount + 30000;
-  }, [data, calculateTotalDiscount]);
+    const productDiscount = Object.values(selectedCoupons)
+      .filter((coupon) => coupon && coupon.target_type !== "FREESHIPPING")
+      .reduce((total, coupon) => total + calculateCouponDiscount(coupon), 0);
+    const shippingDiscount = selectedCoupons.FREESHIPPING
+      ? calculateCouponDiscount(selectedCoupons.FREESHIPPING)
+      : 0;
+    const totalBeforeShipping = Math.max(0, data.totalPrice - productDiscount);
+    return totalBeforeShipping + shippingFee - shippingDiscount;
+  }, [data, selectedCoupons, calculateCouponDiscount, shippingFee]);
 
   useEffect(() => {
     const fetchUserAddress = async () => {
@@ -117,17 +139,19 @@ function CheckoutPage() {
     }
 
     try {
-      const coupons = Object.values(selectedCoupons).filter(Boolean).map(coupon => coupon._id);
-      const data = {
+      const coupons = Object.values(selectedCoupons)
+        .filter(Boolean)
+        .map((coupon) => coupon._id);
+      const dataOrder = {
         addressId: selectedAddress._id,
         paymentMethod: selectedPaymentMethod.toUpperCase(),
         coupons: coupons,
-        totalDiscount: totalDiscount
+        totalDiscount: totalDiscount,
       };
 
-      console.log(data);
+      console.log(dataOrder);
 
-      const success = await createOrder(data).unwrap();
+      const success = await createOrder(dataOrder).unwrap();
       if (success) {
         navigate("/profile/my-order");
       } else {
@@ -151,8 +175,6 @@ function CheckoutPage() {
       currency: "VND",
     }).format(totalPriceAfterDiscount);
   }, [totalPriceAfterDiscount]);
-
-
 
   return (
     <Container>
@@ -305,27 +327,35 @@ function CheckoutPage() {
                     {new Intl.NumberFormat("vi-VN", {
                       style: "currency",
                       currency: "VND",
-                    }).format(30000)}
+                    }).format(shippingFee)}
                   </Typography>
                 </Box>
 
                 {formattedCouponDiscounts.length > 0 ? (
-                  formattedCouponDiscounts.map(({ coupon, formattedDiscount }) => (
-                    <Box
-                      key={coupon._id}
-                      display="flex"
-                      alignItems="center"
-                      gap={1}
-                      justifyContent={"space-between"}
-                    >
-                      <Typography variant="body1" sx={{ color: "secondary.main" }}>
-                        Giảm giá ({coupon.code}):
-                      </Typography>
-                      <Typography variant="body1" sx={{ color: "secondary.main" }}>
-                        -{formattedDiscount}
-                      </Typography>
-                    </Box>
-                  ))
+                  formattedCouponDiscounts.map(
+                    ({ coupon, formattedDiscount }) => (
+                      <Box
+                        key={coupon._id}
+                        display="flex"
+                        alignItems="center"
+                        gap={1}
+                        justifyContent={"space-between"}
+                      >
+                        <Typography
+                          variant="body1"
+                          sx={{ color: "secondary.main" }}
+                        >
+                          Giảm giá ({coupon.code}):
+                        </Typography>
+                        <Typography
+                          variant="body1"
+                          sx={{ color: "secondary.main" }}
+                        >
+                          -{formattedDiscount}
+                        </Typography>
+                      </Box>
+                    )
+                  )
                 ) : (
                   <Box
                     display="flex"
@@ -356,7 +386,7 @@ function CheckoutPage() {
                     {formattedTotalPrice}
                   </Typography>
                 </Box>
-                
+
                 <Button
                   onClick={handleSubmit}
                   sx={{

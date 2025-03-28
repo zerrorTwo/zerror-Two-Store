@@ -6,13 +6,11 @@ import Chip from "@mui/material/Chip";
 import CouponPopover from "./CouponPopover";
 
 function CouponSelector({
-  selectedCoupon,
-  setSelectedCoupon,
+  checkedTotalPrice,
   selectedCoupons,
   setSelectedCoupons,
   disabled = false,
 }) {
-
   const [couponAnchorEl, setCouponAnchorEl] = useState(null);
 
   const handleCouponPopoverOpen = (event) => {
@@ -25,11 +23,7 @@ function CouponSelector({
     setCouponAnchorEl(null);
   };
 
-  const activeCoupons = selectedCoupons
-    ? Object.values(selectedCoupons).filter(Boolean)
-    : selectedCoupon
-    ? [selectedCoupon]
-    : [];
+  const activeCoupons = Object.values(selectedCoupons).filter(Boolean);
 
   return (
     <>
@@ -49,7 +43,6 @@ function CouponSelector({
             display: disabled ? "none" : "inline",
           }}
           onClick={handleCouponPopoverOpen}
-          disabled={disabled}
         >
           {activeCoupons.length > 0 ? "Thay đổi" : ""}
         </Typography>
@@ -109,29 +102,19 @@ function CouponSelector({
       <CouponPopover
         anchorEl={couponAnchorEl}
         onClose={handleCouponPopoverClose}
-        selectedCoupon={selectedCoupon}
-        setSelectedCoupon={setSelectedCoupon}
         selectedCoupons={selectedCoupons}
         setSelectedCoupons={setSelectedCoupons}
+        checkedTotalPrice={checkedTotalPrice} // Truyền thêm prop này
       />
     </>
   );
 }
 
 CouponSelector.propTypes = {
-  selectedCoupon: PropTypes.shape({
-    _id: PropTypes.string,
-    name: PropTypes.string,
-    code: PropTypes.string,
-    type: PropTypes.string,
-    value: PropTypes.number,
-    description: PropTypes.string,
-    target_type: PropTypes.string,
-  }),
-  setSelectedCoupon: PropTypes.func,
   selectedCoupons: PropTypes.object,
-  setSelectedCoupons: PropTypes.func,
+  setSelectedCoupons: PropTypes.func.isRequired,
   disabled: PropTypes.bool,
+  checkedTotalPrice: PropTypes.number, // Thêm propType
 };
 
 export default CouponSelector;

@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
-import  Checkbox  from "@mui/material/Checkbox";
-import  Backdrop  from "@mui/material/Backdrop";
-import  Box  from "@mui/material/Box";
-import  CardMedia  from "@mui/material/CardMedia";
-import  CircularProgress  from "@mui/material/CircularProgress";
-import  Popover  from "@mui/material/Popover";
-import  Tooltip  from "@mui/material/Tooltip";
-import  Typography  from "@mui/material/Typography";
+import Checkbox from "@mui/material/Checkbox";
+import Backdrop from "@mui/material/Backdrop";
+import Box from "@mui/material/Box";
+import CardMedia from "@mui/material/CardMedia";
+import CircularProgress from "@mui/material/CircularProgress";
+import Popover from "@mui/material/Popover";
+import Tooltip from "@mui/material/Tooltip";
+import Typography from "@mui/material/Typography";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -20,7 +20,7 @@ import {
 } from "../../redux/api/cartSlice";
 import { toast } from "react-toastify";
 import QuantityGroupWithAPI from "../QuantityGroupApi";
-import  Grid2  from "@mui/material/Grid2";
+import Grid2 from "@mui/material/Grid2";
 
 function CartDetailItem({
   productId,
@@ -97,7 +97,7 @@ function CartDetailItem({
           <Box display="flex" alignItems="center" gap={0}>
             <Checkbox
               checked={checkout}
-              onChange={handleCheckboxChange} 
+              onChange={handleCheckboxChange}
               sx={{
                 color: "text.primary",
                 "&.Mui-checked": { color: "secondary.main" },
@@ -195,7 +195,7 @@ function CartDetailItem({
         <Grid2 size={6}>
           <Grid2 container justifyContent="center" alignItems="center">
             <Grid2 size={4} textAlign="center">
-              <Typography fontWeight="bold" >
+              <Typography fontWeight="bold">
                 {new Intl.NumberFormat("vi-VN", {
                   style: "currency",
                   currency: "VND",

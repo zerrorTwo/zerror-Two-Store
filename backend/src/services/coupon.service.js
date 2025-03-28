@@ -112,53 +112,35 @@ const findCouponByCode = async (code) => {
   }
 };
 
+const getProductCoupon = async (productId) => {
+  return await couponRepository.getProductCoupon(productId);
+};
+
 const getAllCouponAvailable = async (userId) => {
   const allCoupons = await couponRepository.getAllActivePublicCoupons();
 
-  if (!userId) return allCoupons;
-
-  console.log(allCoupons);
-
-  const productCoupons = allCoupons.filter(
-    (coupon) => coupon.target_type === "PRODUCT"
-  );
   const otherCoupons = allCoupons.filter(
     (coupon) => coupon.target_type !== "PRODUCT"
   );
 
-  const userCart = await cartRepository.findActiveCartByUserId(userId);
+  const availableCoupons = otherCoupons.filter((coupon) => {
+    if (coupon.target_ids && coupon.target_ids.length > 0) {
+      const userUsageIndex = coupon.user_uses.findIndex(
+        (user) => user.userId === userId
+      );
+      const userUsageCount =
+        userUsageIndex !== -1 ? coupon.user_uses[userUsageIndex].usageCount : 0;
 
-  if (!userCart || !userCart.products || userCart.products.length === 0) {
-    return otherCoupons;
-  }
-
-  const checkoutProducts = userCart.products.filter(
-    (product) =>
-      product.variations &&
-      product.variations.some((variation) => variation.checkout === true)
-  );
-
-  if (checkoutProducts.length === 0) {
-    return otherCoupons;
-  }
-
-  const checkoutProductIds = checkoutProducts.map((item) =>
-    item.productId.toString()
-  );
-
-
-  const filteredProductCoupons = productCoupons.filter((coupon) => {
-    if (!coupon.target_ids || coupon.target_ids.length === 0) return true;
-
-    return coupon.target_ids.some((targetId) => {
-      console.log(targetId);
-      return checkoutProductIds.includes(targetId.toString());
-    });
+      return (
+        userUsageCount < coupon.max_uses_per_user &&
+        coupon.uses_count < coupon.max_uses
+      );
+    }
+    return true;
   });
 
-  return [...filteredProductCoupons, ...otherCoupons];
+  return availableCoupons;
 };
-
 
 const checkCoupon = async (
   name,
