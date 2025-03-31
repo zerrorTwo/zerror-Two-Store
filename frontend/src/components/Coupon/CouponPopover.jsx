@@ -430,6 +430,13 @@ function CouponPopover({
                               variant="caption"
                               color="text.secondary"
                             >
+                              Số lượng còn:{" "}
+                              {coupon.max_uses - coupon.uses_count}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
                               HSD:{" "}
                               {new Date(coupon.end_day).toLocaleDateString(
                                 "vi-VN"

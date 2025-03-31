@@ -2,114 +2,177 @@ import mongoose from "mongoose";
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
 import { orderRepository } from "../repositories/order.repository.js";
+import { couponService } from "./coupon.service.js";
+import { cartRepository } from "../repositories/cart.repository.js";
+import { couponRepository } from "../repositories/coupon.repository.js";
+import { productRepository } from "../repositories/product.repository.js";
 
-const createOrder = async (data) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
+const createOrder = async (data, retries = 3) => {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    const session = await mongoose.startSession();
+    try {
+      session.startTransaction();
 
-  try {
-    const { userId, addressId, paymentMethod, notes } = data;
+      const { userId, addressId, paymentMethod, coupons } = data;
+      const SHIPPING_FEE = 30000;
 
-    // Kiểm tra địa chỉ giao hàng
-    const address = await orderRepository.findAddressById(addressId, userId, session);
-    if (!address)
-      throw new ApiError(StatusCodes.NOT_FOUND, "Address not found!");
-
-    // Lấy sản phẩm đã checkout từ giỏ hàng
-    const cartItems = await orderRepository.findCartItemsByUserId(userId, session);
-
-    // Kiểm tra nếu giỏ hàng rỗng
-    if (!cartItems.length)
-      throw new ApiError(StatusCodes.NOT_FOUND, "Cart is empty!");
-
-    const { products, totalItems, totalPrice } = cartItems[0];
-
-    // Kiểm tra sản phẩm có đầy đủ thông tin không
-    for (const item of products) {
-      if (!item.variation.price) {
-        throw new ApiError(
-          StatusCodes.BAD_REQUEST,
-          `Product ${item.productId} is missing price!`
-        );
-      }
-      if (!item.variation.quantity) {
-        throw new ApiError(
-          StatusCodes.BAD_REQUEST,
-          `Product ${item.productId} is missing quantity!`
-        );
-      }
-    }
-
-    // Kiểm tra stock & trừ stock trong một lần truy vấn
-    const productIds = [...new Set(products.map(item => item.productId.toString()))]; // Loại bỏ trùng lặp
-    const productList = await orderRepository.findProductsByIds(productIds, session);
-
-    // Tạo map để kiểm tra stock nhanh hơn
-    const productStockMap = new Map(
-      productList.map(p => [p._id.toString(), p])
-    );
-
-    // Tách các sản phẩm thành các đơn hàng riêng
-    const orders = products.map(item => {
-      const product = productStockMap.get(item.productId.toString());
-      if (!product) {
-        throw new ApiError(
-          StatusCodes.NOT_FOUND,
-          `Product ${item.productId} not found!`
-        );
-      }
-      if (product.stock < item.variation.quantity) {
-        throw new ApiError(
-          StatusCodes.BAD_REQUEST,
-          `Not enough stock for product ${item.productId}`
-        );
-      }
-      
-      // Trừ stock ngay lập tức
-      product.stock -= item.variation.quantity;
-      
-      return {
-        userId,
-        products: [{
-          productId: item.productId,
-          variations: [item.variation]
-        }],
+      // Validate shipping address
+      const address = await orderRepository.findAddressById(
         addressId,
-        paymentMethod,
-        notes,
-        totalItems: item.variation.quantity,
-        totalPrice: item.variation.price * item.variation.quantity,
-        finalTotal: item.variation.price * item.variation.quantity + 30000
+        userId,
+        session
+      );
+      if (!address) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Address not found!");
+      }
+
+      // Fetch checked-out cart items
+      const cartItems = await orderRepository.findCartItemsByUserId(
+        userId,
+        session
+      );
+      if (!cartItems.length) {
+        throw new ApiError(StatusCodes.NOT_FOUND, "Cart is empty!");
+      }
+
+      const { products, totalItems, totalPrice } = cartItems[0];
+
+      // Validate product details
+      for (const item of products) {
+        if (!item.variation?.price) {
+          throw new ApiError(
+            StatusCodes.BAD_REQUEST,
+            `Product ${item.productId} is missing price!`
+          );
+        }
+        if (!item.variation?.quantity) {
+          throw new ApiError(
+            StatusCodes.BAD_REQUEST,
+            `Product ${item.productId} is missing quantity!`
+          );
+        }
+      }
+
+      // Fetch product details for stock validation
+      const productIds = products.map((item) => item.productId);
+      const productList = await productRepository.findProductIdByIds(
+        productIds
+      );
+
+      // Create a stock map for efficient lookup
+      const productStockMap = new Map(
+        productList.map((p) => [p._id.toString(), p])
+      );
+
+      // Validate and update stock
+      for (const item of products) {
+        const product = productStockMap.get(item.productId.toString());
+        if (!product) {
+          throw new ApiError(
+            StatusCodes.NOT_FOUND,
+            `Product ${item.productId} not found!`
+          );
+        }
+        if (product.stock < item.variation.quantity) {
+          throw new ApiError(
+            StatusCodes.BAD_REQUEST,
+            `Not enough stock for product ${item.productId}`
+          );
+        }
+        product.stock -= item.variation.quantity;
+      }
+
+      // Bulk update stock
+      await Promise.all(productList.map((p) => p.save({ session })));
+
+      // Create draft order
+
+      const newOrder = await orderRepository.createNewOrder(
+        [
+          {
+            userId,
+            products: products.map((p) => ({
+              productId: p.productId,
+              variations: [p.variation],
+            })),
+            addressId,
+            paymentMethod,
+            totalItems,
+            totalPrice,
+          },
+        ],
+        { session }
+      );
+
+      // Handle coupons if provided
+      let totalDiscount = 0;
+      if (coupons?.length > 0) {
+        const couponResults = await Promise.all(
+          coupons.map(async (coupon) => {
+            const result = await couponService.useCoupon(
+              coupon,
+              userId,
+              totalPrice,
+              SHIPPING_FEE
+            );
+            if (result.error) {
+              throw new ApiError(StatusCodes.BAD_REQUEST, result.error);
+            }
+            return result;
+          })
+        );
+        totalDiscount = couponResults.reduce(
+          (sum, result) => sum + result.discount,
+          0
+        );
+
+        // Update coupon usage with session
+        await Promise.all(
+          coupons.map((coupon) =>
+            couponRepository.updateCouponUsage(coupon, userId, session)
+          )
+        );
+      }
+
+      // Clean up cart
+      await cartRepository.removeCheckoutVariations(userId, session);
+      await cartRepository.removeEmptyProducts(userId, session);
+
+      // Finalize order
+      newOrder[0].totalDiscount = totalDiscount;
+      newOrder[0].finalTotal = totalPrice - totalDiscount + SHIPPING_FEE;
+
+      await newOrder[0].save({ session });
+
+      // Commit transaction
+      await session.commitTransaction();
+
+      return {
+        success: true,
+        message: "Order created successfully",
+        orders: newOrder,
       };
-    });
-
-    // Cập nhật stock trong một lần
-    await Promise.all(productList.map(p => p.save({ session })));
-
-    // Tạo các đơn hàng
-    const newOrders = await Promise.all(
-      orders.map(order => 
-        orderRepository.createNewOrder(order, session)
-      )
-    );
-
-    // Cập nhật giỏ hàng sau khi tạo đơn hàng
-    await orderRepository.updateCartAfterOrder(userId, session);
-
-    // Commit transaction
-    await session.commitTransaction();
-    session.endSession();
-
-    return {
-      success: true,
-      message: "Orders created successfully",
-      orders: newOrders.flat() // Chuyển đổi array of arrays thành array đơn
-    };
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
-    throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
+    } catch (error) {
+      await session.abortTransaction();
+      // Check if it's a write conflict error (MongoDB error code 112)
+      if (error.code === 112 && attempt < retries) {
+        console.log(
+          `Write conflict detected, retrying (${attempt}/${retries})...`
+        );
+        continue; // Retry the transaction
+      }
+      throw new ApiError(
+        StatusCodes.INTERNAL_SERVER_ERROR,
+        `Order creation failed: ${error.message}`
+      );
+    } finally {
+      session.endSession();
+    }
   }
+  throw new ApiError(
+    StatusCodes.INTERNAL_SERVER_ERROR,
+    "Max retries reached, order creation failed due to persistent write conflicts."
+  );
 };
 
 const getUserOrder = async (userId, page = 1, limit = 2, filter) => {
@@ -196,7 +259,11 @@ const getUserTotalOrder = async (userId, time) => {
     }
 
     // Truy vấn đơn hàng theo thời gian và userId
-    const orders = await orderRepository.findOrdersByTimeRange(userId, startDate, endDate);
+    const orders = await orderRepository.findOrdersByTimeRange(
+      userId,
+      startDate,
+      endDate
+    );
 
     // Tổng số đơn hàng
     const totalOrders = orders.length;
@@ -266,7 +333,10 @@ const updateOrderState = async (orderId, state) => {
 
 const updateOrderDeliveryState = async (orderId, deliveryState) => {
   try {
-    return await orderRepository.updateOrderDeliveryState(orderId, deliveryState);
+    return await orderRepository.updateOrderDeliveryState(
+      orderId,
+      deliveryState
+    );
   } catch (error) {
     throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, error.message);
   }

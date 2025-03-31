@@ -9,7 +9,6 @@ const getProductCheckout = asyncHandeler(async (req, res) => {
 
 const createOrder = asyncHandeler(async (req, res) => {
   const data = req.body;
-  console.log(data);
   data.userId = req.userId;
   const products = await orderService.createOrder(data);
   res.status(StatusCodes.CREATED).json(products);
@@ -17,7 +16,12 @@ const createOrder = asyncHandeler(async (req, res) => {
 
 const getUserOrder = asyncHandeler(async (req, res) => {
   const { page, limit, filter } = req.query;
-  const orders = await orderService.getUserOrder(req.userId, page, limit, filter);
+  const orders = await orderService.getUserOrder(
+    req.userId,
+    page,
+    limit,
+    filter
+  );
   res.status(StatusCodes.OK).json(orders);
 });
 
@@ -60,7 +64,7 @@ const getRecentOrders = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(orders);
 });
 
-export  {
+export {
   getProductCheckout,
   createOrder,
   getUserTotalOrder,

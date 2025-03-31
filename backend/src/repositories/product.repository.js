@@ -391,11 +391,8 @@ const getTopSoldProducts = async () => {
 
 const findProductsByIds = async (ids) => {
   try {
-    // Convert string IDs to MongoDB ObjectIDs
-    const objectIds = ids.map(id => new mongoose.Types.ObjectId(id));
-    
-    console.log("Looking for products with IDs:", objectIds);
-    
+    const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
+
     return await ProductModel.aggregate([
       { $match: { _id: { $in: objectIds } } },
       {
@@ -430,9 +427,13 @@ const findProductsByIds = async (ids) => {
       },
     ]);
   } catch (error) {
-    console.error("Error finding products by IDs:", error);
     throw error;
   }
+};
+
+// Tìm sản phẩm theo danh sách ID
+const findProductIdByIds = async (ids) => {
+  return await ProductModel.find({ _id: { $in: ids } }); // Không dùng .lean()
 };
 
 export const productRepository = {
@@ -449,4 +450,5 @@ export const productRepository = {
   getPageProducts,
   getTopSoldProducts,
   findProductsByIds,
+  findProductIdByIds,
 };

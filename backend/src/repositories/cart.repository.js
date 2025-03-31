@@ -168,6 +168,22 @@ const getPaginatedCart = async (userId, skip, limit) => {
   ]);
 };
 
+const removeCheckoutVariations = async (userId, session) => {
+  return await CartModel.updateOne(
+    { userId },
+    { $pull: { "products.$[].variations": { checkout: true } } },
+    { session }
+  );
+};
+
+const removeEmptyProducts = async (userId, session) => {
+  return await CartModel.updateMany(
+    { userId },
+    { $pull: { products: { variations: { $size: 0 } } } },
+    { session }
+  );
+};
+
 export const cartRepository = {
   findCartByUserId,
   findActiveCartByUserId,
@@ -178,4 +194,6 @@ export const cartRepository = {
   findActiveCartWithAggregate,
   getCartSummary,
   getPaginatedCart,
+  removeCheckoutVariations,
+  removeEmptyProducts,
 };

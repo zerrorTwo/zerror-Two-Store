@@ -64,7 +64,6 @@ const findAllCoupons = async (page = 1, limit = 10, search = "") => {
       coupons: formattedCoupons,
     };
   } catch (error) {
-    console.error("Error in findAllCoupons:", error);
     throw error;
   }
 };
@@ -91,10 +90,47 @@ const getProductCoupon = async (productId) => {
   return await CouponModel.find({ target_ids: { $in: [productId] } }).lean();
 };
 
+const updateCouponUsage = async (code, userId, session) => {
+  return await CouponModel.findOneAndUpdate(
+    { code },
+    {
+      $inc: { uses_count: 1 },
+      $push: {
+        user_uses: {
+          $each: [
+            {
+              userId,
+              usageCount: {
+                $cond: {
+                  if: { $in: [userId, "$user_uses.userId"] },
+                  then: {
+                    $add: [
+                      {
+                        $arrayElemAt: [
+                          "$user_uses.usageCount",
+                          { $indexOfArray: ["$user_uses.userId", userId] },
+                        ],
+                      },
+                      1,
+                    ],
+                  },
+                  else: 1,
+                },
+              },
+            },
+          ],
+        },
+      },
+    },
+    { session, returnDocument: "after" }
+  );
+};
+
 export const couponRepository = {
   findAllCoupons,
   findCouponByCode,
   createNewCoupon,
   getAllActivePublicCoupons,
   getProductCoupon,
+  updateCouponUsage,
 };
