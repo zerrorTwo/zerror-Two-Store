@@ -8,7 +8,7 @@ import Popover from "@mui/material/Popover";
 import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CartVariationPopover from "./CartVariationPopover";
 import PropTypes from "prop-types";
@@ -37,12 +37,18 @@ function CartDetailItem({
   const [backdropOpen, setBackdropOpen] = useState(false);
   const [deleteProduct, { isLoading }] = useRemoveProductMutation();
   const [updateCheckout] = useUpdateCheckoutMutation();
+  const quantityGroupRef = useRef(null);
 
   const handleOpenDialog = () => setDialogOpen(true);
   const handleCloseDialog = () => setDialogOpen(false);
 
   const handleConfirmDelete = async () => {
     try {
+      // Đánh dấu rằng item đang bị xóa để ngăn chặn API call từ QuantityGroupWithAPI
+      if (quantityGroupRef.current) {
+        quantityGroupRef.current.markForDeletion();
+      }
+
       await deleteProduct({
         state: "ACTIVE",
         products: [{ productId, variations: [{ type: variation.type }] }],
@@ -205,6 +211,7 @@ function CartDetailItem({
             <Grid2 size={5}>
               <Box display="flex" justifyContent="center">
                 <QuantityGroupWithAPI
+                  ref={quantityGroupRef}
                   productId={productId}
                   initialQuantity={variation?.quantity}
                   variationType={variation.type}

@@ -68,8 +68,10 @@ const findProductsByIds = async (productIds, session) => {
   }).session(session);
 };
 
-const createNewOrder = async (orderData, session) => {
-  return await OrderModel.create([orderData], { session });
+const createNewOrder = async (orderData, options) => {
+  const { session } = options;
+  // orderData is an array from createOrder, so we can pass it directly to create
+  return await OrderModel.create(orderData, { session });
 };
 
 const updateCartAfterOrder = async (userId, session) => {
@@ -220,7 +222,6 @@ const findOrdersWithDetails = async (orderIds) => {
     { $sort: { sortIndex: 1 } },
   ]);
 };
-
 
 const countUserOrders = async (userId) => {
   return await OrderModel.countDocuments({

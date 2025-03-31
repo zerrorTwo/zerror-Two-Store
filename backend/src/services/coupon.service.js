@@ -298,60 +298,138 @@ const checkPrivateCode = async (code, userId) => {
   return coupon;
 };
 
-const useCoupon = async (code, userId) => {
-  checkCoupon(
-    code?.name,
-    code?.code,
-    code?.start_day,
-    code?.end_day,
-    code?.type,
-    code?.value,
-    code?.max_value,
-    code?.min_value,
-    code?.max_uses,
-    code?.max_uses_per_user,
-    code?.target_type,
-    code?.target_ids,
-    code?.is_public,
-    code?.is_active
-  );
+const reviewDiscount = async ({
+  userId,
+  items,
+  totalOrder,
+  shippingFee,
+  couponCode,
+}) => {
+  const coupon = await findCouponByCode(couponCode);
+  if (!coupon) {
+    return { error: "Coupon not found" };
+  }
+
+  if (!coupon.is_active) {
+    return { error: "Coupon is not active" };
+  }
+
+  if (coupon.uses_count >= coupon.max_uses) {
+    return { error: "Coupon has reached its maximum usage" };
+  }
+
+  if (coupon.user_uses && coupon.user_uses.length > 0) {
+    const userUsageIndex = coupon.user_uses.findIndex(
+      (user) => user.userId.toString() === userId.toString()
+    );
+    const userUsageCount =
+      userUsageIndex !== -1 ? coupon.user_uses[userUsageIndex].usageCount : 0;
+
+    if (userUsageCount >= coupon.max_uses_per_user) {
+      return {
+        error: "User has reached the maximum usage limit for this coupon",
+      };
+    }
+  }
+
+  if (coupon.target_type === "PRODUCT") {
+    const productIds = items.map((item) => item.productId);
+    if (!productIds.includes(coupon.target_ids[0])) {
+      return { error: "Invalid coupon for this product" };
+    }
+  }
+
+  if (coupon.target_type === "FREESHIPPING") {
+    if (totalOrder < coupon.min_value) {
+      return {
+        error: "Invalid coupon for this order",
+      };
+    }
+  }
+
+  if (coupon.target_type === "ORDER") {
+    if (totalOrder < coupon.min_value) {
+      // console.log(coupon.min_value);
+      return {
+        error: "Invalid coupon for this order",
+      };
+    }
+  }
+
+  return true;
+};
+
+const updateCouponUsage = async (code, userId) => {
   const coupon = await findCouponByCode(code);
   if (!coupon) return null;
 
   if (!coupon.is_active) return null;
   if (coupon?.uses_count >= coupon?.max_uses) return null;
 
+  const userUsageIndex = coupon.user_uses.findIndex(
+    (user) => user.userId.toString() === userId.toString()
+  );
+  const userUsageCount =
+    userUsageIndex !== -1 ? coupon.user_uses[userUsageIndex].usageCount : 0;
+
+  if (userUsageCount >= coupon.max_uses_per_user) {
+    return null;
+  }
+
+  return await couponRepository.updateCouponUsage(code, userId, userUsageCount);
+};
+
+const useCoupon = async (code, userId, orderTotal, shippingFee) => {
+  const coupon = await couponRepository.findCouponByCode(code);
+  if (!coupon) return null;
+
+  if (!coupon.is_active) return null;
+  if (coupon?.uses_count >= coupon?.max_uses) return null;
+  checkCoupon(
+    coupon?.name,
+    coupon?.code,
+    coupon?.start_day,
+    coupon?.end_day,
+    coupon?.type,
+    coupon?.value,
+    coupon?.max_value,
+    coupon?.min_value,
+    coupon?.max_uses,
+    coupon?.max_uses_per_user,
+    coupon?.target_type,
+    coupon?.target_ids,
+    coupon?.is_public,
+    coupon?.is_active
+  );
+
   const user_cart = await cartRepository.findCartByUserId(userId);
   if (!user_cart || !user_cart.products || user_cart.products.length === 0)
     return null;
 
-  if (coupon.target_type === "PRODUCT" && coupon.target_ids.length > 0) {
-    const checkoutProductIds = user_cart.products
-      .filter(
-        (product) =>
-          product.variations &&
-          product.variations.some((variation) => variation.checkout === true)
-      )
-      .map((item) => item.productId.toString());
-
-    const hasMatchingProduct = coupon.target_ids.some((targetId) =>
-      checkoutProductIds.includes(targetId.toString())
-    );
-
-    if (!hasMatchingProduct) return null;
+  const reviewResult = await reviewDiscount({
+    userId,
+    items: user_cart.products,
+    totalOrder: orderTotal,
+    shippingFee,
+    couponCode: code,
+  });
+  if (reviewResult.error) return { error: reviewResult.error };
+  else {
+    if (coupon.target_type === "FREESHIPPING") {
+      if (coupon.type === "PERCENT") {
+        const discount = (shippingFee * coupon.value) / 100;
+        return { discount: Math.min(discount, coupon.max_value) };
+      } else {
+        return { discount: Math.min(coupon.value, coupon.max_value) };
+      }
+    } else {
+      const discount =
+        coupon.type === "PERCENT"
+          ? (orderTotal * coupon.value) / 100
+          : coupon.value;
+      return { discount: Math.min(discount, coupon.max_value) };
+    }
   }
-
-  // Check user usage limits
-  const userUsageIndex = coupon.user_uses.findIndex(
-    (user) => user.userId.toString() === userId.toString()
-  );
-
-  if (userUsageIndex !== -1) {
-    const userUsageCount = coupon.user_uses[userUsageIndex].usageCount;
-    if (userUsageCount >= coupon.max_uses_per_user) return null;
-  }
-
-  return coupon;
 };
 
 export const couponService = {
@@ -362,4 +440,6 @@ export const couponService = {
   checkCoupon,
   checkPrivateCode,
   getProductCoupon,
+  updateCouponUsage,
+  useCoupon,
 };

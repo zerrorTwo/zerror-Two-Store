@@ -1,106 +1,65 @@
-import { alpha } from "@mui/material/styles";
-import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import { useTheme } from "@mui/material/styles";
+import { Box, IconButton } from "@mui/material";
+import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 import PropTypes from "prop-types";
 
-function QuantityGroup({ quantity, setQuantity }) {
-  const theme = useTheme();
-
-  const handleDecreaseQuantity = () => {
-    if (quantity > 1) {
+function QuantityGroup({
+  quantity,
+  setQuantity,
+  isLoading,
+  minQuantity = 1,
+  maxQuantity = 99,
+}) {
+  const handleDecrease = () => {
+    if (quantity > minQuantity && !isLoading) {
       setQuantity(quantity - 1);
     }
   };
 
-  const handleIncreaseQuantity = () => {
-    setQuantity(quantity + 1);
-  };
-
-  const handleInputChange = (e) => {
-    let inputValue = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
-    if (parseInt(inputValue) < 1) {
-      inputValue = "1"; // Default to 1 if empty or less than 1
+  const handleIncrease = () => {
+    if (quantity < maxQuantity && !isLoading) {
+      setQuantity(quantity + 1);
     }
-    setQuantity(parseInt(inputValue));
   };
 
   return (
-    <Box display="flex" alignItems="center" gap={0.5}>
-      {/* Decrease Button */}
-      <Button
-        onClick={handleDecreaseQuantity}
-        sx={{
-          maxWidth: { xs: "35px", sm: "40px" },
-          minWidth: { xs: "35px", sm: "40px" },
-          maxHeight: { xs: "35px", sm: "40px" },
-          minHeight: { xs: "35px", sm: "40px" },
-          color: alpha(theme.palette.common.black, 0.5), // Change to white for better contrast
-          backgroundColor: "text.hover", // Primary color
-          borderRadius: "8px",
-          fontSize: "1.25rem", // Larger font size for button text
-          "&:hover": {
-            backgroundColor: "text.hover", // Darken on hover
-          },
-        }}
-      >
-        -
-      </Button>
-
-      {/* Quantity Input */}
-      <TextField
-        value={quantity}
-        onChange={handleInputChange}
-        variant="outlined"
-        type="tel"
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        border: "1px solid",
+        borderColor: "divider",
+        borderRadius: "4px",
+        overflow: "hidden",
+        width: "fit-content",
+      }}
+    >
+      <IconButton
+        onClick={handleDecrease}
+        disabled={quantity <= minQuantity || isLoading}
         size="small"
+        sx={{ borderRadius: 0 }}
+      >
+        <RemoveIcon fontSize="small" />
+      </IconButton>
+      <Box
         sx={{
-          width: "50px", // Adjust width
-          height: "40px",
-          // color: theme.palette.secondary.main,
-          backgroundColor: "white", // White background for input
-          "& .MuiOutlinedInput-root": {
-            height: "100%",
-            borderRadius: "8px", // Rounded input borders
-            "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: alpha(theme.palette.common.black, 0.2), // Change border color to primary (red) on focus
-            },
-            "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: alpha(theme.palette.common.black, 0.2), // Highlight border color when hovering
-            },
-          },
-          "& .MuiInputBase-input": {
-            textAlign: "center",
-            px: 0,
-            fontSize: "0.875rem",
-            // color: theme.palette.secondary.main,
-          },
-          "& .MuiOutlinedInput-notchedOutline": {
-            borderColor: alpha(theme.palette.common.black, 0.2), // Default border color
-          },
-        }}
-      />
-
-      {/* Increase Button */}
-      <Button
-        onClick={handleIncreaseQuantity}
-        sx={{
-          maxWidth: { xs: "35px", sm: "40px" },
-          minWidth: { xs: "35px", sm: "40px" },
-          maxHeight: { xs: "35px", sm: "40px" },
-          minHeight: { xs: "35px", sm: "40px" },
-          color: alpha(theme.palette.common.black, 0.5), // Change to white for better contrast
-          backgroundColor: "text.hover", // Primary color
-          borderRadius: "8px",
-          fontSize: "1.25rem", // Larger font size for button text
-          "&:hover": {
-            backgroundColor: "text.hover", // Darken on hover
-          },
+          padding: "0 8px",
+          width: "40px",
+          textAlign: "center",
+          userSelect: "none",
         }}
       >
-        +
-      </Button>
+        {quantity}
+      </Box>
+      <IconButton
+        onClick={handleIncrease}
+        disabled={quantity >= maxQuantity || isLoading}
+        size="small"
+        sx={{ borderRadius: 0 }}
+      >
+        <AddIcon fontSize="small" />
+      </IconButton>
     </Box>
   );
 }
@@ -108,6 +67,9 @@ function QuantityGroup({ quantity, setQuantity }) {
 QuantityGroup.propTypes = {
   quantity: PropTypes.number.isRequired,
   setQuantity: PropTypes.func.isRequired,
+  isLoading: PropTypes.bool,
+  minQuantity: PropTypes.number,
+  maxQuantity: PropTypes.number,
 };
 
 export default QuantityGroup;
