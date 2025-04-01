@@ -54,6 +54,21 @@ export const productApiSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
 
+    searchProduct: builder.query({
+      query: ({
+        page = 1,
+        limit = 10,
+        category = "",
+        search = "",
+        sort = "",
+      }) => ({
+        url: `${PRODUCT_URL}/search?page=${page}&limit=${limit}&category=${category}&search=${search}&sort=${sort}`,
+        method: "GET",
+      }),
+      providesTags: ["Product"],
+      keepUnusedDataFor: 20,
+    }),
+
     createNewProduct: builder.mutation({
       query: ({ data }) => ({
         url: `${PRODUCT_URL}/`,
@@ -88,6 +103,15 @@ export const productApiSlice = apiSlice.injectEndpoints({
     //   keepUnusedDataFor: 60,
     // }),
 
+    getProductWithBreadcrumbById: builder.query({
+      query: (id) => ({
+        url: `${PRODUCT_URL}/breadcrumb/${id}`,
+        method: "GET",
+      }),
+      providesTags: ["Product"],
+      keepUnusedDataFor: 10,
+    }),
+
     uploadProductImage: builder.mutation({
       query: (data) => ({
         url: `${UPLOAD_URL}/`,
@@ -117,4 +141,6 @@ export const {
   useGetProductBySlugQuery,
   useLazyGetProductByIdQuery,
   useGetTopSoldQuery,
+  useSearchProductQuery,
+  useGetProductWithBreadcrumbByIdQuery,
 } = productApiSlice;

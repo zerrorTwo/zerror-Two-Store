@@ -59,6 +59,14 @@ const getTopSoldProducts = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json(products);
 });
 
+const getProductWithBreadcrumbById = asyncHandeler(async (req, res) => {
+  const productId = req.params.id;
+  const breadcrumb = await productService.getProductWithBreadcrumbById(
+    productId
+  );
+  res.status(StatusCodes.OK).json({ breadcrumb });
+});
+
 export {
   createProduct,
   updateProduct,
@@ -68,4 +76,5 @@ export {
   getProductBySlug,
   getProductById,
   getTopSoldProducts,
+  getProductWithBreadcrumbById,
 };

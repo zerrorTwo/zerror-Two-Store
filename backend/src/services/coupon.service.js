@@ -196,11 +196,7 @@ const checkCoupon = async (
     throw new ApiError(StatusCodes.BAD_REQUEST, "Missing required fields");
   }
 
-  if (
-    new Date(start_day) > new Date(end_day) ||
-    new Date(start_day) < new Date() ||
-    new Date(end_day) < new Date()
-  ) {
+  if (new Date(start_day) > new Date(end_day)) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid date range");
   }
   if (type !== "PERCENT" && type !== "AMOUNT") {

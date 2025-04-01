@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import ProductModel from "../models/product.model.js";
 import CategoryModel from "../models/category.model.js";
+import { categoryRepository } from "./category.repository.js";
 
 // Tìm sản phẩm theo tên
 const findProductByName = async (name) => {
@@ -436,6 +437,77 @@ const findProductIdByIds = async (ids) => {
   return await ProductModel.find({ _id: { $in: ids } }); // Không dùng .lean()
 };
 
+// Hàm xây dựng breadcrumb từ categoryId
+const buildBreadcrumbFromCategory = async (categoryId) => {
+  const breadcrumb = [];
+  let currentCategoryId = categoryId;
+
+  // Lần ngược từ danh mục hiện tại lên các danh mục cha
+  while (currentCategoryId) {
+    const category = await categoryRepository.findCategoryById(
+      currentCategoryId
+    );
+    if (!category) break;
+
+    breadcrumb.unshift({
+      id: category._id.toString(),
+      name: category.name,
+      slug: category.slug,
+    });
+
+    currentCategoryId = category.parent; // Tiếp tục với danh mục cha
+  }
+
+  // Thêm "Home" vào đầu breadcrumb
+  breadcrumb.unshift({
+    id: "home",
+    name: "Home",
+    slug: "/",
+  });
+
+  return breadcrumb;
+};
+
+// Repository: Lấy sản phẩm và breadcrumb từ productId
+const getProductWithBreadcrumbById = async (productId) => {
+  try {
+    // Kiểm tra productId hợp lệ
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
+
+    // Tìm sản phẩm theo productId và populate trường type (Category)
+    const product = await ProductModel.findById(productId)
+      .select("name slug type")
+      .populate({
+        path: "type",
+        select: "name slug parent",
+      })
+      .lean()
+      .exec();
+
+    if (!product) {
+      throw new Error("Product not found");
+    }
+
+    // Xây dựng breadcrumb từ categoryId (type)
+    const breadcrumb = await buildBreadcrumbFromCategory(product.type._id);
+
+    // Thêm sản phẩm vào cuối breadcrumb
+    breadcrumb.push({
+      id: product._id.toString(),
+      name: product.name,
+      slug: product.slug,
+    });
+
+    // Trả về cả sản phẩm và breadcrumb
+    return breadcrumb;
+  } catch (error) {
+    console.error("Error in getProductWithBreadcrumbById:", error.message);
+    throw error; // Ném lỗi để xử lý ở tầng trên (controller)
+  }
+};
+
 export const productRepository = {
   findProductByName,
   findCategoryBySlug,
@@ -451,4 +523,5 @@ export const productRepository = {
   getTopSoldProducts,
   findProductsByIds,
   findProductIdByIds,
+  getProductWithBreadcrumbById,
 };

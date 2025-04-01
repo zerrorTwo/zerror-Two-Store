@@ -3,10 +3,11 @@ import slugify from "slugify";
 import ApiError from "../utils/api.error.js";
 import { productRepository } from "../repositories/product.repository.js";
 
-
 const createProduct = async (data) => {
   try {
-    const existingProduct = await productRepository.findProductByName(data.name);
+    const existingProduct = await productRepository.findProductByName(
+      data.name
+    );
 
     if (existingProduct) {
       throw new ApiError(
@@ -113,7 +114,13 @@ const getAllProducts = async (req, res) => {
 
 const getPageProducts = async (page, limit, category, search, sort) => {
   try {
-    return await productRepository.getPageProducts(page, limit, category, search, sort);
+    return await productRepository.getPageProducts(
+      page,
+      limit,
+      category,
+      search,
+      sort
+    );
   } catch (error) {
     console.error("Error in getPageProducts:", error);
     throw error;
@@ -129,6 +136,15 @@ const getTopSoldProducts = async () => {
   }
 };
 
+const getProductWithBreadcrumbById = async (productId) => {
+  try {
+    return await productRepository.getProductWithBreadcrumbById(productId);
+  } catch (error) {
+    console.error("Error in getProductWithBreadcrumbById:", error);
+    throw error;
+  }
+};
+
 export const productService = {
   getAllProducts,
   createProduct,
@@ -139,4 +155,5 @@ export const productService = {
   getProductBySlug,
   getProductById,
   getTopSoldProducts,
+  getProductWithBreadcrumbById,
 };

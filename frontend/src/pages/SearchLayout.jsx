@@ -14,12 +14,16 @@ import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { lazy, Suspense, useState } from "react";
 import { useGetPageProductQuery } from "../redux/api/productSlice";
 import { useInView } from "react-intersection-observer";
-import { useParams } from "react-router-dom";
-import { Grid2 } from "@mui/material";
+import { CardMedia, Grid2 } from "@mui/material";
+import { useLocation } from "react-router-dom";
 
 function SearchLayout() {
   const [rating, setRating] = useState(0);
-  const { category } = useParams(); // Lấy giá trị category từ URL
+  const location = useLocation();
+  const query = new URLSearchParams(location.search);
+  const category = query.get("category"); // Get category from query
+  console.log(category);
+  const search = query.get("name"); // Get category from query
 
   const {
     data: { products: listProducts = [] } = {},
@@ -28,6 +32,7 @@ function SearchLayout() {
   } = useGetPageProductQuery({
     page: 1,
     limit: 50,
+    search: search,
     category: category,
     sort: "sold-desc",
   });
@@ -231,42 +236,66 @@ function SearchLayout() {
                 </Button>
               </Box>
               <Grid2 container spacing={1.5} ref={flashSaleRef}>
-                {listProducts.map((item, index) =>
-                  flashSaleInView ? (
-                    <Grid2 key={index} size={2.4}>
-                      <Suspense
-                        fallback={
-                          <Skeleton
-                            variant="rectangular"
-                            height={200}
-                            animation="wave"
-                          />
-                        }
-                      >
-                        <ProductMini loading={listLoading} item={item} />
-                      </Suspense>
-                    </Grid2>
-                  ) : null
+                {listProducts.length === 0 ? (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                  >
+                    <CardMedia
+                      component="img"
+                      sx={{
+                        height: "auto",
+                        width: "200px",
+                        objectFit: "cover",
+                      }}
+                      image={"/Assets/empty.png"}
+                      loading="lazy"
+                    />
+                  </Box>
+                ) : (
+                  listProducts.map((item, index) =>
+                    flashSaleInView ? (
+                      <Grid2 key={index} size={2.4}>
+                        <Suspense
+                          fallback={
+                            <Skeleton
+                              variant="rectangular"
+                              height={200}
+                              animation="wave"
+                            />
+                          }
+                        >
+                          <ProductMini loading={listLoading} item={item} />
+                        </Suspense>
+                      </Grid2>
+                    ) : null
+                  )
                 )}
               </Grid2>
-              <Box justifyContent={"center"} display={"flex"} mt={4}>
-                <Link
-                  to="/"
-                  style={{
-                    textDecoration: "none",
-                    display: "block",
-                  }}
-                >
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    size="large"
-                    sx={{ px: 10 }}
+              {listProducts.length !== 0 && (
+                <Box justifyContent={"center"} display={"flex"} mt={4}>
+                  <Link
+                    to="/"
+                    style={{
+                      textDecoration: "none",
+                      display: "block",
+                    }}
                   >
-                    See more
-                  </Button>
-                </Link>
-              </Box>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="large"
+                      sx={{ px: 10 }}
+                    >
+                      See more
+                    </Button>
+                  </Link>
+                </Box>
+              )}
             </Grid2>
           </Grid2>
         </Box>

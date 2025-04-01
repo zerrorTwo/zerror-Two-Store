@@ -23,19 +23,29 @@ const UserDashboard = lazy(() => import("./pages/Admin/UserDashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const CategoryDashBoard = lazy(() => import("./pages/Admin/CategoryDashBoard"));
 const SearchLayout = lazy(() => import("./pages/SearchLayout"));
-const ProductDetail = lazy(() => import("./pages/ProductDetailPage/ProductDetail"));
-const CreateProduct = lazy(() => import("./pages/Admin/CreateProduct/CreateProduct"));
+const ProductDetail = lazy(() =>
+  import("./pages/ProductDetailPage/ProductDetail")
+);
+const CreateProduct = lazy(() =>
+  import("./pages/Admin/CreateProduct/CreateProduct")
+);
 const CheckoutPage = lazy(() => import("./pages/CheckoutPage/CheckoutPage"));
 const Thanks = lazy(() => import("./pages/Thanks"));
 const CateDashBoard = lazy(() => import("./pages/Admin/CateDashboard"));
 const ProductDashboard = lazy(() => import("./pages/Admin/ProductDashboard"));
-const ProfileDashBoard = lazy(() => import("./pages/ProfilePage/ProfileDasBoard"));
+const ProfileDashBoard = lazy(() =>
+  import("./pages/ProfilePage/ProfileDasBoard")
+);
 const MyOrder = lazy(() => import("./pages/ProfilePage/MyOrder/MyOrder"));
 const MyAccount = lazy(() => import("./pages/ProfilePage/MyAccount"));
 const OrderDashBoard = lazy(() => import("./pages/Admin/OrderDashBoard"));
-const OrderDetailDashBoard = lazy(() => import("./pages/Admin/OrderDetailDashBoard"));
+const OrderDetailDashBoard = lazy(() =>
+  import("./pages/Admin/OrderDetailDashBoard")
+);
 const MainDashBoard = lazy(() => import("./pages/Admin/MainDashBoard"));
-const CouponDashBoard = lazy(() => import("./pages/Admin/Coupon/CouponDashBoard"));
+const CouponDashBoard = lazy(() =>
+  import("./pages/Admin/Coupon/CouponDashBoard")
+);
 
 // Loading component
 const Loading = () => (
@@ -81,16 +91,16 @@ function App() {
 
   return (
     <ThemeProvider theme={theme}>
-       <ToastContainer
-          position="bottom-right"
-          autoClose={1000}
-          hideProgressBar={false}
-          newestOnTop={true}
-          closeOnClick={true}
-          rtl={false}
-          pauseOnFocusLoss={false}
-          draggable={false}
-        />
+      <ToastContainer
+        position="bottom-right"
+        autoClose={1000}
+        hideProgressBar={false}
+        newestOnTop={true}
+        closeOnClick={true}
+        rtl={false}
+        pauseOnFocusLoss={false}
+        draggable={false}
+      />
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="login" element={<Login />} />
@@ -98,61 +108,94 @@ function App() {
           <Route element={<RequireAuth />}>
             <Route element={<AdminAuth />}>
               <Route path="admin" element={<LayoutAdmin />}>
-                <Route path="dashboard" element={
-                  <Suspense fallback={<Loading />}>
-                    <MainDashBoard />
-                  </Suspense>
-                } />
-                <Route path="cate" element={
-                  <Suspense fallback={<Loading />}>
-                    <CateDashBoard />
-                  </Suspense>
-                } />
-                <Route path="coupon" element={
-                  <Suspense fallback={<Loading />}>
-                    <CouponDashBoard />
-                  </Suspense>
-                } />
-                <Route path="create-coupon" element={
-                  <Suspense fallback={<Loading />}>
-                    <CreateNewCoupon />
-                  </Suspense>
-                } />
-                <Route path="product" element={
-                  <Suspense fallback={<Loading />}>
-                    <ProductDashboard />
-                  </Suspense>
-                } />
-                <Route path="user" element={
-                  <Suspense fallback={<Loading />}>
-                    <UserDashboard />
-                  </Suspense>
-                } />
-                <Route path="order" element={
-                  <Suspense fallback={<Loading />}>
-                    <OrderDashBoard />
-                  </Suspense>
-                } />
-                <Route path="order/detail/:orderId" element={
-                  <Suspense fallback={<Loading />}>
-                    <OrderDetailDashBoard />
-                  </Suspense>
-                } />
-                <Route path="update-product/:id" element={
-                  <Suspense fallback={<Loading />}>
-                    <CreateProduct />
-                  </Suspense>
-                } />
-                <Route path="create-product" element={
-                  <Suspense fallback={<Loading />}>
-                    <CreateProduct />
-                  </Suspense>
-                } />
-                <Route path="user" element={
-                  <Suspense fallback={<Loading />}>
-                    <UserDashboard />
-                  </Suspense>
-                } />
+                <Route
+                  path="dashboard"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <MainDashBoard />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="cate"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <CateDashBoard />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="coupon"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <CouponDashBoard />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="create-coupon"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <CreateNewCoupon />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="product"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <ProductDashboard />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="user"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <UserDashboard />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="order"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <OrderDashBoard />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="order/detail/:orderId"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <OrderDetailDashBoard />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="update-product/:id"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <CreateProduct />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="create-product"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <CreateProduct />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="user"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <UserDashboard />
+                    </Suspense>
+                  }
+                />
               </Route>
             </Route>
           </Route>
@@ -160,7 +203,11 @@ function App() {
           <Route path="/" element={<LayoutNew />}>
             <Route index element={<Home />} />
             <Route path="products/:slug" element={<ProductDetail />} />
-            <Route path="products/category/:category" element={<SearchLayout />} />
+            <Route
+              path="products/category/:category"
+              element={<SearchLayout />}
+            />
+            <Route path="search" element={<SearchLayout />} />
 
             {/* Need login to access */}
             <Route element={<RequireAuth />}>

@@ -6,6 +6,7 @@ import {
   getPageProducts,
   getProductById,
   getProductBySlug,
+  getProductWithBreadcrumbById,
   getTopSoldProducts,
   updateProduct,
 } from "../../controllers/product.controller.js";
@@ -17,6 +18,8 @@ Router.route("/all").get(getAllProducts);
 Router.route("/top").get(getTopSoldProducts);
 Router.route("/:slug").get(getProductBySlug);
 Router.route("/select/:id").get(getProductById);
+Router.route("/search").get(getPageProducts);
+Router.route("/breadcrumb/:id").get(getProductWithBreadcrumbById);
 
 Router.use(authentication, authorization);
 Router.route("/").post(createProduct);

@@ -15,13 +15,14 @@ import MoreIcon from "@mui/icons-material/MoreVert";
 import Button from "@mui/material/Button";
 import CardMedia from "@mui/material/CardMedia";
 import Container from "@mui/material/Container";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import CartPopover from "./Cart/CartPopover";
-import { useGetMiniCartQuery } from "../redux/api/cartSlice";
+import CartPopover from "../Cart/CartPopover";
+import RecentSearch from "./RecentSearch";
+import { useGetMiniCartQuery } from "../../redux/api/cartSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { logOut, selectCurrentUser } from "../redux/features/auth/authSlice";
-import { useLogoutMutation } from "../redux/api/authApiSlice";
+import { logOut, selectCurrentUser } from "../../redux/features/auth/authSlice";
+import { useLogoutMutation } from "../../redux/api/authApiSlice";
 import { toast } from "react-toastify";
 
 const Search = styled("div")(({ theme }) => ({
@@ -30,7 +31,6 @@ const Search = styled("div")(({ theme }) => ({
   backgroundColor: alpha(theme.palette.common.black, 0.1),
   marginRight: theme.spacing(2),
   marginLeft: 0,
-
   width: "100%",
   [theme.breakpoints.up("sm")]: {
     marginLeft: theme.spacing(3),
@@ -56,7 +56,6 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
   color: "inherit",
   "& .MuiInputBase-input": {
     padding: theme.spacing(1, 1, 1, 0),
-    // vertical padding + font size from searchIcon
     paddingLeft: `calc(1em + ${theme.spacing(1)})`,
     transition: theme.transitions.create("width"),
     width: "100%",
@@ -68,59 +67,71 @@ const StyledInputBase = styled(InputBase)(({ theme }) => ({
 
 export default function HeaderLayout() {
   const navigate = useNavigate();
-  const a = useSelector(selectCurrentUser);
-  const [anchorEl, setAnchorEl] = useState(null);
-  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
-  const [searchText, setSearchText] = useState("");
-
-
+  const dispatch = useDispatch();
+  const user = useSelector(selectCurrentUser);
   const {
     data,
     error: cartError,
     isLoading: cartLoading,
-  } = useGetMiniCartQuery() || {}; 
-
-  const handleCartClick = () => {
-    navigate("/cart");
-  };
-
-  const isMenuOpen = Boolean(anchorEl);
-  const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-
-  const [cartPopoverVisible, setCartPopoverVisible] = useState(false);
-  const dispatch = useDispatch();
+  } = useGetMiniCartQuery() || {};
   const [logout] = useLogoutMutation();
 
-  const handlePopoverOpen = () => {
-    setCartPopoverVisible(true);
+  const [searchText, setSearchText] = useState("");
+  const [isInputFocused, setIsInputFocused] = useState(false);
+  const [isRecentSearchHovered, setIsRecentSearchHovered] = useState(false);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = useState(null);
+  const [cartPopoverVisible, setCartPopoverVisible] = useState(false);
+  const recentSearchRef = useRef(null);
+
+  const showRecentSearch = isInputFocused || isRecentSearchHovered;
+
+  // Handlers
+  const handleSearchAppBar = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!searchText.trim()) return;
+    const searchResult = { id: Date.now().toString(), name: searchText };
+    recentSearchRef.current?.addRecentSearch(searchResult);
+    setSearchText("");
+    navigate(`/search?name=${searchText}`);
   };
 
-  const handlePopoverClose = () => {
-    setCartPopoverVisible(false);
-  };
-  const handleProfileMenuOpen = (event) => {
-    setAnchorEl(event.currentTarget);
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") handleSearchAppBar(event);
   };
 
-  const handleMobileMenuClose = () => {
+  const handleSelectRecentSearch = (product) => {
+    setSearchText(product.name);
+    setIsInputFocused(false);
+    setIsRecentSearchHovered(false);
+    navigate(`/search?name=${product.name}`);
+  };
+
+  const handleRecentSearchHoverChange = (isHovered) =>
+    setIsRecentSearchHovered(isHovered);
+
+  const handleCartClick = () => navigate("/cart");
+  const handlePopoverOpen = () => setCartPopoverVisible(true);
+  const handlePopoverClose = () => setCartPopoverVisible(false);
+
+  const handleProfileMenuOpen = (event) => setAnchorEl(event.currentTarget);
+  const handleMenuClose = () => {
+    setAnchorEl(null);
     setMobileMoreAnchorEl(null);
   };
 
-  const handleMenuClose = () => {
-    setAnchorEl(null);
-    handleMobileMenuClose();
-  };
+  const handleMobileMenuOpen = (event) =>
+    setMobileMoreAnchorEl(event.currentTarget);
 
   const handleLogout = async () => {
     try {
-      if (a) {
-        const result = await logout().unwrap();
-        if (result) {
-          dispatch(logOut());
-          navigate("/");
-        }
-        setAnchorEl(null);
-        handleMobileMenuClose();
+      if (!user) return;
+      const result = await logout().unwrap();
+      if (result) {
+        dispatch(logOut());
+        navigate("/");
+        handleMenuClose();
       }
     } catch (err) {
       toast.error(
@@ -129,71 +140,43 @@ export default function HeaderLayout() {
     }
   };
 
-  const handleMobileMenuOpen = (event) => {
-    setMobileMoreAnchorEl(event.currentTarget);
-  };
-
-  const handleSearchAppBar = () => {
-    // Your search logic here
-    console.log("Search input value: ", searchText);
-  };
-  const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
-      handleSearchAppBar();
-    }
-  };
-
+  // Menu renders
   const menuId = "primary-search-account-menu";
   const renderMenu = (
     <Menu
       sx={{ top: "50px !important" }}
       anchorEl={anchorEl}
-      anchorOrigin={{
-        vertical: "bottom",
-        horizontal: "right",
-      }}
+      anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       id={menuId}
       keepMounted
-      transformOrigin={{
-        vertical: "bottom",
-        horizontal: "right",
-      }}
-      open={isMenuOpen}
+      transformOrigin={{ vertical: "bottom", horizontal: "right" }}
+      open={Boolean(anchorEl)}
       onClose={handleMenuClose}
     >
-      <Link
-        to={"/profile"}
-        style={{
-          textDecoration: "none",
-          color: "inherit",
-        }}
+      <MenuItem
+        component={Link}
+        to="/profile"
+        sx={{ px: 4, py: 1 }}
+        onClick={handleMenuClose}
       >
-        <MenuItem sx={{ px: 4, py: 1 }} onClick={handleMenuClose}>
-          Profile
-        </MenuItem>
-      </Link>
-      <Link
-        to={"/profile/my-order"}
-        style={{
-          textDecoration: "none",
-          color: "inherit",
-        }}
+        Profile
+      </MenuItem>
+      <MenuItem
+        component={Link}
+        to="/profile/my-order"
+        sx={{ px: 4, py: 1 }}
+        onClick={handleMenuClose}
       >
-        <MenuItem sx={{ px: 4, py: 1 }} onClick={handleMenuClose}>
-          My order
-        </MenuItem>
-      </Link>
-      <Link
-        to={"/logout"}
-        style={{
-          textDecoration: "none",
-          color: "inherit",
-        }}
+        My order
+      </MenuItem>
+      <MenuItem
+        component={Link}
+        to="/logout"
+        sx={{ px: 4, py: 1 }}
+        onClick={handleLogout}
       >
-        <MenuItem sx={{ px: 4, py: 1 }} onClick={handleLogout}>
-          Logout
-        </MenuItem>
-      </Link>
+        Logout
+      </MenuItem>
     </Menu>
   );
 
@@ -201,37 +184,26 @@ export default function HeaderLayout() {
   const renderMobileMenu = (
     <Menu
       anchorEl={mobileMoreAnchorEl}
-      anchorOrigin={{
-        vertical: "top",
-        horizontal: "left",
-      }}
+      anchorOrigin={{ vertical: "top", horizontal: "left" }}
       id={mobileMenuId}
       keepMounted
-      transformOrigin={{
-        vertical: "top",
-        horizontal: "left",
-      }}
-      open={isMobileMenuOpen}
-      onClose={handleMobileMenuClose}
+      transformOrigin={{ vertical: "top", horizontal: "left" }}
+      open={Boolean(mobileMoreAnchorEl)}
+      onClose={handleMenuClose}
     >
-      <MenuItem>
-        <IconButton
-          size="large"
-          aria-label="show 4 new mails"
-          color="inherit"
-        >
+      <MenuItem onClick={handleCartClick}>
+        <IconButton size="large" aria-label="show cart items" color="inherit">
           <Badge badgeContent={data?.totalItems} color="error">
             <ShoppingCartIcon />
           </Badge>
         </IconButton>
         <p>Cart</p>
       </MenuItem>
-
       <MenuItem onClick={handleProfileMenuOpen}>
         <IconButton
           size="large"
           aria-label="account of current user"
-          aria-controls="primary-search-account-menu"
+          aria-controls={menuId}
           aria-haspopup="true"
           color="inherit"
         >
@@ -243,10 +215,10 @@ export default function HeaderLayout() {
   );
 
   return (
-    <Box sx={{ flexGrow: 1 }} position="static">
-      <AppBar sx={{ py: 1 }} bgcolor={"secondary.main"}>
+    <Box position="static" sx={{ flexGrow: 1 }}>
+      <AppBar sx={{ py: 1 }} bgcolor="secondary.main">
         <Container>
-          <Toolbar sx={{ px: "0 !important", justifyContent: "space-between" }}>
+          <Toolbar sx={{ px: 0, justifyContent: "space-between" }}>
             <Link
               to="/"
               style={{
@@ -267,52 +239,57 @@ export default function HeaderLayout() {
               />
               <Typography
                 variant="h6"
-                component="div"
                 sx={{
-                  display: {
-                    xs: "none",
-                    sm: "block",
-                    marginLeft: 2,
-                    color: "white !important",
-                    fontWeight: "bold",
-                    fontStyle: "italic",
-                  },
+                  display: { xs: "none", sm: "block" },
+                  ml: 2,
+                  color: "white !important",
+                  fontWeight: "bold",
+                  fontStyle: "italic",
                 }}
               >
                 SHOPPING
               </Typography>
             </Link>
+
             <Search
-              id="Search"
               sx={{
                 bgcolor: "common.white",
                 color: "common.black",
                 width: "100% !important",
                 mx: { xs: "10px", sm: "20px" },
+                position: "relative",
               }}
             >
               <SearchIconWrapper
                 sx={{ zIndex: 10000 }}
-                id="Search"
-                onClick={handleSearchAppBar}
+                onClick={(e) => handleSearchAppBar(e)}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
               >
-                <SearchIcon id="Search" />
+                <SearchIcon />
               </SearchIconWrapper>
               <StyledInputBase
                 sx={{
                   width: "100%",
-                  "& .MuiInputBase-input": {
-                    width: "85%",
-                  },
+                  "& .MuiInputBase-input": { width: "85%" },
                 }}
-                id="Search"
                 placeholder="Search…"
                 inputProps={{ "aria-label": "search" }}
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onFocus={() => setIsInputFocused(true)}
+                onBlur={() => setIsInputFocused(false)}
               />
+              {showRecentSearch && (
+                <RecentSearch
+                  ref={recentSearchRef}
+                  onSelect={handleSelectRecentSearch}
+                  onHoverChange={handleRecentSearchHoverChange}
+                />
+              )}
             </Search>
+
             <Box
               sx={{
                 display: { xs: "none", md: "flex" },
@@ -324,9 +301,9 @@ export default function HeaderLayout() {
             >
               <Box sx={{ position: "relative" }}>
                 <IconButton
-                  onClick={() => handleCartClick()}
+                  onClick={handleCartClick}
                   size="large"
-                  aria-label="show 4 new"
+                  aria-label="show cart items"
                   color="inherit"
                   onMouseEnter={handlePopoverOpen}
                   onMouseLeave={handlePopoverClose}
@@ -339,7 +316,6 @@ export default function HeaderLayout() {
                     <ShoppingCartIcon sx={{ color: "common.white" }} />
                   </Badge>
                 </IconButton>
-
                 {cartPopoverVisible && (
                   <CartPopover
                     data={data || {}}
@@ -350,22 +326,7 @@ export default function HeaderLayout() {
                   />
                 )}
               </Box>
-
-              {!a ? (
-                <Button
-                  onClick={() => {
-                    navigate("/login");
-                  }}
-                  sx={{
-                    display: "inline-block",
-                    textTransform: "none",
-                    color: "common.white",
-                  }}
-                  variant="contained"
-                >
-                  Login
-                </Button>
-              ) : (
+              {user ? (
                 <IconButton
                   size="large"
                   edge="end"
@@ -379,14 +340,12 @@ export default function HeaderLayout() {
                     bgcolor: "primary.main",
                     borderRadius: 6,
                     py: 1,
-                    "&:hover": {
-                      backgroundColor: "primary.dark",
-                    },
+                    "&:hover": { bgcolor: "primary.dark" },
                   }}
                 >
                   <AccountCircle />
                   <Typography
-                    fontWeight={"bold"}
+                    fontWeight="bold"
                     ml={0.5}
                     variant="caption"
                     sx={{
@@ -394,14 +353,22 @@ export default function HeaderLayout() {
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       whiteSpace: "nowrap",
-                      display: "block",
                     }}
                   >
-                    {a?.userName}
+                    {user.userName}
                   </Typography>
                 </IconButton>
+              ) : (
+                <Button
+                  onClick={() => navigate("/login")}
+                  sx={{ textTransform: "none", color: "common.white" }}
+                  variant="contained"
+                >
+                  Login
+                </Button>
               )}
             </Box>
+
             <Box sx={{ display: { xs: "flex", md: "none" } }}>
               <IconButton
                 size="large"
