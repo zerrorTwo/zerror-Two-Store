@@ -2,14 +2,14 @@ import { lazy, Suspense, useEffect, useRef, useState, memo } from "react";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import { Outlet } from "react-router-dom";
-import HeaderLayout from "../components/HeaderLayout.jsx";
+import HeaderLayout from "../components/Layout/HeaderLayout.jsx";
 
 // Memoize HeaderLayout
 const MemoizedHeader = memo(HeaderLayout);
 
 // Lazy load Footer and memoize it
-const Footer = lazy(() => 
-  import("../components/Footer.jsx").then(module => {
+const Footer = lazy(() =>
+  import("../components/Footer.jsx").then((module) => {
     // Memoize the Footer component when it's loaded
     return { default: memo(module.default) };
   })
@@ -48,15 +48,19 @@ function LayoutNew() {
   return (
     <>
       <MemoizedHeader />
-      <Box mt={12}>
+      <Box mt={15}>
         <Outlet />
       </Box>
 
       {/* Container rỗng sẽ được quan sát */}
-      <div ref={footerContainerRef} style={{ minHeight: '50px' }}>
+      <div ref={footerContainerRef} style={{ minHeight: "50px" }}>
         {/* Lazy load Footer khi container vào view */}
         {shouldLoadFooter && (
-          <Suspense fallback={<CircularProgress sx={{ display: "block", margin: "auto" }} />}>
+          <Suspense
+            fallback={
+              <CircularProgress sx={{ display: "block", margin: "auto" }} />
+            }
+          >
             <Footer />
           </Suspense>
         )}

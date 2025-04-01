@@ -4,11 +4,12 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
-import Link from "@mui/material/Link";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { useState, Suspense, lazy } from "react";
 import {
   useGetProductBySlugQuery,
   useGetTopSoldQuery,
+  useGetProductWithBreadcrumbByIdQuery,
 } from "../../redux/api/productSlice";
 import { useParams } from "react-router-dom";
 import ProductDetailCarousel from "../../components/Carousel/ProductDetailCarousel";
@@ -18,7 +19,8 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import a11yProps from "../../../utils/a11yProps";
 import FlashSale from "../../components/Carousel/FlashSale";
-import { Grid2 } from "@mui/material";
+import { Grid2, Link } from "@mui/material";
+
 const Specification = lazy(() => import("./components/Specification"));
 const Description = lazy(() => import("./components/Description"));
 const CommentCom = lazy(() => import("./components/CommentCom"));
@@ -27,13 +29,10 @@ function ProductDetail() {
   const theme = useTheme();
   const { slug } = useParams();
   const { data, isLoading, error } = useGetProductBySlugQuery(slug);
-
-  console.log(data?._id);
-
-  function handleClick(event) {
-    event.preventDefault();
-    console.info("You clicked a breadcrumb.");
-  }
+  const { data: productWithBreadcrumb, isLoading: isLoadingBreadcrumb } =
+    useGetProductWithBreadcrumbByIdQuery(data?._id, {
+      skip: !data?._id,
+    });
 
   const { data: listTopSoldProducts } = useGetTopSoldQuery();
 
@@ -45,27 +44,79 @@ function ProductDetail() {
   };
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <Container>
+        <Box display="flex" justifyContent="center" my={4}>
+          <CircularProgress />
+        </Box>
+      </Container>
+    );
   }
 
   if (error) {
-    return <div>Error: {error.message}</div>;
+    return (
+      <Container>
+        <Typography color="error">Error: {error.message}</Typography>
+      </Container>
+    );
   }
+
+  // Hàm cắt ngắn tên nếu quá dài
+  const truncateName = (name, maxLength = 50) => {
+    if (name.length <= maxLength) return name;
+    return `${name.slice(0, maxLength)}...`;
+  };
+
+  // Render breadcrumb
+  const renderBreadcrumb = (breadcrumb) => {
+    if (!breadcrumb || breadcrumb.length === 0) return null;
+
+    return breadcrumb.map((item, index) => {
+      const isProduct = index === breadcrumb.length - 1;
+      const isHome = index === 0;
+      const linkTo = isHome
+        ? "/"
+        : isProduct
+        ? `/products/${item.slug}`
+        : `/search?category=${item.slug}`;
+
+      return (
+        <Link
+          key={item.id}
+          href={linkTo}
+          underline="none" // Bỏ gạch chân mặc định
+          sx={{
+            color: isProduct ? "text.primary" : "primary.main", // Mục cuối đậm hơn, các mục khác dùng màu chính
+            fontWeight: isProduct ? "bold" : "normal", // Mục cuối in đậm
+            "&:hover": {
+              color: isProduct ? "text.primary" : "primary.dark", // Hover đổi màu nhẹ, trừ mục cuối
+              textDecoration: !isProduct ? "underline" : "none", // Chỉ gạch chân khi hover các mục không phải sản phẩm
+            },
+            transition: "color 0.2s ease-in-out", // Hiệu ứng chuyển màu mượt mà
+          }}
+        >
+          {truncateName(item.name)}
+        </Link>
+      );
+    });
+  };
 
   return (
     <Container>
       {/* Breadcrumb */}
-      <div role="presentation" onClick={handleClick}>
-        <Breadcrumbs aria-label="breadcrumb">
-          <Link underline="hover" color="#05a" href="/">
-            MUI
-          </Link>
-          <Link underline="hover" color="#05a" href="/">
-            Core
-          </Link>
-          <Typography sx={{ color: "text.blackColor" }}>Breadcrumbs</Typography>
-        </Breadcrumbs>
-      </div>
+      {isLoadingBreadcrumb ? (
+        <Typography>Loading breadcrumb...</Typography>
+      ) : (
+        <div role="presentation">
+          <Breadcrumbs
+            aria-label="breadcrumb"
+            separator={<NavigateNextIcon fontSize="small" />}
+            sx={{ my: 2 }}
+          >
+            {renderBreadcrumb(productWithBreadcrumb?.breadcrumb)}
+          </Breadcrumbs>
+        </div>
+      )}
 
       {/* Product Detail */}
       <Box
@@ -96,6 +147,7 @@ function ProductDetail() {
         </Grid2>
       </Box>
 
+      {/* Tabs */}
       <Tabs
         value={value}
         onChange={handleChange}
@@ -127,7 +179,7 @@ function ProductDetail() {
       <Box sx={{ padding: 0, mb: 2 }}>
         <CustomTabPanel value={value} index={0}>
           <Suspense fallback={<CircularProgress />}>
-            <Specification handleClick={handleClick} />
+            <Specification />
           </Suspense>
         </CustomTabPanel>
         <CustomTabPanel value={value} index={1}>
@@ -141,9 +193,9 @@ function ProductDetail() {
           </Suspense>
         </CustomTabPanel>
         <Box sx={{ padding: 0, my: 2 }}>
-        <Suspense fallback={<CircularProgress />}>
-          <FlashSale listItem={listTopSoldProducts} />
-        </Suspense>
+          <Suspense fallback={<CircularProgress />}>
+            <FlashSale listItem={listTopSoldProducts} />
+          </Suspense>
         </Box>
       </Box>
     </Container>
