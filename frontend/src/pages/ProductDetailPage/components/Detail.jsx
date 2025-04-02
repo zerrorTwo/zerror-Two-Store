@@ -18,10 +18,10 @@ import { useAddToCartMutation } from "../../../redux/api/cartSlice";
 import { toast } from "react-toastify";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  addFavouriteProduct,
-  removeFavouriteProduct,
-  selectIsFavourite,
-} from "../../../redux/features/favouriteProductSlice";
+  addFavoriteProduct,
+  removeFavoriteProduct,
+  selectIsFavorite,
+} from "../../../redux/features/favoriteProductSlice";
 
 function Detail({ data, quantity, setQuantity }) {
   const [addToCart, { isLoading: isLoadingCreateNew }] = useAddToCartMutation();
@@ -34,7 +34,7 @@ function Detail({ data, quantity, setQuantity }) {
   // Redux hooks cho favourite
   const dispatch = useDispatch();
   const isFavourite = useSelector((state) =>
-    selectIsFavourite(state, data?._id)
+    selectIsFavorite(state, data?._id)
   );
 
   // Mảng pricing từ data
@@ -122,14 +122,15 @@ function Detail({ data, quantity, setQuantity }) {
     const product = {
       id: data._id,
       name: data.name,
-      price: pricing.price,
+      price: data.minPrice,
+      slug: data.slug,
       image: data.mainImg,
     };
     if (isFavourite) {
-      dispatch(removeFavouriteProduct(data._id));
+      dispatch(removeFavoriteProduct(data._id));
       toast.info("Removed from favourites.");
     } else {
-      dispatch(addFavouriteProduct(product));
+      dispatch(addFavoriteProduct(product));
       toast.success("Added to favourites!");
     }
   };

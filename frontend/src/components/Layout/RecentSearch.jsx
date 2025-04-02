@@ -7,52 +7,46 @@ import {
   ListItemText,
   ListItemIcon,
   ListItemButton,
+  Tooltip,
 } from "@mui/material";
 import PropTypes from "prop-types";
 import ScheduleIcon from "@mui/icons-material/Schedule";
+import DeleteIcon from "@mui/icons-material/Delete";
 
-// Lấy dữ liệu từ localStorage
 const getRecentSearchesFromStorage = () => {
   return JSON.parse(localStorage.getItem("recentSearches") || "[]");
 };
 
-// Lưu dữ liệu vào localStorage
 const saveRecentSearchesToStorage = (searches) => {
   localStorage.setItem("recentSearches", JSON.stringify(searches));
 };
 
-// Component RecentSearch
 const RecentSearch = forwardRef(({ onSelect, onHoverChange }, ref) => {
   const [recentSearches, setRecentSearches] = useState(
     getRecentSearchesFromStorage
   );
 
-  // Đồng bộ với localStorage
   useEffect(() => {
     saveRecentSearchesToStorage(recentSearches);
   }, [recentSearches]);
 
-  // Thêm sản phẩm vào danh sách tìm kiếm gần đây
   const addRecentSearch = (product) => {
     setRecentSearches((prev) => {
       const filtered = prev.filter((item) => item.id !== product.id);
       const updated = [{ ...product, timestamp: Date.now() }, ...filtered];
-      return updated.slice(0, 10); // Giới hạn 10 sản phẩm
+      return updated.slice(0, 10);
     });
   };
 
-  // Xóa một mục khỏi danh sách tìm kiếm gần đây
   const handleDelete = (event, product) => {
-    event.stopPropagation(); // Ngăn chặn sự kiện onClick của ListItem
+    event.stopPropagation();
     setRecentSearches((prev) => prev.filter((item) => item.id !== product.id));
   };
 
-  // Expose addRecentSearch ra ngoài qua ref
   useImperativeHandle(ref, () => ({
     addRecentSearch,
   }));
 
-  // Xử lý chọn sản phẩm từ danh sách
   const handleSelect = (product) => {
     if (onSelect) {
       onSelect(product);
@@ -71,7 +65,7 @@ const RecentSearch = forwardRef(({ onSelect, onHoverChange }, ref) => {
         maxHeight: "500px",
         overflowY: "auto",
         zIndex: 1000,
-        bgcolor: "background.paper",
+        bgcolor: "white",
       }}
       onMouseEnter={() => onHoverChange?.(true)}
       onMouseLeave={() => onHoverChange?.(false)}
@@ -86,20 +80,38 @@ const RecentSearch = forwardRef(({ onSelect, onHoverChange }, ref) => {
             <ListItem
               key={item.id}
               onClick={() => handleSelect(item)}
-              sx={{ py: 1 }}
+              sx={{
+                py: 1,
+                "&:hover": {
+                  bgcolor: "action.hover",
+                  cursor: "pointer",
+                },
+                transition: "background-color 0.2s ease",
+              }}
             >
               <ListItemIcon sx={{ minWidth: "40px" }}>
                 <ScheduleIcon sx={{ color: "text.secondary" }} />
               </ListItemIcon>
-              <ListItemText
-                primary={item.name}
-                secondary={new Date(item.timestamp).toLocaleString()}
-              />
+              <ListItemText primary={item.name} />
               <ListItemButton
-                sx={{ display: "inline-block", flexGrow: "0" }}
+                sx={{
+                  display: "inline-block",
+                  flexGrow: "0",
+                  p: 1,
+                  minWidth: "unset",
+                  "&:hover": {
+                    bgcolor: "transparent",
+                    "& .MuiSvgIcon-root": {
+                      color: "error.main",
+                    },
+                  },
+                  transition: "color 0.2s ease",
+                }}
                 onClick={(event) => handleDelete(event, item)}
               >
-                Delete
+                <Tooltip title="Delete">
+                  <DeleteIcon sx={{ color: "text.secondary" }} />
+                </Tooltip>
               </ListItemButton>
             </ListItem>
           ))
@@ -109,7 +121,6 @@ const RecentSearch = forwardRef(({ onSelect, onHoverChange }, ref) => {
   );
 });
 
-// Định nghĩa PropTypes
 RecentSearch.propTypes = {
   onSelect: PropTypes.func,
   onHoverChange: PropTypes.func,

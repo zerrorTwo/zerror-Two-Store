@@ -112,14 +112,26 @@ const getAllProducts = async (req, res) => {
   }
 };
 
-const getPageProducts = async (page, limit, category, search, sort) => {
+const getPageProducts = async (
+  page,
+  limit,
+  category,
+  search,
+  sort,
+  minPrice,
+  maxPrice,
+  rating
+) => {
   try {
     return await productRepository.getPageProducts(
       page,
       limit,
       category,
       search,
-      sort
+      sort,
+      minPrice,
+      maxPrice,
+      rating
     );
   } catch (error) {
     console.error("Error in getPageProducts:", error);

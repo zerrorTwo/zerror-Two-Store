@@ -31,7 +31,7 @@ function ProfileDashBoard() {
   }, [data]);
 
   return (
-    <Box>
+    <Box maxHeight={500} overflow={"hidden"}>
       <Container>
         <Box mt={2} maxWidth={"200px"}>
           <FormControl fullWidth>

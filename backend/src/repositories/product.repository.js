@@ -164,144 +164,166 @@ const getAllProducts = async () => {
 };
 
 // Lấy sản phẩm có phân trang
-const getPageProducts = async (page, limit, category, search, sort) => {
-  let categoryFilter = {};
-  if (category) {
-    const currentCategory = await CategoryModel.findOne({ slug: category });
-    if (currentCategory) {
+const getPageProducts = async (
+  page = 1,
+  limit = 10,
+  category,
+  search,
+  sort,
+  minPrice, // Thêm tham số minPrice
+  maxPrice, // Thêm tham số maxPrice
+  rating // Thêm tham số rating
+) => {
+  try {
+    // Validate input parameters
+    page = Math.max(1, parseInt(page));
+    limit = Math.max(1, Math.min(30, parseInt(limit)));
+    minPrice = minPrice ? parseFloat(minPrice) : undefined; // Chuyển thành số, nếu không có thì undefined
+    maxPrice = maxPrice ? parseFloat(maxPrice) : undefined; // Chuyển thành số, nếu không có thì undefined
+    rating = rating ? parseFloat(rating) : undefined; // Chuyển thành số, nếu không có thì undefined
+
+    // Xử lý category filter
+    let categoryFilter = {};
+    if (category) {
+      const currentCategory = await CategoryModel.findOne({
+        slug: category,
+      }).lean();
+      if (!currentCategory) {
+        return {
+          page,
+          limit,
+          totalPages: 0,
+          totalProducts: 0,
+          products: [],
+          message: "Category not found",
+        };
+      }
       categoryFilter = { type: currentCategory._id };
     }
-  }
 
-  const searchFilter = search
-    ? { name: { $regex: search, $options: "i" } }
-    : {};
-  const filters = {
-    ...categoryFilter,
-    ...searchFilter,
-    status: true,
-  };
+    // Xử lý search filter
+    const searchFilter = search
+      ? { name: { $regex: new RegExp(search, "i") } }
+      : {};
 
-  const skip = (page - 1) * limit;
-  let sortStage = {};
-  switch (sort) {
-    case "sold-desc":
-      sortStage = { totalSold: -1 };
-      break;
-    case "price-asc":
-      sortStage = { minPrice: 1 };
-      break;
-    case "price-desc":
-      sortStage = { minPrice: -1 };
-      break;
-    case "created-desc":
-      sortStage = { createdAt: -1 };
-      break;
-    default:
-      sortStage = { createdAt: -1 };
-  }
+    // Kết hợp filters cơ bản
+    const filters = {
+      ...categoryFilter,
+      ...searchFilter,
+      status: true,
+    };
 
-  const productsPipeline = [
-    { $match: filters },
-    {
-      $addFields: {
-        normalizedPricing: {
-          $cond: {
-            if: { $isArray: "$variations.pricing" },
-            then: "$variations.pricing",
-            else: {
-              $cond: {
-                if: { $eq: [{ $type: "$variations.pricing" }, "object"] },
-                then: [{ $ifNull: ["$variations.pricing", {}] }],
-                else: [],
+    // Tính skip và chuẩn bị sort
+    const skip = (page - 1) * limit;
+    const sortStage = {
+      "sold-desc": { totalSold: -1 },
+      "price-asc": { minPrice: 1 },
+      "price-desc": { minPrice: -1 },
+      "created-desc": { createdAt: -1 },
+    }[sort] || { createdAt: -1 };
+
+    // Pipeline tối ưu
+    const productsPipeline = [
+      { $match: filters }, // Filter cơ bản
+      {
+        $addFields: {
+          normalizedPricing: {
+            $cond: [
+              { $isArray: "$variations.pricing" },
+              "$variations.pricing",
+              {
+                $cond: [
+                  { $eq: [{ $type: "$variations.pricing" }, "object"] },
+                  [{ $ifNull: ["$variations.pricing", {}] }],
+                  [],
+                ],
+              },
+            ],
+          },
+        },
+      },
+      {
+        $addFields: {
+          minPrice: {
+            $cond: [
+              { $gt: [{ $size: { $ifNull: ["$normalizedPricing", []] } }, 0] },
+              { $min: "$normalizedPricing.price" },
+              "$price",
+            ],
+          },
+          totalStock: { $sum: { $ifNull: ["$normalizedPricing.stock", [0]] } },
+          totalSold: { $sum: { $ifNull: ["$normalizedPricing.sold", [0]] } },
+        },
+      },
+      // Thêm filter cho minPrice, maxPrice và rating
+      {
+        $match: {
+          ...(minPrice !== undefined ? { minPrice: { $gte: minPrice } } : {}),
+          ...(maxPrice !== undefined ? { minPrice: { $lte: maxPrice } } : {}),
+          ...(rating !== undefined ? { rating: { $gte: rating } } : {}),
+        },
+      },
+      {
+        $facet: {
+          products: [
+            { $sort: sortStage },
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $lookup: {
+                from: "categories",
+                localField: "type",
+                foreignField: "_id",
+                as: "typeInfo",
               },
             },
-          },
-        },
-      },
-    },
-    {
-      $addFields: {
-        minPrice: {
-          $cond: {
-            if: {
-              $gt: [{ $size: { $ifNull: ["$normalizedPricing", []] } }, 0],
+            {
+              $unwind: { path: "$typeInfo", preserveNullAndEmptyArrays: true },
             },
-            then: { $min: "$normalizedPricing.price" },
-            else: "$price",
-          },
-        },
-        totalStock: {
-          $sum: {
-            $map: {
-              input: "$normalizedPricing",
-              as: "variant",
-              in: { $ifNull: ["$$variant.stock", 0] },
+            {
+              $project: {
+                _id: 1,
+                name: 1,
+                description: 1,
+                slug: 1,
+                mainImg: 1,
+                img: 1,
+                price: 1,
+                stock: 1,
+                variations: 1,
+                totalSold: 1,
+                minPrice: 1,
+                totalStock: 1,
+                rating: 1,
+                numReviews: 1,
+                type: "$typeInfo.name",
+                status: 1,
+                createdAt: 1,
+                tag: 1,
+              },
             },
-          },
-        },
-        totalSold: {
-          $sum: {
-            $map: {
-              input: "$normalizedPricing",
-              as: "variant",
-              in: { $ifNull: ["$$variant.sold", 0] },
-            },
-          },
+          ],
+          total: [{ $count: "count" }],
         },
       },
-    },
-    { $sort: sortStage },
-    { $skip: skip },
-    { $limit: limit },
-    {
-      $lookup: {
-        from: "categories",
-        localField: "type",
-        foreignField: "_id",
-        as: "typeInfo",
-      },
-    },
-    {
-      $unwind: {
-        path: "$typeInfo",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    {
-      $project: {
-        _id: 1,
-        name: 1,
-        description: 1,
-        slug: 1,
-        mainImg: 1,
-        img: 1,
-        price: 1,
-        stock: 1,
-        variations: 1,
-        totalSold: 1,
-        minPrice: 1,
-        totalStock: 1,
-        rating: 1,
-        numReviews: 1,
-        type: "$typeInfo.name",
-        status: 1,
-        createdAt: 1,
-        tag: 1,
-      },
-    },
-  ];
+    ];
 
-  const products = await ProductModel.aggregate(productsPipeline);
-  const totalProducts = await ProductModel.countDocuments(filters);
+    // Thực hiện aggregate và lấy kết quả
+    const [result] = await ProductModel.aggregate(productsPipeline).exec();
+    const totalProducts = result.total[0]?.count || 0;
+    const products = result.products || [];
 
-  return {
-    page,
-    limit,
-    totalPages: Math.ceil(totalProducts / limit),
-    totalProducts,
-    products,
-  };
+    return {
+      page,
+      limit,
+      totalPages: Math.ceil(totalProducts / limit),
+      totalProducts,
+      products,
+    };
+  } catch (error) {
+    console.error("Error in getPageProducts:", error);
+    throw new Error("Failed to fetch products");
+  }
 };
 
 // Lấy sản phẩm bán chạy nhất

@@ -41,14 +41,22 @@ const getAllProducts = asyncHandeler(async (req, res) => {
 const getPageProducts = asyncHandeler(async (req, res) => {
   const page = parseInt(req.query.page) || 1; // Mặc định là trang 1
   const limit = parseInt(req.query.limit) || 10; // Mặc định là 10 sản phẩm mỗi trang
+  const category = req.query.category || "";
+  const search = req.query.search || "";
+  const sort = req.query.sort || "";
+  const minPrice = req.query.minPrice || undefined;
+  const maxPrice = req.query.maxPrice || undefined;
+  const rating = req.query.rating || undefined;
 
-  const { category, search, sort } = req.query;
   const products = await productService.getPageProducts(
     page,
     limit,
     category,
     search,
-    sort
+    sort,
+    minPrice,
+    maxPrice,
+    rating
   );
 
   res.status(StatusCodes.OK).json(products);
