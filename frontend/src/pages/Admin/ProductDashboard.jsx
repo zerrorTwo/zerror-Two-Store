@@ -59,7 +59,6 @@ const ProductDashboard = () => {
 
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-
   const {
     data: { products: rows = [], totalPages } = {},
     error,

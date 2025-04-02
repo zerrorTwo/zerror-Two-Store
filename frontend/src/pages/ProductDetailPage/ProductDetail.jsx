@@ -5,7 +5,7 @@ import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import { useState, Suspense, lazy } from "react";
+import { useState, Suspense, lazy, useEffect } from "react";
 import {
   useGetProductBySlugQuery,
   useGetTopSoldQuery,
@@ -20,6 +20,8 @@ import Tab from "@mui/material/Tab";
 import a11yProps from "../../../utils/a11yProps";
 import FlashSale from "../../components/Carousel/FlashSale";
 import { Grid2, Link } from "@mui/material";
+import { useDispatch } from "react-redux";
+import { addRecentProduct } from "../../redux/features/recentProductSlice";
 
 const Specification = lazy(() => import("./components/Specification"));
 const Description = lazy(() => import("./components/Description"));
@@ -28,6 +30,7 @@ const CommentCom = lazy(() => import("./components/CommentCom"));
 function ProductDetail() {
   const theme = useTheme();
   const { slug } = useParams();
+  const dispatch = useDispatch();
   const { data, isLoading, error } = useGetProductBySlugQuery(slug);
   const { data: productWithBreadcrumb, isLoading: isLoadingBreadcrumb } =
     useGetProductWithBreadcrumbByIdQuery(data?._id, {
@@ -38,6 +41,19 @@ function ProductDetail() {
 
   const [quantity, setQuantity] = useState(1);
   const [value, setValue] = useState(0);
+
+  useEffect(() => {
+    if (data) {
+      const product = {
+        id: data._id,
+        name: data.name,
+        price: data.minPrice,
+        slug: data.slug,
+        image: data.mainImg,
+      };
+      dispatch(addRecentProduct(product));
+    }
+  }, [data, dispatch]);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);

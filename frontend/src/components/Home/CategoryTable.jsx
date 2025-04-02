@@ -1,7 +1,7 @@
-import  Box  from "@mui/material/Box";
-import  CardMedia  from "@mui/material/CardMedia";
-import  IconButton  from "@mui/material/IconButton";
-import  Typography  from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import CardMedia from "@mui/material/CardMedia";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
 import { useTheme } from "@mui/material/styles";
 import { Link } from "react-router-dom";
 import { Swiper, SwiperSlide } from "swiper/react";
@@ -88,7 +88,7 @@ export default function CategoryTable({ itemData, isLoading }) {
                   }}
                 >
                   <Link
-                    to={`products/category/${item.slug}`}
+                    to={`search?page=1&limit=30&category=${item.slug}`}
                     style={{
                       display: "block",
                       textDecoration: "none",

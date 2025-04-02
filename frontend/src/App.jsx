@@ -13,6 +13,8 @@ import AdminAuth from "./pages/Auth/AdminAuth";
 import LayoutAdmin from "./pages/Admin/LayoutAdmin";
 import LayoutNew from "./pages/LayoutNew";
 import CreateNewCoupon from "./pages/Admin/Coupon/CreateNewCoupon";
+import MyFavorite from "./pages/ProfilePage/MyFavorite";
+import MyRecent from "./pages/ProfilePage/MyRecent";
 
 // Lazy load all other components
 const Home = lazy(() => import("./pages/Home"));
@@ -219,6 +221,8 @@ function App() {
                 <Route path="dashboard" element={<ProfileDashBoard />} />
                 <Route path="my-order" element={<MyOrder />} />
                 <Route path="my-account" element={<MyAccount />} />
+                <Route path="my-favourite" element={<MyFavorite />} />
+                <Route path="my-recent" element={<MyRecent />} />
               </Route>
 
               <Route element={<AdminAuth />}>

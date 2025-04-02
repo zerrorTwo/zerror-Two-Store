@@ -1,16 +1,22 @@
 import PropTypes from "prop-types";
-import  ListItem  from "@mui/material/ListItem";
-import  ListItemButton  from "@mui/material/ListItemButton";
-import  ListItemIcon  from "@mui/material/ListItemIcon";
-import  ListItemText  from "@mui/material/ListItemText";
-import  Typography  from "@mui/material/Typography";
-import  Box  from "@mui/material/Box";
-import  NavigateNextIcon  from "@mui/icons-material/NavigateNext";
-import  {useTheme}  from "@mui/material/styles";
-import  { Link }  from "react-router-dom"; // Import Link
+import ListItem from "@mui/material/ListItem";
+import ListItemButton from "@mui/material/ListItemButton";
+import ListItemIcon from "@mui/material/ListItemIcon";
+import ListItemText from "@mui/material/ListItemText";
+import Typography from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
+import { useTheme } from "@mui/material/styles";
+import { Link } from "react-router-dom";
 
-const NavAdminItem = ({ icon, text, isSelected, link }) => {
+const NavAdminItem = ({ icon, text, isSelected, link, onClick }) => {
   const theme = useTheme();
+
+  const handleClick = (event) => {
+    if (onClick) {
+      onClick(event); // Call the custom onClick handler if provided
+    }
+  };
 
   return (
     <ListItem disablePadding sx={{ display: "block", position: "relative" }}>
@@ -26,8 +32,9 @@ const NavAdminItem = ({ icon, text, isSelected, link }) => {
         />
       )}
       <ListItemButton
-        component={Link} // Use Link component
-        to={link} // Specify the link
+        component={link ? Link : "div"}
+        to={link}
+        onClick={handleClick}
         sx={{
           minHeight: 60,
           px: 2.5,
@@ -68,6 +75,7 @@ NavAdminItem.propTypes = {
   text: PropTypes.string.isRequired,
   isSelected: PropTypes.bool,
   link: PropTypes.string,
+  onClick: PropTypes.func, // Added onClick prop type
 };
 
 export default NavAdminItem;

@@ -4,7 +4,8 @@ import { apiSlice } from "./api/apiSlice";
 import authReducer from "./features/auth/authSlice";
 import cartReducer from "./features/cartSlice";
 import couponReducer from "./features/couponSlice";
-import favouriteProductReducer from "./features/favouriteProductSlice";
+import favoriteProductReducer from "./features/favoriteProductSlice";
+import recentProductReducer from "./features/recentProductSlice";
 
 const store = configureStore({
   reducer: {
@@ -12,7 +13,8 @@ const store = configureStore({
     auth: authReducer,
     cart: cartReducer,
     coupon: couponReducer,
-    favouriteProducts: favouriteProductReducer,
+    favoriteProducts: favoriteProductReducer,
+    recentProducts: recentProductReducer,
   },
 
   middleware: (getDefaultMiddleware) =>

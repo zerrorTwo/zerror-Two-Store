@@ -46,8 +46,11 @@ export const productApiSlice = apiSlice.injectEndpoints({
         category = "",
         search = "",
         sort = "",
+        minPrice = "",
+        maxPrice = "",
+        rating = "",
       }) => ({
-        url: `${PRODUCT_URL}?page=${page}&limit=${limit}&category=${category}&search=${search}&sort=${sort}`,
+        url: `${PRODUCT_URL}?page=${page}&limit=${limit}&category=${category}&search=${search}&sort=${sort}&minPrice=${minPrice}&maxPrice=${maxPrice}&rating=${rating}`,
         method: "GET",
       }),
       providesTags: ["Product"],

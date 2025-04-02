@@ -68,8 +68,8 @@ function MyAccount() {
   };
 
   return (
-    <Box sx={{ maxWidth: 800, mx: "auto", p: 3 }}>
-      <Card>
+    <>
+      <Card sx={{ bgcolor: "white" }}>
         <CardContent>
           <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
             <Avatar
@@ -188,7 +188,7 @@ function MyAccount() {
           </form>
         </CardContent>
       </Card>
-    </Box>
+    </>
   );
 }
 
