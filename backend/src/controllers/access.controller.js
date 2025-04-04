@@ -4,6 +4,8 @@ import {
   logout,
   refreshToken,
   signInByGG,
+  forgotPassword,
+  resetPassword,
 } from "../services/access.service.js";
 import asyncHandler from "../middlewares/async.handler.js";
 import { StatusCodes } from "http-status-codes";
@@ -62,10 +64,30 @@ const refreshTokenController = asyncHandler(async (req, res, next) => {
   }
 });
 
+const forgotPasswordController = asyncHandler(async (req, res, next) => {
+  try {
+    const { success, message } = await forgotPassword(req, res);
+    res.status(StatusCodes.OK).json({ success, message });
+  } catch (error) {
+    next(error);
+  }
+});
+
+const resetPasswordController = asyncHandler(async (req, res, next) => {
+  try {
+    const { success, message } = await resetPassword(req, res);
+    res.status(StatusCodes.OK).json({ success, message });
+  } catch (error) {
+    next(error);
+  }
+});
+
 export {
   signUpController,
   signInController,
   signInGGController,
   logoutController,
   refreshTokenController,
+  forgotPasswordController,
+  resetPasswordController,
 };

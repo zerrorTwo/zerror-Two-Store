@@ -1,9 +1,9 @@
 {
-    "compilerOptions": {
-      "paths": {
-        "~/*": ["./src/*"],
-        "history": ["./node_modules/history"],
-        "prop-types": ["./node_modules/prop-types"],
-      },
+  "compilerOptions": {
+    "paths": {
+      "@src/*": ["./src/*"],
+      "history": ["./node_modules/history"],
+      "prop-types": ["./node_modules/prop-types"]
     }
+  }
 }

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -7,117 +8,154 @@ import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import theme from "../../theme";
-import { toast } from "react-toastify"; // Import only toast
-import "react-toastify/dist/ReactToastify.css"; // Đảm bảo import CSS của Toastify
-import { useState } from "react";
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useRegisterMutation } from "../../redux/api/authApiSlice";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
+import {
+  useSendVerificationEmailMutation,
+  useLazyVerifyGmailQuery,
+} from "../../redux/api/mailSlice";
 
 function Register() {
   const [userName, setUsername] = useState("");
   const [gmail, setGmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [confirmCode, setConfirmCode] = useState("");
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isGmailValid, setIsGmailValid] = useState(true);
+  const [isAccountCreated, setIsAccountCreated] = useState(false);
   const navigate = useNavigate();
-
-  const [login, { isLoading }] = useRegisterMutation();
+  const [register, { isLoading }] = useRegisterMutation();
+  const [sendCode, { isLoading: isLoadingCode }] =
+    useSendVerificationEmailMutation();
+  const [triggerVerifyGmail, { isLoading: isLoadingVerify }] =
+    useLazyVerifyGmailQuery();
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    if (resendCooldown > 0) {
+      const timer = setInterval(() => {
+        setResendCooldown((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [resendCooldown]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+    if (!isGmailValid) {
+      toast.error("Please enter a valid Gmail address");
+      return;
+    }
     try {
-      if (password !== confirmPassword) {
-        toast.error("Passwords do not match");
-        return;
-      }
-      const data = await login({
-        userName: userName,
+      const data = await register({
+        userName,
         email: gmail,
         password,
       }).unwrap();
-
       dispatch(setCredentials(data));
       const { user, accessToken } = data;
-      const expires = new Date().getTime() + 30 * 24 * 60 * 60 * 1000; // 30 days from now
-
-      // Store user info with expiration timestamp
-      localStorage.setItem(
-        "userInfo",
-        JSON.stringify({
-          user,
-          expires,
-        })
-      );
+      const expires = new Date().getTime() + 30 * 24 * 60 * 60 * 1000;
+      localStorage.setItem("userInfo", JSON.stringify({ user, expires }));
       localStorage.setItem(
         "token",
-        JSON.stringify({
-          token: accessToken,
-          expires,
-        })
+        JSON.stringify({ token: accessToken, expires })
       );
-      navigate("/"); // This will navigate to the homepage if login is successful
+      toast.success("Account created! Please verify your email.");
+      setIsAccountCreated(true);
+      setResendCooldown(60);
     } catch (err) {
       toast.error(
-        err?.data?.message || err?.error || "An unexpected error occurred"
+        err?.data?.message || err?.error || "Failed to create account"
       );
     }
   };
 
+  const handleResendCode = async () => {
+    try {
+      await sendCode({ gmail }).unwrap();
+      toast.success("Verification code resent!");
+      setResendCooldown(60);
+    } catch (err) {
+      toast.error(
+        err?.data?.message || err?.error || "Failed to resend verification code"
+      );
+    }
+  };
+
+  const handleVerifyCode = async () => {
+    try {
+      const result = await triggerVerifyGmail({
+        gmail,
+        code: confirmCode,
+      }).unwrap();
+
+      if (result.success) {
+        toast.success(result.message || "Email verified successfully!");
+        navigate("/");
+      } else {
+        toast.error("Invalid verification code");
+      }
+    } catch (err) {
+      toast.error(err?.data?.message || err?.error || "Failed to verify code");
+    }
+  };
+
   const handleUserNameInput = (e) => setUsername(e.target.value);
-  const handleGmailInput = (e) => setGmail(e.target.value);
+  const handleGmailInput = (e) => {
+    const value = e.target.value;
+    setGmail(value);
+    const gmailRegex = /^[a-zA-Z0-9._-]+@gmail\.com$/;
+    setIsGmailValid(gmailRegex.test(value));
+  };
   const handlePwdInput = (e) => setPassword(e.target.value);
-  const handleCofirmPwdInput = (e) => setConfirmPassword(e.target.value);
+  const handleConfirmPwdInput = (e) => setConfirmPassword(e.target.value);
+  const handleConfirmCodeInput = (e) => setConfirmCode(e.target.value);
+
+  const canSubmit = userName && gmail && password && confirmPassword;
+  const canVerify = confirmCode && isAccountCreated;
 
   return (
     <Box
       sx={{
-        backgroundImage: `url("/Assets/background_login.webp")`,
-        backgroundSize: "cover", // Ensures the image covers the entire area
-        backgroundPosition: "center", // Centers the image
+        minHeight: "100vh",
         display: "flex",
-        justifyContent: "center",
         alignItems: "center",
-        minHeight: "100vh", // Ensures it takes the full viewport height
-        bgcolor: theme.palette.secondary.main,
+        background: "linear-gradient(135deg, #e0e0e0, #FF8534)",
       }}
     >
-      <Container maxWidth="xs">
-        <Paper elevation={10} sx={{ padding: 2 }}>
+      <Container maxWidth="sm">
+        <Paper elevation={10} sx={{ p: 3, borderRadius: 4 }}>
           <Avatar
             sx={{
-              bgcolor: theme.palette.common.black,
               mx: "auto",
-              textAlign: "center",
-              mb: 1,
-              "& .MuiSvgIcon-root": {
-                color: "white",
-              },
+              mb: 2,
+              width: 56,
+              height: 56,
+              "& .MuiSvgIcon-root": { color: "white" },
             }}
-          ></Avatar>
+          />
           <Typography
-            component="h1"
             variant="h5"
-            sx={{
-              fontWeight: "bold",
-              textAlign: "center",
-            }}
+            align="center"
+            sx={{ fontWeight: "bold", mb: 3 }}
           >
-            SignUp
+            Sign Up
           </Typography>
           <Box
-            onSubmit={handleSubmit}
             component="form"
+            onSubmit={handleSubmit}
             noValidate
-            sx={{
-              mt: 1,
-              "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                {
-                  borderColor: theme.palette.text.primary,
-                },
-            }}
+            sx={{ mt: 1 }}
           >
             <TextField
               onChange={handleUserNameInput}
@@ -125,6 +163,8 @@ function Register() {
               fullWidth
               required
               autoFocus
+              variant="outlined"
+              disabled={isAccountCreated}
               sx={{
                 mb: 2,
                 "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
@@ -135,37 +175,33 @@ function Register() {
             />
             <TextField
               onChange={handleGmailInput}
-              placeholder="Enter your gmail"
+              placeholder="Enter your Gmail"
               fullWidth
               required
+              type="email"
+              variant="outlined"
+              error={!isGmailValid && gmail}
+              helperText={!isGmailValid && gmail ? "Invalid Gmail format" : ""}
+              disabled={isAccountCreated}
               sx={{
                 mb: 2,
                 "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
                   {
                     borderColor: theme.palette.text.primary,
                   },
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: gmail && !isGmailValid ? "red" : undefined,
+                },
               }}
             />
             <TextField
               onChange={handlePwdInput}
-              sx={{
-                mb: 2,
-                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                  {
-                    borderColor: theme.palette.text.primary,
-                  },
-              }}
               placeholder="Enter password"
               fullWidth
               required
               type="password"
-            />
-            <TextField
-              onChange={handleCofirmPwdInput}
-              placeholder="Enter comfirm password"
-              fullWidth
-              required
-              type="password"
+              variant="outlined"
+              disabled={isAccountCreated}
               sx={{
                 mb: 2,
                 "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
@@ -174,39 +210,115 @@ function Register() {
                   },
               }}
             />
-            <Button
-              type="submit"
-              variant="contained"
+            <TextField
+              onChange={handleConfirmPwdInput}
+              placeholder="Confirm password"
               fullWidth
+              required
+              type="password"
+              variant="outlined"
+              disabled={isAccountCreated}
               sx={{
-                mt: 1,
-                bgcolor: theme.palette.secondary.main,
-                color: theme.palette.common.white,
+                mb: 2,
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: theme.palette.text.primary,
+                  },
               }}
-            >
-              {isLoading ? (
-                <CircularProgress color="inherit" size={25} />
-              ) : (
-                "Sign Up"
-              )}
-            </Button>
+            />
+            {!isAccountCreated && (
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={isLoading || !canSubmit}
+                sx={{
+                  mt: 1,
+                  bgcolor: theme.palette.secondary.main,
+                  color: theme.palette.common.white,
+                  "&:hover": { bgcolor: theme.palette.secondary.dark },
+                }}
+              >
+                {isLoading ? (
+                  <CircularProgress color="inherit" size={25} />
+                ) : (
+                  "Sign Up"
+                )}
+              </Button>
+            )}
           </Box>
-          <Grid container justifyContent="space-between" sx={{ mt: 1 }}>
+
+          {isAccountCreated && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body1" align="center" sx={{ mb: 2 }}>
+                A verification code has been sent to {gmail}. Please enter it
+                below.
+              </Typography>
+              <TextField
+                onChange={handleConfirmCodeInput}
+                placeholder="Enter verification code"
+                fullWidth
+                required
+                variant="outlined"
+                sx={{
+                  mb: 2,
+                  "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                    {
+                      borderColor: theme.palette.text.primary,
+                    },
+                }}
+              />
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleVerifyCode}
+                disabled={!canVerify || isLoadingVerify}
+                sx={{
+                  mb: 2,
+                  bgcolor: theme.palette.secondary.main,
+                  color: theme.palette.common.white,
+                  "&:hover": { bgcolor: theme.palette.secondary.dark },
+                }}
+              >
+                {isLoadingVerify ? (
+                  <CircularProgress color="inherit" size={25} />
+                ) : (
+                  "Verify Code"
+                )}
+              </Button>
+              <Button
+                variant="text"
+                onClick={handleResendCode}
+                disabled={resendCooldown > 0 || isLoadingCode}
+                sx={{
+                  color:
+                    resendCooldown > 0 || isLoadingCode
+                      ? "#757575"
+                      : "primary.main",
+                }}
+              >
+                {isLoadingCode ? (
+                  <CircularProgress color="inherit" size={20} />
+                ) : resendCooldown > 0 ? (
+                  `Resend in ${resendCooldown}s`
+                ) : (
+                  "Resend Code"
+                )}
+              </Button>
+            </Box>
+          )}
+
+          <Grid container justifyContent="space-between" sx={{ mt: 2 }}>
             <Grid item>
-              <Link to="/login">Have account? SignIn</Link>
+              <Button
+                variant="text"
+                sx={{ color: "primary.main" }}
+                onClick={() => navigate("/login")}
+              >
+                Have an account? Sign In
+              </Button>
             </Grid>
           </Grid>
-
-          {/* <Divider sx={{ my: 2 }}>Or</Divider>
-
-        <Grid container justifyContent="space-evenly" sx={{ mt: 2 }}>
-          <ButtonWithIcon text="Google" icon="/Assets/google.png" link="/" />
-          <ButtonWithIcon
-            text="Facebook"
-            icon="/Assets/facebook.png"
-            link="/"
-          />
-        </Grid> */}
         </Paper>
       </Container>
     </Box>

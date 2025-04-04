@@ -15,6 +15,8 @@ import LayoutNew from "./pages/LayoutNew";
 import CreateNewCoupon from "./pages/Admin/Coupon/CreateNewCoupon";
 import MyFavorite from "./pages/ProfilePage/MyFavorite";
 import MyRecent from "./pages/ProfilePage/MyRecent";
+import VerifyEmail from "./pages/Auth/VerifyEmail";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
 
 // Lazy load all other components
 const Home = lazy(() => import("./pages/Home"));
@@ -106,6 +108,8 @@ function App() {
       <Suspense fallback={<Loading />}>
         <Routes>
           <Route path="login" element={<Login />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot" element={<ForgotPassword />} />
           <Route path="register" element={<Register />} />
           <Route element={<RequireAuth />}>
             <Route element={<AdminAuth />}>

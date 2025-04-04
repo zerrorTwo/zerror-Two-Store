@@ -8,12 +8,19 @@ import bcrypt from "bcryptjs";
 import bcryptPassword from "../utils/bcrypt.password.js";
 import { COOKIE } from "../constants/header.constants.js";
 import { accessRepository } from "../repositories/access.repository.js";
+import { mailService } from "./mail.service.js";
+import { userRepository } from "../repositories/user.repository.js";
+import generateConfirmationCode from "../utils/generate.confirm.code.js";
 
 const signUp = async (req, res) => {
   const { userName, email, password } = req.body;
 
   if (!userName || !email || !password) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "All fields are required");
+  }
+
+  if (await userRepository.findByUserEmail(email)) {
+    throw new ApiError(StatusCodes.CONFLICT, "Email already exists");
   }
 
   if (password.length < 8) {
@@ -26,11 +33,17 @@ const signUp = async (req, res) => {
   const hasPassword = await bcryptPassword(password);
 
   // Create and save the new user
-  const newUser = new UserModel({ userName, email, password: hasPassword });
+  const newUser = await userRepository.createUser({
+    userName,
+    email,
+    password: hasPassword,
+  });
+  const code = await mailService.sendVerificationEmail(newUser.email);
+  newUser.code = code;
+  newUser.codeExpiry = new Date(Date.now() + 60 * 1000); // 60s
+  await userRepository.saveUser(newUser);
   try {
     const { publicKey, privateKey } = generateRSAKeyPair();
-
-    await newUser.save();
 
     const publicKeyString = publicKey.toString();
 
@@ -79,7 +92,9 @@ const signIn = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await accessRepository.findByEmail({ email });
-
+    if (user?.isVerified === false) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, "Email not verified");
+    }
     if (!user) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Invalid email or password");
     }
@@ -252,4 +267,64 @@ const refreshToken = async (req, res) => {
   }
 };
 
-export { signUp, signIn, signInByGG, logout, refreshToken };
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  const user = await userRepository.findByUserEmail(email);
+  if (!user) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
+  }
+
+  // Tạo mã reset (hoặc link) và lưu vào DB
+  const resetCode = generateConfirmationCode();
+  user.resetCode = resetCode;
+  user.codeExpiry = Date.now() + 60 * 1000; // Hết hạn sau 10 phút
+  await user.save();
+
+  // Gửi email chứa resetCode (giả định có mailService)
+  await mailService.sendVerificationEmail(email);
+
+  return {
+    success: true,
+    message: "A reset email has been sent to your Gmail",
+  };
+};
+
+const resetPassword = async (req, res) => {
+  const { email, resetCode, newPassword } = req.body;
+
+  const user = await accessRepository.findByEmail(email);
+  if (!user) {
+    throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
+  }
+
+  if (user.resetCode !== resetCode) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid reset code");
+  }
+
+  const isCodeExpired = new Date() > user.codeExpiry;
+  if (isCodeExpired) {
+    throw new ApiError(StatusCodes.BAD_REQUEST, "Code has expired");
+  }
+
+  const hasPassword = await bcryptPassword(newPassword);
+  user.password = hasPassword;
+  user.resetCode = null;
+  user.codeExpiry = null;
+  await user.save();
+
+  return {
+    success: true,
+    message: "Password reset successfully",
+  };
+};
+
+export {
+  signUp,
+  signIn,
+  signInByGG,
+  logout,
+  refreshToken,
+  forgotPassword,
+  resetPassword,
+};

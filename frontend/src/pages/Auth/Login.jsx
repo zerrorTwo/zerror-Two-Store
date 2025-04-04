@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import Avatar from "@mui/material/Avatar";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
@@ -10,32 +11,31 @@ import Grid from "@mui/material/Grid";
 import Paper from "@mui/material/Paper";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import theme from "../../theme";
-import { Link, useNavigate } from "react-router-dom"; 
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
-import { useState } from "react";
 import { useLoginMutation } from "../../redux/api/authApiSlice";
-import { toast } from "react-toastify"; 
-import "react-toastify/dist/ReactToastify.css"; 
-import ButtonWithIcon from "../../components/ButtonWIthIcon";
+import ButtonWithIcon from "../../components/ButtonWithIcon";
 import { BASE_URL } from "../../redux/constants";
 
 function Login() {
-  // const urlParams = new URLSearchParams(window.location.search);
-  // const logout = urlParams.get("logout");
-
-  // useEffect(() => {
-  //   if (logout) {
-  //     toast.error("Your session has expired, please login again!!!");
-  //   }
-  // }, [logout]);
   const [gmail, setGmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
-
-  const [login, { isLoading }] = useLoginMutation();
+  const location = useLocation();
   const dispatch = useDispatch();
+  const [login, { isLoading }] = useLoginMutation();
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const logout = urlParams.get("logout");
+    if (logout) {
+      toast.error("Your session has expired, please login again!");
+    }
+  }, [location.search]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,9 +44,12 @@ function Login() {
       dispatch(setCredentials(data));
       navigate("/");
     } catch (err) {
-      toast.error(
-        err?.data?.message || err?.error || "An unexpected error occurred"
-      );
+      const errorMessage =
+        err?.data?.message || err?.error || "An unexpected error occurred";
+      toast.error(errorMessage);
+      if (errorMessage === "Email not verified") {
+        navigate("/verify-email", { state: { email: gmail } }); // Chuyển hướng tới trang verify
+      }
     }
   };
 
@@ -56,18 +59,15 @@ function Login() {
   return (
     <Box
       sx={{
-        backgroundImage: `url("/Assets/background_login.webp")`,
-        backgroundSize: "cover", 
-        backgroundPosition: "center", 
+        background: "linear-gradient(135deg, #e0e0e0, #FF8534)",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
-        minHeight: "100vh", 
-        bgcolor: theme.palette.secondary.main,
+        minHeight: "100vh",
       }}
     >
-      <Container maxWidth="xs">
-        <Paper elevation={10} sx={{ padding: 2 }}>
+      <Container maxWidth="sm">
+        <Paper elevation={10} sx={{ p: 3, borderRadius: 4 }}>
           <Box
             sx={{
               display: "flex",
@@ -84,15 +84,11 @@ function Login() {
                 mb: 2,
                 boxShadow: "0 4px 8px rgba(0, 0, 0, 0.15)",
               }}
-            ></Avatar>
+            />
             <Typography
               component="h1"
               variant="h4"
-              sx={{
-                fontWeight: 700,
-                color: theme.palette.primary.main,
-                mb: 1,
-              }}
+              sx={{ fontWeight: 700, color: theme.palette.primary.main, mb: 1 }}
             >
               Welcome Back
             </Typography>
@@ -108,7 +104,7 @@ function Login() {
           >
             <TextField
               autoComplete="email"
-              placeholder="Enter your gmail"
+              placeholder="Enter your Gmail"
               onChange={handleGmailInput}
               fullWidth
               required
@@ -139,9 +135,7 @@ function Login() {
                 <Checkbox
                   id="remember"
                   sx={{
-                    "& .MuiSvgIcon-root": {
-                      color: theme.palette.common.black,
-                    },
+                    "& .MuiSvgIcon-root": { color: theme.palette.common.black },
                   }}
                   value="remember"
                   color="primary"
@@ -155,9 +149,11 @@ function Login() {
               fullWidth
               sx={{
                 mt: 1,
-                // bgcolor: theme.palette.secondary.main,
+                bgcolor: theme.palette.secondary.main,
                 color: theme.palette.common.white,
+                "&:hover": { bgcolor: theme.palette.secondary.dark },
               }}
+              disabled={isLoading}
             >
               {isLoading ? (
                 <CircularProgress color="inherit" size={25} />
