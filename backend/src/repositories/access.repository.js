@@ -10,6 +10,7 @@ const findByEmail = async ({
     isAdmin: 1,
     number: 1,
     googleId: 1,
+    isVerified: 1,
   },
 }) => {
   return await UserModel.findOne({ email: email }).select(select).lean();
@@ -27,4 +28,9 @@ const findKeyStoreById = async (id) => {
   return await KeyModel.findOne({ _id: id });
 };
 
-export const accessRepository = { findByEmail, findRoleByUserId, findUserById, findKeyStoreById };
+export const accessRepository = {
+  findByEmail,
+  findRoleByUserId,
+  findUserById,
+  findKeyStoreById,
+};

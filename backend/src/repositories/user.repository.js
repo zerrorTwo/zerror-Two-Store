@@ -1,10 +1,18 @@
 import UserModel from "../models/user.model.js";
 
+const createUser = async (data) => {
+  return await UserModel.create(data);
+};
+
 // Lấy thông tin user hiện tại
 const findUserById = async (userId) => {
   return await UserModel.findById(userId)
     .select("_id name email password isAdmin")
     .lean();
+};
+
+const findByUserEmail = async (gmail) => {
+  return await UserModel.findOne({ email: gmail }).select("-password");
 };
 
 // Cập nhật thông tin user
@@ -58,4 +66,6 @@ export const userRepository = {
   deleteUser,
   deleteManyUsersRepo,
   saveUser,
+  findByUserEmail,
+  createUser,
 };

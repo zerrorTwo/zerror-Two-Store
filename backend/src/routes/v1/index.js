@@ -12,6 +12,7 @@ import { orderRoute } from "./order.route.js";
 import dashboardRoute from "./dashboard.route.js";
 import { reviewRoute } from "./review.route.js";
 import { couponRoute } from "./coupon.route.js";
+import { mailRoute } from "./mail.route.js";
 
 const Router = express.Router();
 
@@ -31,5 +32,6 @@ Router.use("/order", orderRoute);
 Router.use("/dashboard", dashboardRoute);
 Router.use("/review", reviewRoute);
 Router.use("/coupon", couponRoute);
+Router.use("/mail", mailRoute);
 
 export const APIS_V1 = Router;

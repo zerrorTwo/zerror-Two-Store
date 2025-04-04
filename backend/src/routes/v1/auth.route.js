@@ -4,6 +4,8 @@ import {
   signInController,
   logoutController,
   refreshTokenController,
+  forgotPasswordController,
+  resetPasswordController,
 } from "../../controllers/access.controller.js";
 import { authenticationRefresh } from "../../auth/auth.util.js";
 import asyncHandeler from "../../middlewares/async.handler.js";
@@ -15,6 +17,8 @@ Router.use(googleAuth);
 
 Router.route("/signUp").post(signUpController);
 Router.route("/signIn").post(signInController);
+Router.route("/forgot-password").post(forgotPasswordController);
+Router.route("/reset-password").post(resetPasswordController);
 Router.route("/logout").post(asyncHandeler(logoutController));
 
 Router.use(authenticationRefresh);
