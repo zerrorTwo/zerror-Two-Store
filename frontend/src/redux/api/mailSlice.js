@@ -3,19 +3,20 @@ import { MAIL_URL } from "../constants";
 
 export const mailSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
-    sendVerificationEmail: builder.mutation({
-      query: ({ gmail }) => ({
-        url: `${MAIL_URL}/send-verification-email`,
-        method: "POST",
-        body: gmail,
+    sendVerificationEmail: builder.query({
+      query: ({ email }) => ({
+        url: `${MAIL_URL}/send-verification-email?email=${encodeURIComponent(
+          email
+        )}`,
+        method: "GET",
       }),
       keepUnusedDataFor: 5,
     }),
 
-    verifyGmail: builder.query({
-      query: ({ gmail, code }) => ({
-        url: `${MAIL_URL}/verify-gmail?email=${encodeURIComponent(
-          gmail
+    verifyEmail: builder.query({
+      query: ({ email, code }) => ({
+        url: `${MAIL_URL}/verify-email?email=${encodeURIComponent(
+          email
         )}&code=${encodeURIComponent(code)}`,
         method: "GET",
       }),
@@ -24,5 +25,5 @@ export const mailSlice = apiSlice.injectEndpoints({
   }),
 });
 
-export const { useSendVerificationEmailMutation, useLazyVerifyGmailQuery } =
+export const { useLazySendVerificationEmailQuery, useLazyVerifyEmailQuery } =
   mailSlice;

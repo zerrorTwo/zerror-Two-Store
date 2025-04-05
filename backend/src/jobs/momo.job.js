@@ -12,11 +12,8 @@ const checkAndRetryMomoPayment = async (order) => {
       order.state = "CANCELLED";
       order.paymentStatus = "UNPAID";
       await order.save();
-      console.log(`Đã hủy đơn hàng ${order._id} do quá hạn thanh toán.`);
       return;
     }
-
-    console.log(`Đang kiểm tra lại đơn hàng ${order._id}`);
 
     // Gọi lại API tạo link thanh toán MoMo
     const newPaymentUrl = await momoService.createMomoPayment({
@@ -32,8 +29,6 @@ const checkAndRetryMomoPayment = async (order) => {
 
     order.paymentUrl = newPaymentUrl.payUrl;
     await order.save();
-
-    console.log(`Đã tạo lại link thanh toán mới cho đơn hàng ${order._id}`);
   } catch (error) {
     console.error(
       `Lỗi khi tạo lại link thanh toán cho đơn ${order._id}:`,
@@ -44,7 +39,6 @@ const checkAndRetryMomoPayment = async (order) => {
 
 cron.schedule("* * * * *", async () => {
   // Chạy mỗi 1 giờ
-  console.log("Kiểm tra các đơn hàng MoMo chưa thanh toán...");
 
   const expiredOrders = await OrderModel.find({
     state: "PENDING",

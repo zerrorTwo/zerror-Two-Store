@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -14,13 +14,19 @@ import {
   useResetPasswordMutation,
 } from "../../redux/api/authApiSlice";
 import { useTheme } from "@mui/material/styles";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import IconButton from "@mui/material/IconButton";
+import InputAdornment from "@mui/material/InputAdornment";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { Tooltip } from "@mui/material";
 
 function ForgotPassword() {
   const theme = useTheme();
   const [email, setEmail] = useState("");
-  const [resetCode, setResetCode] = useState("");
+  const [code, setCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
-  const [isGmailValid, setIsGmailValid] = useState(true);
+  const [isEmailValid, setIsEmailValid] = useState(true);
   const [isEmailSent, setIsEmailSent] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
   const navigate = useNavigate();
@@ -28,6 +34,7 @@ function ForgotPassword() {
     useForgotPasswordMutation();
   const [resetPassword, { isLoading: isLoadingReset }] =
     useResetPasswordMutation();
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     if (resendCooldown > 0) {
@@ -42,44 +49,44 @@ function ForgotPassword() {
   const handleEmailInput = (e) => {
     const value = e.target.value;
     setEmail(value);
-    const gmailRegex = /^[a-zA-Z0-9._-]+@gmail\.com$/;
-    setIsGmailValid(gmailRegex.test(value));
+    const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+    setIsEmailValid(emailRegex.test(value));
   };
 
   const handleSendEmail = async (e) => {
     e.preventDefault();
     if (!email) {
-      toast.error("Please enter your Gmail address");
+      toast.error("Please enter your email address");
       return;
     }
-    if (!isGmailValid) {
-      toast.error("Please enter a valid Gmail address");
+    if (!isEmailValid) {
+      toast.error("Please enter a valid email address");
       return;
     }
     try {
       const result = await forgotPassword({ email: email }).unwrap();
       toast.success(
-        result.message || "A reset email has been sent to your Gmail!"
+        result.message || "A code email has been sent to your email!"
       );
       setIsEmailSent(true);
       setResendCooldown(60);
     } catch (err) {
       toast.error(
-        err?.data?.message || err?.error || "Failed to send reset email"
+        err?.data?.message || err?.error || "Failed to send code email"
       );
     }
   };
 
   const handleResetPassword = async (e) => {
     e.preventDefault();
-    if (!resetCode || !newPassword) {
-      toast.error("Please enter the reset code and new password");
+    if (!code || !newPassword) {
+      toast.error("Please enter the code and new password");
       return;
     }
     try {
       const result = await resetPassword({
         email,
-        resetCode,
+        code,
         newPassword,
       }).unwrap();
       toast.success(result.message || "Password reset successfully!");
@@ -89,6 +96,13 @@ function ForgotPassword() {
         err?.data?.message || err?.error || "Failed to reset password"
       );
     }
+  };
+
+  const handleRetryEmail = () => {
+    setIsEmailSent(false);
+    setEmail("");
+    setCode("");
+    setNewPassword("");
   };
 
   return (
@@ -101,6 +115,13 @@ function ForgotPassword() {
       }}
     >
       <Container maxWidth="sm">
+        <Box sx={{ position: "absolute", top: 16, left: 16 }}>
+          <Tooltip title="Back to login">
+            <IconButton onClick={() => navigate("/login")}>
+              <ArrowBackIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
         <Paper elevation={10} sx={{ p: 3, borderRadius: 4 }}>
           <Typography
             variant="h5"
@@ -112,7 +133,7 @@ function ForgotPassword() {
           {!isEmailSent ? (
             <>
               <Typography variant="body1" align="center" sx={{ mb: 2 }}>
-                Enter your Gmail address to receive a password reset email.
+                Enter your email address to receive a password code email.
               </Typography>
               <Box
                 component="form"
@@ -121,16 +142,17 @@ function ForgotPassword() {
                 sx={{ mt: 1 }}
               >
                 <TextField
-                  placeholder="Enter your Gmail"
+                  placeholder="Enter your email"
                   fullWidth
                   required
                   autoFocus
                   value={email}
                   onChange={handleEmailInput}
-                  error={!isGmailValid && email.length > 0}
+                  autoComplete="gmail"
+                  error={!isEmailValid && email.length > 0}
                   helperText={
-                    !isGmailValid && email.length > 0
-                      ? "Invalid Gmail format"
+                    !isEmailValid && email.length > 0
+                      ? "Invalid email format"
                       : ""
                   }
                   sx={{
@@ -145,7 +167,7 @@ function ForgotPassword() {
                   type="submit"
                   variant="contained"
                   fullWidth
-                  disabled={isLoadingForgot || !email || !isGmailValid}
+                  disabled={isLoadingForgot || !email || !isEmailValid}
                   sx={{
                     mt: 1,
                     bgcolor: theme.palette.secondary.main,
@@ -156,7 +178,7 @@ function ForgotPassword() {
                   {isLoadingForgot ? (
                     <CircularProgress color="inherit" size={25} />
                   ) : (
-                    "Send Reset Email"
+                    "Send Code Email"
                   )}
                 </Button>
               </Box>
@@ -164,9 +186,18 @@ function ForgotPassword() {
           ) : (
             <>
               <Typography variant="body1" align="center" sx={{ mb: 2 }}>
-                A reset code has been sent to {email}. Enter the code and your
-                new password below.
+                A code has been sent to {email}. Enter the code and your new
+                password below.
               </Typography>
+
+              <TextField
+                label="Email"
+                value={email}
+                fullWidth
+                disabled
+                sx={{ mb: 2 }}
+              />
+
               <Box
                 component="form"
                 onSubmit={handleResetPassword}
@@ -174,27 +205,44 @@ function ForgotPassword() {
                 sx={{ mt: 1 }}
               >
                 <TextField
-                  placeholder="Enter reset code"
+                  autoComplete="off"
+                  placeholder="Enter code"
                   fullWidth
                   required
-                  value={resetCode}
-                  onChange={(e) => setResetCode(e.target.value)}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value)}
                   sx={{ mb: 2 }}
+                  name="randomCodeName"
                 />
                 <TextField
                   placeholder="Enter new password"
                   fullWidth
                   required
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   sx={{ mb: 2 }}
+                  autoComplete="off"
+                  name="randomNewPasswordName"
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          aria-label="toggle password visibility"
+                          onClick={() => setShowPassword(!showPassword)}
+                          edge="end"
+                        >
+                          {showPassword ? <VisibilityOff /> : <Visibility />}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  }}
                 />
                 <Button
                   type="submit"
                   variant="contained"
                   fullWidth
-                  disabled={isLoadingReset || !resetCode || !newPassword}
+                  disabled={isLoadingReset || !code || !newPassword}
                   sx={{
                     mt: 1,
                     bgcolor: theme.palette.secondary.main,
@@ -225,9 +273,20 @@ function ForgotPassword() {
               </Box>
             </>
           )}
-          <Box sx={{ mt: 2, textAlign: "center" }}>
-            <Link to="/login">Back to Login</Link>
-          </Box>
+          {isEmailSent ? (
+            <Box
+              sx={{
+                mt: 2,
+                display: "flex",
+                textAlign: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Button variant="text" onClick={handleRetryEmail} sx={{ mt: 1 }}>
+                Enter a Different Email
+              </Button>
+            </Box>
+          ) : null}
         </Paper>
       </Container>
     </Box>
