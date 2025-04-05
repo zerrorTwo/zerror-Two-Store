@@ -20,14 +20,19 @@ import { setCredentials } from "../../redux/features/auth/authSlice";
 import { useLoginMutation } from "../../redux/api/authApiSlice";
 import ButtonWithIcon from "../../components/ButtonWithIcon";
 import { BASE_URL } from "../../redux/constants";
+import { IconButton, InputAdornment, Tooltip } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import Visibility from "@mui/icons-material/Visibility";
+import VisibilityOff from "@mui/icons-material/VisibilityOff";
 
 function Login() {
-  const [gmail, setGmail] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
   const [login, { isLoading }] = useLoginMutation();
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -40,7 +45,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const data = await login({ email: gmail, password }).unwrap();
+      const data = await login({ email: email, password }).unwrap();
       dispatch(setCredentials(data));
       navigate("/");
     } catch (err) {
@@ -48,12 +53,12 @@ function Login() {
         err?.data?.message || err?.error || "An unexpected error occurred";
       toast.error(errorMessage);
       if (errorMessage === "Email not verified") {
-        navigate("/verify-email", { state: { email: gmail } }); // Chuyển hướng tới trang verify
+        navigate("/verify-email", { state: { email: email } });
       }
     }
   };
 
-  const handleGmailInput = (e) => setGmail(e.target.value);
+  const handleEmailInput = (e) => setEmail(e.target.value);
   const handlePwdInput = (e) => setPassword(e.target.value);
 
   return (
@@ -67,6 +72,13 @@ function Login() {
       }}
     >
       <Container maxWidth="sm">
+        <Box sx={{ position: "absolute", top: 16, left: 16 }}>
+          <Tooltip title="Back to home">
+            <IconButton onClick={() => navigate("/")}>
+              <ArrowBackIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
         <Paper elevation={10} sx={{ p: 3, borderRadius: 4 }}>
           <Box
             sx={{
@@ -104,8 +116,8 @@ function Login() {
           >
             <TextField
               autoComplete="email"
-              placeholder="Enter your Gmail"
-              onChange={handleGmailInput}
+              placeholder="Enter your email"
+              onChange={handleEmailInput}
               fullWidth
               required
               autoFocus
@@ -127,8 +139,23 @@ function Login() {
               placeholder="Enter password"
               fullWidth
               required
-              type="password"
+              type={showPassword ? "text" : "password"}
               onChange={handlePwdInput}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      {showPassword ? <VisibilityOff /> : <Visibility />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
             />
             <FormControlLabel
               control={

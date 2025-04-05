@@ -18,7 +18,6 @@ const userSchema = new mongoose.Schema(
     number: {
       type: String,
       match: [/^\d{10}$/, "Please provide a valid 10-digit phone number"],
-      default: null,
     },
     password: {
       type: String,
@@ -42,10 +41,6 @@ const userSchema = new mongoose.Schema(
       default: false,
     },
     code: {
-      type: String,
-      default: null,
-    },
-    resetCode: {
       type: String,
       default: null,
     },

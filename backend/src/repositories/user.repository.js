@@ -11,8 +11,8 @@ const findUserById = async (userId) => {
     .lean();
 };
 
-const findByUserEmail = async (gmail) => {
-  return await UserModel.findOne({ email: gmail }).select("-password");
+const findByUserEmail = async (email) => {
+  return await UserModel.findOne({ email: email }).select("-password");
 };
 
 // Cập nhật thông tin user

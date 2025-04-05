@@ -59,7 +59,6 @@ router.delete("/", (req, res) => {
   }
 
   const filePath = path.join(__dirname, image);
-  // console.log(filePath);
 
   if (fs.existsSync(filePath)) {
     fs.unlinkSync(filePath);

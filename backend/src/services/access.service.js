@@ -38,53 +38,12 @@ const signUp = async (req, res) => {
     email,
     password: hasPassword,
   });
-  const code = await mailService.sendVerificationEmail(newUser.email);
-  newUser.code = code;
-  newUser.codeExpiry = new Date(Date.now() + 60 * 1000); // 60s
-  await userRepository.saveUser(newUser);
-  try {
-    const { publicKey, privateKey } = generateRSAKeyPair();
+  await mailService.sendVerificationEmail(email);
+  const { password: _, ...userWithoutPassword } = newUser.toObject();
 
-    const publicKeyString = publicKey.toString();
-
-    const tokens = await generateToken(
-      { id: newUser._id, email: newUser.email, isAdmin: newUser.isAdmin },
-      privateKey,
-      publicKey
-    );
-
-    await keyTokenService({
-      userId: newUser._id,
-      publicKey: publicKeyString,
-      refreshToken: tokens.refreshToken.toString(),
-    });
-
-    // console.log(tokens);
-    res.cookie(COOKIE.JWT, tokens.refreshToken.toString(), {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
-
-    const { password: _, ...userWithoutPassword } = newUser.toObject();
-
-    return {
-      user: userWithoutPassword,
-      accessToken: tokens.accessToken.toString(),
-    };
-  } catch (error) {
-    if (error.code === 11000) {
-      throw new ApiError(StatusCodes.CONFLICT, "Email already exists");
-    }
-    if (error.name === "ValidationError") {
-      throw new ApiError(StatusCodes.BAD_REQUEST, error.message);
-    }
-    throw new ApiError(
-      StatusCodes.INTERNAL_SERVER_ERROR,
-      "An error occurred while creating the user"
-    );
-  }
+  return {
+    user: userWithoutPassword,
+  };
 };
 
 const signIn = async (req, res) => {
@@ -145,6 +104,8 @@ const signIn = async (req, res) => {
 const signInByGG = async (req, res) => {
   try {
     const user = req.user;
+    user.isVerified = true;
+    await userRepository.saveUser(user);
     const { publicKey, privateKey } = generateRSAKeyPair();
 
     const tokens = await generateToken(
@@ -159,8 +120,6 @@ const signInByGG = async (req, res) => {
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
-
-    // console.log(tokens);
 
     await keyTokenService({
       refreshToken: tokens.refreshToken,
@@ -272,33 +231,29 @@ const forgotPassword = async (req, res) => {
 
   const user = await userRepository.findByUserEmail(email);
   if (!user) {
-    throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
+    throw new ApiError(StatusCodes.NOT_FOUND, "Email not found!!");
   }
-
-  // Tạo mã reset (hoặc link) và lưu vào DB
-  const resetCode = generateConfirmationCode();
-  user.resetCode = resetCode;
-  user.codeExpiry = Date.now() + 60 * 1000; // Hết hạn sau 10 phút
-  await user.save();
+  if (user?.isVerified === false) {
+    throw new ApiError(StatusCodes.UNAUTHORIZED, "Email not verified");
+  }
 
   // Gửi email chứa resetCode (giả định có mailService)
   await mailService.sendVerificationEmail(email);
-
   return {
     success: true,
-    message: "A reset email has been sent to your Gmail",
+    message: "A reset email has been sent to your Email",
   };
 };
 
 const resetPassword = async (req, res) => {
-  const { email, resetCode, newPassword } = req.body;
+  const { email, code, newPassword } = req.body;
 
-  const user = await accessRepository.findByEmail(email);
+  const user = await userRepository.findByUserEmail(email);
   if (!user) {
     throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
   }
 
-  if (user.resetCode !== resetCode) {
+  if (user.code !== code) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid reset code");
   }
 
@@ -309,9 +264,9 @@ const resetPassword = async (req, res) => {
 
   const hasPassword = await bcryptPassword(newPassword);
   user.password = hasPassword;
-  user.resetCode = null;
+  user.code = null;
   user.codeExpiry = null;
-  await user.save();
+  await userRepository.saveUser(user);
 
   return {
     success: true,

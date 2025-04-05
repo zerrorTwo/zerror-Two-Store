@@ -3,15 +3,15 @@ import asyncHandeler from "../middlewares/async.handler.js";
 import { mailService } from "../services/mail.service.js";
 
 const sendVerificationEmail = asyncHandeler(async (req, res) => {
-  const { email } = req.body;
+  const { email } = req.query;
   const code = await mailService.sendVerificationEmail(email);
-  res.status(StatusCodes.OK).json(code);
+  res.status(StatusCodes.OK).json({ success: true, code });
 });
 
-const verify_gmail = asyncHandeler(async (req, res) => {
+const verify_email = asyncHandeler(async (req, res) => {
   const { email, code } = req.query;
-  const confirm = await mailService.verify_gmail(email, code);
+  const confirm = await mailService.verify_email(email, code);
   res.status(StatusCodes.OK).json(confirm);
 });
 
-export { sendVerificationEmail, verify_gmail };
+export { sendVerificationEmail, verify_email };

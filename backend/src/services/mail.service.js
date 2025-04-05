@@ -4,10 +4,10 @@ import nodemailer from "nodemailer";
 import { userRepository } from "../repositories/user.repository.js";
 import generateConfirmationCode from "../utils/generate.confirm.code.js";
 
-const sendVerificationEmail = async (gmail) => {
+const sendVerificationEmail = async (email) => {
   try {
+    const user = await userRepository.findByUserEmail(email);
     const code = generateConfirmationCode();
-
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -15,24 +15,25 @@ const sendVerificationEmail = async (gmail) => {
         pass: process.env.GMAIL_PASSWORD,
       },
     });
-
     const mailOptions = {
       from: process.env.GMAIL_USER,
-      to: gmail,
+      to: email,
       subject: "Xác nhận tài khoản",
       html: `<p>Mã xác nhận của bạn là: <b>${code}</b></p>`,
     };
-
     await transporter.sendMail(mailOptions);
-    return code;
+    user.code = code;
+    user.codeExpiry = new Date(Date.now() + 60 * 1000); // 60s
+    await userRepository.saveUser(user);
+    return "Send code successfully!!";
   } catch (error) {
     throw error;
   }
 };
 
-const verify_gmail = async (gmail, code) => {
+const verify_email = async (email, code) => {
   try {
-    const user = await userRepository.findByUserEmail(gmail);
+    const user = await userRepository.findByUserEmail(email);
     if (!user) {
       throw new ApiError(StatusCodes.NOT_FOUND, "User not found");
     }
@@ -49,11 +50,11 @@ const verify_gmail = async (gmail, code) => {
     user.isVerified = true;
     user.code = null;
     user.codeExpiry = null;
-    await user.save();
+    await userRepository.saveUser(user);
     return { success: true, message: "Verified successfully" };
   } catch (error) {
     throw error;
   }
 };
 
-export const mailService = { sendVerificationEmail, verify_gmail };
+export const mailService = { sendVerificationEmail, verify_email };

@@ -1,11 +1,11 @@
-import  Box  from "@mui/material/Box";
-import  Button  from "@mui/material/Button";
-import  CardMedia  from "@mui/material/CardMedia";
-import  Container  from "@mui/material/Container";
-import  Divider  from "@mui/material/Divider";
-import  TextField  from "@mui/material/TextField";
-import  Typography  from "@mui/material/Typography";
-import  {useTheme}  from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import CardMedia from "@mui/material/CardMedia";
+import Container from "@mui/material/Container";
+import Divider from "@mui/material/Divider";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import LinkedInIcon from "@mui/icons-material/LinkedIn";
 import FacebookIcon from "@mui/icons-material/Facebook";
@@ -308,7 +308,7 @@ function Footer() {
                     },
                 }}
                 autoComplete="email"
-                placeholder="Enter your gmail to support"
+                placeholder="Enter your email to support"
               />
               <Button
                 variant="outlined"

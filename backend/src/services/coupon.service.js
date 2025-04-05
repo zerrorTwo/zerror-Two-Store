@@ -345,7 +345,6 @@ const reviewDiscount = async ({
 
   if (coupon.target_type === "ORDER") {
     if (totalOrder < coupon.min_value) {
-      // console.log(coupon.min_value);
       return {
         error: "Invalid coupon for this order",
       };
