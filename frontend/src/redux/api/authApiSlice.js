@@ -5,16 +5,21 @@ export const authApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     login: builder.mutation({
       query: (data) => ({
-        //"http://localhost:5000/v1/api/auth/signIn"
         url: `${BASE_URL}/auth/signIn`,
         method: "POST",
         body: data,
       }),
     }),
 
+    googleCallback: builder.query({
+      query: (code) => ({
+        url: `${BASE_URL}/auth/google/callback?code=${code}`,
+        method: "GET",
+      }),
+    }),
+
     register: builder.mutation({
       query: (data) => ({
-        //"http://localhost:5000/v1/api/auth/signUp"
         url: `${BASE_URL}/auth/signUp`,
         method: "POST",
         body: data,
@@ -23,7 +28,6 @@ export const authApiSlice = apiSlice.injectEndpoints({
 
     logout: builder.mutation({
       query: () => ({
-        //"http://localhost:5000/v1/api/auth/lougot"
         url: `${BASE_URL}/auth/logout`,
         method: "POST",
       }),
@@ -33,18 +37,16 @@ export const authApiSlice = apiSlice.injectEndpoints({
       query: ({ email }) => ({
         url: `${BASE_URL}/auth/forgot-password`,
         method: "POST",
-        body: { email: email },
+        body: { email },
       }),
     }),
 
     resetPassword: builder.mutation({
-      query: ({ email, code, newPassword }) => {
-        return {
-          url: `${BASE_URL}/auth/reset-password`,
-          method: "POST",
-          body: { email, code, newPassword },
-        };
-      },
+      query: ({ email, code, newPassword }) => ({
+        url: `${BASE_URL}/auth/reset-password`,
+        method: "POST",
+        body: { email, code, newPassword },
+      }),
     }),
   }),
 });
@@ -53,7 +55,7 @@ export const {
   useLoginMutation,
   useRegisterMutation,
   useLogoutMutation,
-  useLoginGGMutation,
   useForgotPasswordMutation,
   useResetPasswordMutation,
+  useGoogleCallbackQuery,
 } = authApiSlice;

@@ -19,7 +19,6 @@ import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { useLoginMutation } from "../../redux/api/authApiSlice";
 import ButtonWithIcon from "../../components/ButtonWithIcon";
-import { BASE_URL } from "../../redux/constants";
 import { IconButton, InputAdornment, Tooltip } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Visibility from "@mui/icons-material/Visibility";
@@ -28,38 +27,72 @@ import VisibilityOff from "@mui/icons-material/VisibilityOff";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch();
-  const [login, { isLoading }] = useLoginMutation();
-  const [showPassword, setShowPassword] = useState(false);
+
+  const [login, { isLoading: isLoginLoading }] = useLoginMutation();
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
     const logout = urlParams.get("logout");
+    const error = urlParams.get("error");
+    const accessToken = urlParams.get("accessToken");
+    const userEncoded = urlParams.get("user"); // Get the encoded user string
+
     if (logout) {
       toast.error("Your session has expired, please login again!");
     }
-  }, [location.search]);
+    if (error === "google_login_failed") {
+      toast.error("Google login failed. Please try again.");
+      navigate("/login", { replace: true });
+    }
+    if (accessToken && userEncoded) {
+      try {
+        const userString = decodeURIComponent(userEncoded); // Decode the URL-encoded string
+        console.log("Decoded user string:", userString); // Debug: Log the decoded string
+        const parsedUser = JSON.parse(userString); // Parse the JSON string
+        console.log("Parsed user:", parsedUser); // Debug: Log the parsed object
+        dispatch(
+          setCredentials({
+            user: parsedUser,
+            accessToken,
+          })
+        );
+        navigate("/", { replace: true });
+      } catch (err) {
+        console.error("Error parsing Google login data:", err);
+        toast.error("Failed to process Google login.");
+        navigate("/login", { replace: true });
+      }
+    }
+  }, [location.search, dispatch, navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const data = await login({ email: email, password }).unwrap();
-      dispatch(setCredentials(data));
-      navigate("/");
+      const data = await login({ email, password }).unwrap();
+      dispatch(
+        setCredentials({
+          user: data.user,
+          accessToken: data.accessToken,
+        })
+      );
+      navigate("/", { replace: true });
     } catch (err) {
       const errorMessage =
         err?.data?.message || err?.error || "An unexpected error occurred";
       toast.error(errorMessage);
       if (errorMessage === "Email not verified") {
-        navigate("/verify-email", { state: { email: email } });
+        navigate("/verify-email", { state: { email } });
       }
     }
   };
 
-  const handleEmailInput = (e) => setEmail(e.target.value);
-  const handlePwdInput = (e) => setPassword(e.target.value);
+  const handleGoogleLogin = () => {
+    window.location.href = "http://localhost:5000/v1/api/auth/google/login";
+  };
 
   return (
     <Box
@@ -109,15 +142,16 @@ function Login() {
             </Typography>
           </Box>
           <Box
-            onSubmit={handleSubmit}
             component="form"
+            onSubmit={handleSubmit}
             noValidate
             sx={{ mt: 1 }}
           >
             <TextField
               autoComplete="email"
               placeholder="Enter your email"
-              onChange={handleEmailInput}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               fullWidth
               required
               autoFocus
@@ -130,24 +164,16 @@ function Login() {
               }}
             />
             <TextField
-              sx={{
-                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
-                  {
-                    borderColor: theme.palette.text.primary,
-                  },
-              }}
               placeholder="Enter password"
+              value={password}
               fullWidth
               required
               type={showPassword ? "text" : "password"}
-              onChange={handlePwdInput}
+              onChange={(e) => setPassword(e.target.value)}
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton
-                      aria-label={
-                        showPassword ? "Hide password" : "Show password"
-                      }
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
                     >
@@ -156,33 +182,30 @@ function Login() {
                   </InputAdornment>
                 ),
               }}
+              sx={{
+                "& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline":
+                  {
+                    borderColor: theme.palette.text.primary,
+                  },
+              }}
             />
             <FormControlLabel
-              control={
-                <Checkbox
-                  id="remember"
-                  sx={{
-                    "& .MuiSvgIcon-root": { color: theme.palette.common.black },
-                  }}
-                  value="remember"
-                  color="primary"
-                />
-              }
+              control={<Checkbox id="remember" color="primary" />}
               label="Remember me"
             />
             <Button
               type="submit"
-              variant="contained"
               fullWidth
+              variant="contained"
               sx={{
                 mt: 1,
                 bgcolor: theme.palette.secondary.main,
                 color: theme.palette.common.white,
                 "&:hover": { bgcolor: theme.palette.secondary.dark },
               }}
-              disabled={isLoading}
+              disabled={isLoginLoading}
             >
-              {isLoading ? (
+              {isLoginLoading ? (
                 <CircularProgress color="inherit" size={25} />
               ) : (
                 "Login"
@@ -197,20 +220,14 @@ function Login() {
               <Link to="/register">Sign Up</Link>
             </Grid>
           </Grid>
-
           <Divider sx={{ my: 2 }}>Or</Divider>
-
           <Grid container justifyContent="space-evenly" sx={{ mt: 2 }}>
             <ButtonWithIcon
               text="Google"
               icon="/Assets/google.png"
-              link={`${BASE_URL}/auth/google/login`}
+              onClick={handleGoogleLogin}
             />
-            <ButtonWithIcon
-              text="Facebook"
-              icon="/Assets/facebook.png"
-              link={`${BASE_URL}/auth/facebook/login`}
-            />
+            <ButtonWithIcon text="Facebook" icon="/Assets/facebook.png" />
           </Grid>
         </Paper>
       </Container>
