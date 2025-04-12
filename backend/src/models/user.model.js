@@ -24,7 +24,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       minlength: [8, "Password must be at least 8 characters long"],
       required: function () {
-        return !this.googleId; // Chỉ yêu cầu password nếu không có googleId
+        return this.authenticationType === "local"; // Chỉ yêu cầu password nếu là đăng nhập local
       },
     },
     googleId: {
@@ -32,6 +32,18 @@ const userSchema = new mongoose.Schema(
       unique: true,
       index: true,
       sparse: true,
+    },
+    facebookId: {
+      type: String,
+      unique: true,
+      index: true,
+      sparse: true,
+    },
+    authenticationType: {
+      type: String,
+      enum: ["local", "google", "facebook"],
+      required: true,
+      default: "local",
     },
     isAdmin: {
       type: Boolean,
