@@ -227,7 +227,6 @@ function Login() {
               icon="/Assets/google.png"
               onClick={handleGoogleLogin}
             />
-            <ButtonWithIcon text="Facebook" icon="/Assets/facebook.png" />
           </Grid>
         </Paper>
       </Container>

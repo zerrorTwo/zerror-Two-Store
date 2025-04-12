@@ -9,7 +9,7 @@ import { APIS_V1 } from "./src/routes/v1/index.js";
 import { uploadRoute } from "./src/routes/v1/upload.route.js";
 import connectDB from "./src/config/db.js";
 import { errorHandlingMiddleware } from "./src/middlewares/error.middleware.js";
-import passportMiddleware from "./src/auth/AuthStrategy/google.strategy.js";
+import passportMiddleware from "./src/auth/AuthStrategy/passport.strategy.js";
 import { corsOptions } from "./src/config/cors.config.js";
 import fs from "fs";
 import session from "express-session";
