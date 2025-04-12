@@ -28,13 +28,33 @@ const signInController = asyncHandler(async (req, res, next) => {
   }
 });
 
-const signInGGController = asyncHandler(async (req, res, next) => {
+const signInGGController = asyncHandler(async (req, res) => {
   try {
     const { user, accessToken } = await signInByGG(req, res);
-    const userConvert = user;
-    res.status(StatusCodes.OK).json({ userConvert, accessToken });
+    const userConvert = {
+      userName: user.userName,
+      email: user.email,
+      isAdmin: user.isAdmin || false,
+      isVerified: user.isVerified || true,
+      _id: user._id,
+    };
+
+    const frontendUrl =
+      `${process.env.FRONTEND_URL}/login` || "http://localhost:5173/login";
+    const userStringified = JSON.stringify(userConvert);
+    const encodedUser = encodeURIComponent(userStringified);
+    const queryParams = new URLSearchParams({
+      accessToken,
+      user: encodedUser,
+    }).toString();
+    res.redirect(`${frontendUrl}?${queryParams}`);
   } catch (error) {
-    next(error);
+    console.error("Google sign-in error:", error);
+    res.redirect(
+      `${
+        process.env.FRONTEND_URL || "http://localhost:5173"
+      }/login?error=google_login_failed`
+    );
   }
 });
 

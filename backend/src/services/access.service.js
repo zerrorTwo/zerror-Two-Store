@@ -10,7 +10,6 @@ import { COOKIE } from "../constants/header.constants.js";
 import { accessRepository } from "../repositories/access.repository.js";
 import { mailService } from "./mail.service.js";
 import { userRepository } from "../repositories/user.repository.js";
-import generateConfirmationCode from "../utils/generate.confirm.code.js";
 
 const signUp = async (req, res) => {
   const { userName, email, password } = req.body;
@@ -19,7 +18,16 @@ const signUp = async (req, res) => {
     throw new ApiError(StatusCodes.BAD_REQUEST, "All fields are required");
   }
 
-  if (await userRepository.findByUserEmail(email)) {
+  const existsUser = await userRepository.findByUserEmail(email);
+
+  if (existsUser && existsUser?.googleId) {
+    throw new ApiError(
+      StatusCodes.CONFLICT,
+      "This account was created with Google. Please sign in with Google."
+    );
+  }
+
+  if (existsUser) {
     throw new ApiError(StatusCodes.CONFLICT, "Email already exists");
   }
 
@@ -51,6 +59,14 @@ const signIn = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await accessRepository.findByEmail({ email });
+
+    if (user && user?.googleId) {
+      throw new ApiError(
+        StatusCodes.CONFLICT,
+        "This account was created with Google. Please sign in with Google."
+      );
+    }
+
     if (user?.isVerified === false) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, "Email not verified");
     }
@@ -104,8 +120,6 @@ const signIn = async (req, res) => {
 const signInByGG = async (req, res) => {
   try {
     const user = req.user;
-    user.isVerified = true;
-    await userRepository.saveUser(user);
     const { publicKey, privateKey } = generateRSAKeyPair();
 
     const tokens = await generateToken(

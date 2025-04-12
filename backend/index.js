@@ -12,6 +12,7 @@ import { errorHandlingMiddleware } from "./src/middlewares/error.middleware.js";
 import passportMiddleware from "./src/auth/AuthStrategy/google.strategy.js";
 import { corsOptions } from "./src/config/cors.config.js";
 import fs from "fs";
+import session from "express-session";
 // import "./src/jobs/momoJob.js"; // Import file cron job
 
 dotenv.config();
@@ -60,5 +61,18 @@ passportMiddleware(app);
 // Các routes khác
 app.use("/v1/api", APIS_V1);
 app.use(errorHandlingMiddleware);
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET, // nên để trong biến môi trường
+    resave: false,
+    saveUninitialized: true,
+    cookie: {
+      httpOnly: true,
+      secure: false, // đổi thành true nếu dùng HTTPS
+      maxAge: 5 * 60 * 1000, // 5 phút
+      sameSite: "lax",
+    },
+  })
+);
 
 app.listen(port, () => console.log(`Server listening on ${port}`));
