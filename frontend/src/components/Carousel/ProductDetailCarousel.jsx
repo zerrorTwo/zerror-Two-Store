@@ -1,11 +1,11 @@
-import  CardMedia  from "@mui/material/CardMedia";
-import  {useState}  from "react";
-import  {FreeMode, Navigation, Thumbs}  from "swiper/modules";
-import  { Swiper, SwiperSlide }  from "swiper/react";
-import  "swiper/css";
-import  "swiper/css/free-mode";
-import  "swiper/css/navigation";
-import  "swiper/css/thumbs";
+import CardMedia from "@mui/material/CardMedia";
+import { useState } from "react";
+import { FreeMode, Navigation, Thumbs } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/css";
+import "swiper/css/free-mode";
+import "swiper/css/navigation";
+import "swiper/css/thumbs";
 
 import "./carousel.css";
 import PropTypes from "prop-types";

@@ -24,6 +24,7 @@ import {
 } from "../../../redux/features/favoriteProductSlice";
 
 function Detail({ data, quantity, setQuantity }) {
+  console.log(data);
   const [addToCart, { isLoading: isLoadingCreateNew }] = useAddToCartMutation();
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [pricing, setPricing] = useState({
@@ -43,13 +44,15 @@ function Detail({ data, quantity, setQuantity }) {
     : Object.values(data?.variations?.pricing || {});
 
   // Lấy danh sách thuộc tính (trừ pricing)
-  const attributes = Object.keys(data.variations)
-    .filter((key) => key !== "pricing")
-    .map((key) => ({
-      label: key.charAt(0).toUpperCase() + key.slice(1),
-      key,
-      options: data.variations[key],
-    }));
+  const attributes =
+    data?.variations &&
+    Object.keys(data.variations)
+      .filter((key) => key !== "pricing")
+      .map((key) => ({
+        label: key.charAt(0).toUpperCase() + key.slice(1),
+        key,
+        options: data.variations[key],
+      }));
 
   // Cập nhật trạng thái khi người dùng chọn một thuộc tính
   const handleAttributeClick = (attributeKey, value) => {
@@ -80,10 +83,9 @@ function Detail({ data, quantity, setQuantity }) {
   };
 
   // Kiểm tra nếu đã chọn đủ tất cả các thuộc tính
-  const allAttributesSelected = attributes.every(
+  const allAttributesSelected = attributes?.every(
     (attr) => selectedAttributes[attr.key]
   );
-
   const handleAddToCart = async () => {
     if (!data?._id || !allAttributesSelected || quantity <= 0) {
       toast.error(
@@ -180,7 +182,7 @@ function Detail({ data, quantity, setQuantity }) {
 
       {/* Variations */}
       <Box display="flex" gap={2} flexDirection="column">
-        {attributes.map((item, index) => (
+        {attributes?.map((item, index) => (
           <Box key={index} display="flex" gap={5}>
             <Typography variant="body1">{item.label}</Typography>
             <Box display="flex" gap={1} flexWrap="wrap">
@@ -193,7 +195,8 @@ function Detail({ data, quantity, setQuantity }) {
                       cursor: "pointer",
                       color: isSelected ? "white" : "text.secondary",
                       bgcolor: isSelected ? "secondary.main" : "white",
-                      "&:hover": {
+                      "&.MuiChip-clickable:hover": {
+                        // Target class for clickable Chip
                         bgcolor: isSelected ? "secondary.light" : "grey.100",
                       },
                     }}
