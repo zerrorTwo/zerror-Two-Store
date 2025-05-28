@@ -1,5 +1,6 @@
 import express from "express";
 import dotenv from "dotenv";
+dotenv.config();
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import compression from "compression";
@@ -13,15 +14,13 @@ import passportMiddleware from "./src/auth/AuthStrategy/passport.strategy.js";
 import { corsOptions } from "./src/config/cors.config.js";
 import fs from 'fs'
 import session from "express-session";
-// import "./src/jobs/momoJob.js"; // Import file cron job
 
-dotenv.config();
-
-const port = process.env.PORT || 5000;
 
 connectDB();
 
 const app = express();
+
+const port = process.env.PORT || 5000;
 
 // Tạo thư mục uploads nếu chưa tồn tại
 const uploadsDir = path.join(process.cwd(), "uploads");

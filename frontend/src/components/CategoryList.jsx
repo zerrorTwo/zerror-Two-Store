@@ -1,4 +1,4 @@
-import { memo, useState } from "react"; 
+import { memo, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Box,
@@ -29,8 +29,7 @@ const CategoryList = memo(({ category, isLoading }) => {
     useUpdateCategoryMutation();
   const [deleteCategory, { isLoading: isLoadingDelete }] =
     useDeleteCategoryMutation();
-  const [uploadCategoryImage] =
-    useUploadCategoryImageMutation();
+  const [uploadCategoryImage] = useUploadCategoryImageMutation();
 
   if (isLoading) {
     return <CircularProgress color="inherit" />;
@@ -74,11 +73,7 @@ const CategoryList = memo(({ category, isLoading }) => {
         const formData = new FormData();
         formData.append("image", file);
 
-        console.log("File to upload:", file);
-        console.log("FormData entries:", [...formData.entries()]);
-
         const result = await uploadCategoryImage(formData).unwrap();
-        console.log("Upload result:", result);
 
         if (result.image) {
           setSelectedImage(result.image);
