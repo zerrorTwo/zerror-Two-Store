@@ -49,7 +49,6 @@ function CateDashBoard() {
     setParentId(parent);
   }, [parent]);
 
-
   const [page, setPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -216,7 +215,6 @@ function CateDashBoard() {
           const uploadResult = await uploadCategoryImage(
             formDataWithImage
           ).unwrap();
-          console.log("Upload result:", uploadResult);
           imageUrl = uploadResult.image;
         } catch (error) {
           console.error("Upload error:", error);
@@ -263,16 +261,6 @@ function CateDashBoard() {
       if (selectedImage) {
         const formDataWithImage = new FormData();
         formDataWithImage.append("image", selectedImage);
-
-        // Log thông tin file trước khi upload
-        console.log("File to upload:", selectedImage);
-        console.log(
-          "File size:",
-          (selectedImage.size / (1024 * 1024)).toFixed(2),
-          "MB"
-        );
-        console.log("File type:", selectedImage.type);
-        console.log("File name:", selectedImage.name);
 
         try {
           const uploadResult = await uploadCategoryImage(

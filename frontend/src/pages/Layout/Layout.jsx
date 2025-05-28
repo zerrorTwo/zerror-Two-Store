@@ -145,7 +145,6 @@ export default function Layout() {
   const handleLogout = async () => {
     try {
       const result = await logout().unwrap();
-      console.log(result);
       if (result) {
         dispatch(logOut());
         navigate("/");

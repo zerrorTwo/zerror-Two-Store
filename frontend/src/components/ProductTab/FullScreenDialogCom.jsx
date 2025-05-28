@@ -86,8 +86,6 @@ function FullScreenDialogCom({
         items: filteredVariations[key] || [],
       }));
 
-      console.log(variationsEntries);
-
       setCategories(dynamicCategories);
       setInitialPricing(variations.pricing || []);
       generateTableData(dynamicCategories, variations.pricing);
@@ -366,7 +364,6 @@ function FullScreenDialogCom({
 
       updatedFormData.status = status;
 
-      console.log(updatedFormData);
       if (create) {
         try {
           await createProduct({ data: updatedFormData }).unwrap();

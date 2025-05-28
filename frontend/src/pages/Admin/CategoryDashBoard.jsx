@@ -133,8 +133,6 @@ function CategoryDashBoard() {
     };
   }, [debouncedSearch]);
 
-  console.log(category);
-
   return (
     <Box sx={{ flexGrow: 1, m: 3 }}>
       <Box>
