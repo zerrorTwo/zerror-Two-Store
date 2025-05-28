@@ -91,7 +91,7 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
       });
       toast.success("Review added successfully!");
     } catch (error) {
-      console.log(error);
+      toast.error(error);
     }
     handleClose();
   };
@@ -305,13 +305,15 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
                 mt: 2,
               }}
             >
-              <Box sx={{ display: "flex", gap: 1 , flexDirection: "column" }}>
+              <Box sx={{ display: "flex", gap: 1, flexDirection: "column" }}>
                 <Typography variant="body1">
                   Phí vận chuyển: ₫{order.deliveryFee?.toLocaleString()}
                 </Typography>
-                {order?.canReview && <Typography variant="body1" color="secondary.main">
-                  Đánh giá san pham di con cho
-                 </Typography >}
+                {order?.canReview && (
+                  <Typography variant="body1" color="secondary.main">
+                    Đánh giá san pham di con cho
+                  </Typography>
+                )}
               </Box>
               <Box sx={{ display: "flex", gap: 1 }}>
                 {order.canReview && (

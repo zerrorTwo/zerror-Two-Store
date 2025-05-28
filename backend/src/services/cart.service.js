@@ -36,7 +36,7 @@ const addToCart = async (userId, products = []) => {
   const userCart = await cartRepository.findCartByUserId(userId);
 
   if (!userCart) {
-    return await cartRepository.createNewCart(userId, products);
+    return await cartRepository.createNewCart({ userId, products });
   }
 
   if (!userCart.products.length) {

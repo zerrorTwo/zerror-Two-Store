@@ -78,7 +78,7 @@ function Home() {
         </Box>
 
         {/* Box content */}
-        <Box mt={5} >
+        <Box mt={5}>
           {/* FlashSale */}
           <Box mb={5} ref={flashSaleRef}>
             {topSoldError ? (

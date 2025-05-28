@@ -11,7 +11,7 @@ import "react-toastify/dist/ReactToastify.css";
 import RequireAuth from "./pages/Auth/RequireAuth";
 import AdminAuth from "./pages/Auth/AdminAuth";
 import LayoutAdmin from "./pages/Admin/LayoutAdmin";
-import LayoutNew from "./pages/LayoutNew";
+import LayoutNew from "./pages/Layout/LayoutNew";
 import CreateNewCoupon from "./pages/Admin/Coupon/CreateNewCoupon";
 import MyFavorite from "./pages/ProfilePage/MyFavorite";
 import MyRecent from "./pages/ProfilePage/MyRecent";
@@ -26,7 +26,7 @@ const Register = lazy(() => import("./pages/Auth/Register"));
 const UserDashboard = lazy(() => import("./pages/Admin/UserDashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
 const CategoryDashBoard = lazy(() => import("./pages/Admin/CategoryDashBoard"));
-const SearchLayout = lazy(() => import("./pages/SearchLayout"));
+const SearchLayout = lazy(() => import("./pages/Layout/SearchLayout"));
 const ProductDetail = lazy(() =>
   import("./pages/ProductDetailPage/ProductDetail")
 );

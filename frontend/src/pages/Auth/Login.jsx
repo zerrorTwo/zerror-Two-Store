@@ -51,9 +51,7 @@ function Login() {
     if (accessToken && userEncoded) {
       try {
         const userString = decodeURIComponent(userEncoded); // Decode the URL-encoded string
-        console.log("Decoded user string:", userString); // Debug: Log the decoded string
         const parsedUser = JSON.parse(userString); // Parse the JSON string
-        console.log("Parsed user:", parsedUser); // Debug: Log the parsed object
         dispatch(
           setCredentials({
             user: parsedUser,

@@ -24,7 +24,6 @@ import {
 } from "../../../redux/features/favoriteProductSlice";
 
 function Detail({ data, quantity, setQuantity }) {
-  console.log(data);
   const [addToCart, { isLoading: isLoadingCreateNew }] = useAddToCartMutation();
   const [selectedAttributes, setSelectedAttributes] = useState({});
   const [pricing, setPricing] = useState({
@@ -167,7 +166,7 @@ function Detail({ data, quantity, setQuantity }) {
       </Box>
 
       {/* Price */}
-      <Box display="flex" gap={2} alignItems="center" my={2}>
+      <Box display="flex" gap={2} alignItems="center" my={5}>
         <Typography variant="h4" color="primary.main">
           {new Intl.NumberFormat("en-US").format(pricing.price)}đ
         </Typography>
@@ -181,7 +180,7 @@ function Detail({ data, quantity, setQuantity }) {
       </Box>
 
       {/* Variations */}
-      <Box display="flex" gap={2} flexDirection="column">
+      <Box display="flex" gap={2} flexDirection="column" my={5}>
         {attributes?.map((item, index) => (
           <Box key={index} display="flex" gap={5}>
             <Typography variant="body1">{item.label}</Typography>
@@ -225,9 +224,10 @@ function Detail({ data, quantity, setQuantity }) {
       {/* Toggle Favourite + Add to Cart */}
       <Box
         display="flex"
-        justifyContent="center"
+        justifyContent="start"
         alignItems="center"
-        mt={2}
+        mt={5}
+        ml={20}
         gap={2}
       >
         <Button

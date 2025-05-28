@@ -2,14 +2,14 @@ import { lazy, Suspense, useEffect, useRef, useState, memo } from "react";
 import Box from "@mui/material/Box";
 import CircularProgress from "@mui/material/CircularProgress";
 import { Outlet } from "react-router-dom";
-import HeaderLayout from "../components/Layout/HeaderLayout.jsx";
+import HeaderLayout from "../../components/Layout/HeaderLayout.jsx";
 
 // Memoize HeaderLayout
 const MemoizedHeader = memo(HeaderLayout);
 
 // Lazy load Footer and memoize it
 const Footer = lazy(() =>
-  import("../components/Footer.jsx").then((module) => {
+  import("../Layout/Footer.jsx").then((module) => {
     // Memoize the Footer component when it's loaded
     return { default: memo(module.default) };
   })

@@ -40,15 +40,18 @@ const getCategoryBreadcrumb = async (categorySlug) => {
   const category = await CategoryModel.findOne({ slug: categorySlug });
   if (!category) return null;
 
-  const breadcrumb = [category.name];
+  // Khởi tạo breadcrumb với đối tượng của danh mục hiện tại
+  const breadcrumb = [{ name: category.name, slug: category.slug }];
   let parentCategory = category.parent;
 
   while (parentCategory) {
     const parent = await CategoryModel.findById(parentCategory);
     if (parent) {
-      breadcrumb.unshift(parent.name);
+      // Thêm đối tượng của danh mục cha vào đầu mảng
+      breadcrumb.unshift({ name: parent.name, slug: parent.slug });
       parentCategory = parent.parent;
     } else {
+      // Dừng lại nếu không tìm thấy danh mục cha
       break;
     }
   }
@@ -163,6 +166,53 @@ const getAllProducts = async () => {
   return await ProductModel.find({}).populate("type", "name").exec();
 };
 
+const getCategoryHierarchy = async (categorySlug) => {
+  // 1. Tìm danh mục hiện tại bằng slug
+  const currentCategory = await CategoryModel.findOne({ slug: categorySlug });
+  if (!currentCategory) {
+    return {
+      parents: [],
+      current: null,
+      children: []
+    };
+  }
+
+  // 2. Lấy danh sách danh mục cha (breadcrumb)
+  const parents = [];
+  let parentCategoryRef = currentCategory.parent; // Tham chiếu đến _id của danh mục cha
+
+  while (parentCategoryRef) {
+    const parent = await CategoryModel.findById(parentCategoryRef);
+    if (parent) {
+      // Đảm bảo chỉ lấy name, slug, và _id của danh mục cha
+      parents.unshift({ name: parent.name, slug: parent.slug, _id: parent._id });
+      parentCategoryRef = parent.parent;
+    } else {
+      break; // Dừng nếu không tìm thấy danh mục cha
+    }
+  }
+
+  // 3. Lấy danh sách danh mục con trực tiếp
+  const children = [];
+  if (currentCategory.children && currentCategory.children.length > 0) {
+    // Lấy thông tin chi tiết của các danh mục con từ _id trong mảng children
+    // và chỉ chọn các trường name, slug
+    const childCategories = await CategoryModel.find(
+      { _id: { $in: currentCategory.children } },
+      'name slug' // Chỉ lấy trường 'name' và 'slug'
+    );
+    childCategories.forEach(child => {
+      children.push({ name: child.name, slug: child.slug, _id: child._id }); // Thêm _id nếu bạn cần nó cho các thao tác khác
+    });
+  }
+  const result = {
+    parents: parents,
+    current: { name: currentCategory.name, slug: currentCategory.slug, _id: currentCategory._id },
+    children: children
+  }
+  // 4. Trả về kết quả
+  return result
+};
 // Lấy sản phẩm có phân trang
 const getPageProducts = async (
   page = 1,
@@ -170,24 +220,23 @@ const getPageProducts = async (
   category,
   search,
   sort,
-  minPrice, // Thêm tham số minPrice
-  maxPrice, // Thêm tham số maxPrice
-  rating // Thêm tham số rating
+  minPrice,
+  maxPrice,
+  rating
 ) => {
   try {
     // Validate input parameters
     page = Math.max(1, parseInt(page));
     limit = Math.max(1, Math.min(30, parseInt(limit)));
-    minPrice = minPrice ? parseFloat(minPrice) : undefined; // Chuyển thành số, nếu không có thì undefined
-    maxPrice = maxPrice ? parseFloat(maxPrice) : undefined; // Chuyển thành số, nếu không có thì undefined
-    rating = rating ? parseFloat(rating) : undefined; // Chuyển thành số, nếu không có thì undefined
+    minPrice = minPrice ? parseFloat(minPrice) : undefined;
+    maxPrice = maxPrice ? parseFloat(maxPrice) : undefined;
+    rating = rating ? parseFloat(rating) : undefined;
 
     // Xử lý category filter
     let categoryFilter = {};
     if (category) {
-      const currentCategory = await CategoryModel.findOne({
-        slug: category,
-      }).lean();
+      // Tìm danh mục theo slug
+      const currentCategory = await CategoryModel.findOne({ slug: category });
       if (!currentCategory) {
         return {
           page,
@@ -198,7 +247,33 @@ const getPageProducts = async (
           message: "Category not found",
         };
       }
-      categoryFilter = { type: currentCategory._id };
+
+      // Sử dụng $graphLookup để lấy tất cả danh mục con
+      const categoryIds = await CategoryModel.aggregate([
+        { $match: { _id: currentCategory._id } },
+        {
+          $graphLookup: {
+            from: "categories",
+            startWith: "$_id", // Bắt đầu từ _id của danh mục hiện tại
+            connectFromField: "children",
+            connectToField: "_id",
+            as: "descendants",
+          },
+        },
+        {
+          $project: {
+            allIds: {
+              $concatArrays: [
+                ["$_id"], // Bao gồm cả _id của danh mục cha
+                "$descendants._id",
+              ],
+            },
+          },
+        },
+      ]).exec();
+
+      const allCategoryIds = categoryIds[0]?.allIds || [];
+      categoryFilter = { type: { $in: allCategoryIds } };
     }
 
     // Xử lý search filter
@@ -224,7 +299,7 @@ const getPageProducts = async (
 
     // Pipeline tối ưu
     const productsPipeline = [
-      { $match: filters }, // Filter cơ bản
+      { $match: filters },
       {
         $addFields: {
           normalizedPricing: {
@@ -255,7 +330,6 @@ const getPageProducts = async (
           totalSold: { $sum: { $ifNull: ["$normalizedPricing.sold", [0]] } },
         },
       },
-      // Thêm filter cho minPrice, maxPrice và rating
       {
         $match: {
           ...(minPrice !== undefined ? { minPrice: { $gte: minPrice } } : {}),
@@ -312,6 +386,7 @@ const getPageProducts = async (
     const [result] = await ProductModel.aggregate(productsPipeline).exec();
     const totalProducts = result.total[0]?.count || 0;
     const products = result.products || [];
+    const refCategories = await getCategoryHierarchy(category)
 
     return {
       page,
@@ -319,9 +394,9 @@ const getPageProducts = async (
       totalPages: Math.ceil(totalProducts / limit),
       totalProducts,
       products,
+      refCategories
     };
   } catch (error) {
-    console.error("Error in getPageProducts:", error);
     throw new Error("Failed to fetch products");
   }
 };
@@ -525,7 +600,6 @@ const getProductWithBreadcrumbById = async (productId) => {
     // Trả về cả sản phẩm và breadcrumb
     return breadcrumb;
   } catch (error) {
-    console.error("Error in getProductWithBreadcrumbById:", error.message);
     throw error; // Ném lỗi để xử lý ở tầng trên (controller)
   }
 };

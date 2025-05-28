@@ -152,8 +152,6 @@ function CheckoutPage() {
         totalDiscount: totalDiscount,
       };
 
-      console.log(dataOrder);
-
       const success = await createOrder(dataOrder).unwrap();
 
       dispatch(clearAllCoupons());

@@ -184,8 +184,8 @@ function CategoryDashBoard() {
               onChange={handleInputChange}
               onKeyDown={handleKeyDown}
               helperText={
-                addValue.length > 32
-                  ? "Category must have less than 32 characters"
+                addValue.length > 100
+                  ? "Category must have less than 100 characters"
                   : ""
               }
               FormHelperTextProps={{
@@ -247,8 +247,8 @@ function CategoryDashBoard() {
             value={search}
             onChange={handleInputSearchChange}
             helperText={
-              search.length > 32
-                ? "Search term must have less than 32 characters"
+              search.length > 100
+                ? "Search term must have less than 100 characters"
                 : ""
             }
             FormHelperTextProps={{

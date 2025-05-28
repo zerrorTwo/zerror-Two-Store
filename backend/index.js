@@ -11,7 +11,7 @@ import connectDB from "./src/config/db.js";
 import { errorHandlingMiddleware } from "./src/middlewares/error.middleware.js";
 import passportMiddleware from "./src/auth/AuthStrategy/passport.strategy.js";
 import { corsOptions } from "./src/config/cors.config.js";
-import fs from "fs";
+import fs from 'fs'
 import session from "express-session";
 // import "./src/jobs/momoJob.js"; // Import file cron job
 
@@ -45,25 +45,10 @@ app.use(
   })
 );
 
-// Serve static files from the "uploads" directory
-const __dirname = path.resolve();
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Đặt routes upload trước các middleware xử lý body
-app.use("/v1/api/upload", uploadRoute);
-
-// Sau đó mới xử lý body-parser cho các routes khác
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-
-passportMiddleware(app);
-
-// Các routes khác
-app.use("/v1/api", APIS_V1);
-app.use(errorHandlingMiddleware);
 app.use(
   session({
-    secret: process.env.SESSION_SECRET, // nên để trong biến môi trường
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
     cookie: {
@@ -74,5 +59,21 @@ app.use(
     },
   })
 );
+
+passportMiddleware(app);
+// Sau đó mới xử lý body-parser cho các routes khác
+app.use(express.json({ limit: "50mb" }));
+// Các routes khác
+app.use("/v1/api", APIS_V1);
+app.use(errorHandlingMiddleware);
+// Serve static files from the "uploads" directory
+const __dirname = path.resolve();
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// Đặt routes upload trước các middleware xử lý body
+app.use("/v1/api/upload", uploadRoute);
+
+
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 app.listen(port, () => console.log(`Server listening on ${port}`));

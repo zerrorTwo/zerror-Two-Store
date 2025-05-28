@@ -62,7 +62,7 @@ const findCategoriesByName = async (name) => {
 };
 
 const findCommonCategories = async () => {
-  return await Category.find({ level: 1 }).lean();
+  return await Category.find({ parent: null }).lean();
 };
 
 const updateCategoryChildren = async (parentId, childId) => {
