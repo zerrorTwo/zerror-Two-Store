@@ -51,8 +51,7 @@ const signInGGController = asyncHandler(async (req, res) => {
   } catch (error) {
     console.error("Google sign-in error:", error);
     res.redirect(
-      `${
-        process.env.FRONTEND_URL || "http://localhost:5173"
+      `${process.env.FRONTEND_URL || "http://localhost:5173"
       }/login?error=google_login_failed`
     );
   }

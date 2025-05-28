@@ -29,8 +29,8 @@ const FormBase = forwardRef(({ item }, ref) => {
         value={formData.name}
         onChange={handleChange}
         helperText={
-          formData.name.length > 32
-            ? "Name must be less than 32 characters"
+          formData.name.length > 100
+            ? "Name must be less than 100 characters"
             : ""
         }
         required

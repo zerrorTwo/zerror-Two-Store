@@ -253,7 +253,7 @@ function Footer() {
                       }}
                     />
                   </Link>
-                  <Link to={"/"}>
+                  <Link to={"https://www.facebook.com/le.quoc.nam.976662"}>
                     <FacebookIcon
                       fontSize="large"
                       sx={{

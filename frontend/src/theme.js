@@ -208,9 +208,9 @@ const theme = createTheme({
       },
       styleOverrides: {
         maxWidthLg: {
-          maxWidth: "1356px !important",
+          maxWidth: "1600px !important",
           "@media (min-width: 1200px)": {
-            maxWidth: "1356px",
+            maxWidth: "1600px",
           },
         },
       },

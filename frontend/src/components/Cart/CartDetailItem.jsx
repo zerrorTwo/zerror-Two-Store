@@ -124,7 +124,7 @@ function CartDetailItem({
               </Link>
               <Box display="flex" flexDirection="column">
                 <Link
-                  to={`/product/${productSlug}`}
+                  to={`/products/${productSlug}`}
                   style={{ textDecoration: "none", color: "inherit" }}
                 >
                   <Typography
