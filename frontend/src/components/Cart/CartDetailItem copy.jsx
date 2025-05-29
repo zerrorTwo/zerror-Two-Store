@@ -12,7 +12,6 @@ import { useState } from "react";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CartVariationPopover from "./CartVariationPopover";
 import PropTypes from "prop-types";
-import { PRIMITIVE_URL } from "../../redux/constants";
 import ConfirmDialog from "../ConfirmDialog";
 import {
   useRemoveProductMutation,
@@ -137,7 +136,7 @@ function CartDetailItem({
                   component="img"
                   sx={{ height: "80px", width: "auto", objectFit: "cover" }}
                   alt={productName}
-                  image={`${PRIMITIVE_URL}${productImages}`}
+                  image={`${productImages}`}
                   loading="lazy"
                 />
               </Link>

@@ -2,7 +2,6 @@ import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
-import { PRIMITIVE_URL } from "../../../redux/constants";
 import PropTypes from "prop-types";
 import { toast } from "react-toastify";
 
@@ -62,7 +61,7 @@ function ImageTab({ formData, setFormData, onNext, onPre }) {
               <img
                 src={
                   typeof formData.mainImg === "string"
-                    ? `${PRIMITIVE_URL}${formData.mainImg}`
+                    ? `${formData.mainImg}`
                     : URL.createObjectURL(formData.mainImg)
                 }
                 alt="Main Image"
@@ -105,7 +104,7 @@ function ImageTab({ formData, setFormData, onNext, onPre }) {
               <img
                 src={
                   typeof formData?.img[0] === "string"
-                    ? `${PRIMITIVE_URL}${formData?.img[0]}`
+                    ? `${formData?.img[0]}`
                     : URL.createObjectURL(formData?.img[0])
                 }
                 alt="Image 1"
@@ -146,7 +145,7 @@ function ImageTab({ formData, setFormData, onNext, onPre }) {
               <img
                 src={
                   typeof formData.img[1] === "string"
-                    ? `${PRIMITIVE_URL}${formData?.img[1]}`
+                    ? `${formData?.img[1]}`
                     : URL.createObjectURL(formData?.img[1])
                 }
                 alt="Image 2"
@@ -187,7 +186,7 @@ function ImageTab({ formData, setFormData, onNext, onPre }) {
               <img
                 src={
                   typeof formData?.img[2] === "string"
-                    ? `${PRIMITIVE_URL}${formData?.img[2]}`
+                    ? `${formData?.img[2]}`
                     : URL.createObjectURL(formData?.img[2])
                 }
                 alt="Image 3"

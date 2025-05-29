@@ -7,7 +7,7 @@ const createMomoPayment = asyncHandeler(async (req, res) => {
   const { orderId } = req.body;
 
   const orderInfo = `Pay for order ${orderId}`;
-  const redirectUrl = "http://localhost:5173/thanks";
+  const redirectUrl = `${process.env.FRONTEND_URL}/thanks`;
   const ipnUrl =
     process.env.MOMO_IPN_URL ||
     "https://93b5-125-235-232-178.ngrok-free.app/v1/api/payment/momo/callback";

@@ -10,7 +10,7 @@ import { useGetCommonCategoryQuery } from "../redux/api/categorySlice";
 import { useInView } from "react-intersection-observer";
 import React, { Suspense } from "react";
 import {
-  useGetPageProductQuery,
+  useGetRandomPageProductQuery,
   useGetTopSoldQuery,
 } from "../redux/api/productSlice";
 import { Link } from "react-router-dom";
@@ -29,8 +29,7 @@ function Home() {
     data: { products: listProducts = [] } = {},
     error: listError,
     isLoading: listLoading,
-  } = useGetPageProductQuery({
-    page: 1,
+  } = useGetRandomPageProductQuery({
     limit: 42,
   });
 
@@ -54,9 +53,9 @@ function Home() {
   });
 
   const data = [
-    "http://huanghanzhilian-test.oss-cn-beijing.aliyuncs.com/shop/upload/image/sliders/hUX6oL-lCKOKPYbZ5j4rx.webp",
-    "http://huanghanzhilian-test.oss-cn-beijing.aliyuncs.com/shop/upload/image/sliders/g8FHsxbCGw82WzjmamElL.webp",
-    "http://huanghanzhilian-test.oss-cn-beijing.aliyuncs.com/shop/upload/image/sliders/hWQ4-Mx69MyLJbZAThWEt.webp",
+    "/Assets/Slider/slide1.webp",
+    "/Assets/Slider/slide2.webp",
+    "/Assets/Slider/slide3.webp",
   ];
 
   return (
@@ -144,9 +143,7 @@ function Home() {
                   borderRadius: "8px", // Thêm bo góc nếu cần
                 }}
                 alt="Banner image"
-                image={
-                  "https://shop.huanghanlian.com/_next/image?url=http%3A%2F%2Fhuanghanzhilian-test.oss-cn-beijing.aliyuncs.com%2Fshop%2Fupload%2Fimage%2Fbanners%2FgbharyCRH4P2CIQaZvDGq.jpeg&w=1920&q=100"
-                }
+                image={"./Assets/Static/st1.jpeg"}
                 loading="lazy"
               />
             </Link>
@@ -168,9 +165,7 @@ function Home() {
                   borderRadius: "8px", // Thêm bo góc nếu cần
                 }}
                 alt="Banner image"
-                image={
-                  "https://shop.huanghanlian.com/_next/image?url=http%3A%2F%2Fhuanghanzhilian-test.oss-cn-beijing.aliyuncs.com%2Fshop%2Fupload%2Fimage%2Fbanners%2Fb9ZiyMDRD0W-dBVkWF1L6.jpeg&w=1920&q=100"
-                }
+                image={"./Assets/Static/st2.jpeg"}
                 loading="lazy"
               />
             </Link>
@@ -192,9 +187,7 @@ function Home() {
                   borderRadius: "8px", // Thêm bo góc nếu cần
                 }}
                 alt="Banner image"
-                image={
-                  "https://shop.huanghanlian.com/_next/image?url=http%3A%2F%2Fhuanghanzhilian-test.oss-cn-beijing.aliyuncs.com%2Fshop%2Fupload%2Fimage%2Fbanners%2FH_1mJBnX8_RrdfoEHCby2.jpeg&w=1920&q=100"
-                }
+                image={"./Assets/Static/st3.jpeg"}
                 loading="lazy"
               />
             </Link>
@@ -216,9 +209,7 @@ function Home() {
                   borderRadius: "8px", // Thêm bo góc nếu cần
                 }}
                 alt="Banner image"
-                image={
-                  "https://shop.huanghanlian.com/_next/image?url=http%3A%2F%2Fhuanghanzhilian-test.oss-cn-beijing.aliyuncs.com%2Fshop%2Fupload%2Fimage%2Fbanners%2FtX_L0mZwdm5SNNyKF4gD_.jpeg&w=1920&q=100"
-                }
+                image={"./Assets/Static/st4.jpeg"}
                 loading="lazy"
               />
             </Link>

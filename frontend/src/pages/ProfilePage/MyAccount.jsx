@@ -8,12 +8,14 @@ import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Avatar from "@mui/material/Avatar";
 import Divider from "@mui/material/Divider";
+import CircularProgress from "@mui/material/CircularProgress";
 import { useSelector, useDispatch } from "react-redux";
 import {
   selectCurrentUser,
   setUser,
 } from "../../redux/features/auth/authSlice";
 import { useUpdateUserMutation } from "../../redux/api/userSlice";
+import { useUploadImageMutation } from "../../redux/api/uploadSlice";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
 import CancelIcon from "@mui/icons-material/Cancel";
@@ -23,13 +25,19 @@ function MyAccount() {
   const user = useSelector(selectCurrentUser);
   const dispatch = useDispatch();
   const [updateUser, { isLoading }] = useUpdateUserMutation();
+  const [uploadImage] = useUploadImageMutation();
   const [isEditing, setIsEditing] = useState(false);
+  const [imagePreview, setImagePreview] = useState(user?.avatar || null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [formData, setFormData] = useState({
     userName: user?.userName || "",
     email: user?.email || "",
     number: user?.number || "",
+    avatar: user?.avatar || "", // Thêm avatar vào formData
   });
 
+  // Xử lý thay đổi input text
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
@@ -38,6 +46,46 @@ function MyAccount() {
     }));
   };
 
+  // Xử lý chọn ảnh
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setSelectedImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Xử lý upload ảnh
+  const handleUploadImage = async () => {
+    if (!selectedImage) {
+      toast.error("Please select an image to upload");
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const uploadResult = await uploadImage({
+        file: selectedImage,
+        type: "avatar",
+      }).unwrap();
+      const imageUrl = uploadResult.viewLink; // Giả sử backend trả về viewLink
+      setFormData((prev) => ({ ...prev, avatar: imageUrl }));
+      toast.success("Avatar uploaded successfully");
+      setSelectedImage(null);
+    } catch (error) {
+      toast.error(
+        "Error uploading avatar: " + (error.data?.message || error.message)
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Xử lý submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -51,6 +99,7 @@ function MyAccount() {
 
       toast.success("Cập nhật thông tin thành công!");
       setIsEditing(false);
+      setImagePreview(updatedUser.avatar || null); // Cập nhật preview với avatar từ server
     } catch (error) {
       toast.error(
         error.data?.message || "Có lỗi xảy ra khi cập nhật thông tin!"
@@ -58,12 +107,16 @@ function MyAccount() {
     }
   };
 
+  // Hủy chỉnh sửa
   const handleCancel = () => {
     setFormData({
       userName: user?.userName || "",
       email: user?.email || "",
       number: user?.number || "",
+      avatar: user?.avatar || "",
     });
+    setImagePreview(user?.avatar || null);
+    setSelectedImage(null);
     setIsEditing(false);
   };
 
@@ -72,16 +125,45 @@ function MyAccount() {
       <Card sx={{ bgcolor: "white" }}>
         <CardContent>
           <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
-            <Avatar
+            <Box
               sx={{
-                width: 100,
-                height: 100,
-                bgcolor: "secondary.main",
-                fontSize: "2rem",
+                cursor: isEditing ? "pointer" : "default",
               }}
+              onClick={() =>
+                isEditing && document.getElementById("avatarInput").click()
+              }
             >
-              {user?.userName?.charAt(0).toUpperCase()}
-            </Avatar>
+              {imagePreview ? (
+                <Avatar
+                  src={imagePreview}
+                  sx={{
+                    width: 100,
+                    height: 100,
+                    bgcolor: "secondary.main",
+                    fontSize: "2rem",
+                  }}
+                />
+              ) : (
+                <Avatar
+                  sx={{
+                    width: 100,
+                    height: 100,
+                    bgcolor: "secondary.main",
+                    fontSize: "2rem",
+                  }}
+                >
+                  {user?.userName?.charAt(0).toUpperCase()}
+                </Avatar>
+              )}
+              <input
+                id="avatarInput"
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={handleImageChange}
+                disabled={!isEditing || isUploading}
+              />
+            </Box>
             <Box sx={{ ml: 3 }}>
               <Typography variant="h5" component="h2">
                 Thông tin tài khoản
@@ -91,6 +173,19 @@ function MyAccount() {
               </Typography>
             </Box>
           </Box>
+
+          {isEditing && selectedImage && (
+            <Box sx={{ mb: 2, display: "flex", justifyContent: "center" }}>
+              <Button
+                variant="contained"
+                onClick={handleUploadImage}
+                disabled={isUploading}
+                startIcon={isUploading ? <CircularProgress size={20} /> : null}
+              >
+                {isUploading ? "Đang tải lên..." : "Tải ảnh lên"}
+              </Button>
+            </Box>
+          )}
 
           <Divider sx={{ my: 3 }} />
 
@@ -167,7 +262,7 @@ function MyAccount() {
                         variant="outlined"
                         startIcon={<CancelIcon />}
                         onClick={handleCancel}
-                        disabled={isLoading}
+                        disabled={isLoading || isUploading}
                       >
                         Hủy
                       </Button>
@@ -176,7 +271,7 @@ function MyAccount() {
                         type="submit"
                         startIcon={<SaveIcon />}
                         sx={{ bgcolor: "secondary.main" }}
-                        disabled={isLoading}
+                        disabled={isLoading || isUploading}
                       >
                         {isLoading ? "Đang cập nhật..." : "Lưu thay đổi"}
                       </Button>

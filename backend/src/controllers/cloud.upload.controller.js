@@ -15,7 +15,6 @@ export const uploadToCloudinary = async (req, res) => {
             viewLink: result.viewLink,
         });
     } catch (error) {
-        console.error("Upload error:", error);
         res.status(500).json({ message: error.message });
     }
 };

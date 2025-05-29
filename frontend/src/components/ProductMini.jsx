@@ -9,7 +9,6 @@ import Skeleton from "@mui/material/Skeleton";
 import Divider from "@mui/material/Divider";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
-import { PRIMITIVE_URL } from "../redux/constants";
 
 function ProductMini({ item, loading = false }) {
   const theme = useTheme();
@@ -52,7 +51,7 @@ function ProductMini({ item, loading = false }) {
               }}
               alt="product image"
               image={
-                `${PRIMITIVE_URL}${item?.mainImg}` ||
+                `${item?.mainImg}` ||
                 "https://down-vn.img.susercontent.com/file/vn-11134258-7ras8-m5ba8iu5zvur17"
               }
               loading="lazy"

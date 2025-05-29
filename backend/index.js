@@ -1,20 +1,20 @@
 import express from "express";
 import dotenv from "dotenv";
+
 dotenv.config();
 import cookieParser from "cookie-parser";
 import helmet from "helmet";
 import compression from "compression";
 import cors from "cors";
 import path from "path";
-import { APIS_V1 } from "./src/routes/v1/index.js";
-import { uploadRoute } from "./src/routes/v1/upload.route.js";
+import {APIS_V1} from "./src/routes/v1/index.js";
+import {uploadRoute} from "./src/routes/v1/upload.route.js";
 import connectDB from "./src/config/db.js";
-import { errorHandlingMiddleware } from "./src/middlewares/error.middleware.js";
+import {errorHandlingMiddleware} from "./src/middlewares/error.middleware.js";
 import passportMiddleware from "./src/auth/AuthStrategy/passport.strategy.js";
-import { corsOptions } from "./src/config/cors.config.js";
-import fs from 'fs'
+import {corsOptions} from "./src/config/cors.config.js";
+import fs from 'fs';
 import session from "express-session";
-
 
 connectDB();
 
@@ -40,7 +40,7 @@ app.use(compression());
 app.use(cookieParser());
 app.use(
   helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginResourcePolicy: {policy: "cross-origin"},
   })
 );
 
@@ -61,18 +61,18 @@ app.use(
 
 passportMiddleware(app);
 // Sau đó mới xử lý body-parser cho các routes khác
-app.use(express.json({ limit: "50mb" }));
+app.use(express.json({limit: "50mb"}))
 // Các routes khác
 app.use("/v1/api", APIS_V1);
 app.use(errorHandlingMiddleware);
 // Serve static files from the "uploads" directory
 const __dirname = path.resolve();
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")))
 
 // Đặt routes upload trước các middleware xử lý body
 app.use("/v1/api/upload", uploadRoute);
 
 
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
+app.use(express.urlencoded({extended: true, limit: "50mb"}));
 
 app.listen(port, () => console.log(`Server listening on ${port}`));

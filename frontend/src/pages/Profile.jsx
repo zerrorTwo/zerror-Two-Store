@@ -9,7 +9,7 @@ import { memo, useEffect, useState } from "react";
 import DashboardOutlinedIcon from "@mui/icons-material/DashboardOutlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
-import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined";
+// import RateReviewOutlinedIcon from "@mui/icons-material/RateReviewOutlined";
 import HistoryOutlinedIcon from "@mui/icons-material/HistoryOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
 import ExitToAppIcon from "@mui/icons-material/ExitToApp";
@@ -165,7 +165,7 @@ function Profile() {
                 variant="middle"
                 sx={{ bgcolor: theme.palette.text.primary }}
               />
-              <MemoizedNavAdminItem
+              {/* <MemoizedNavAdminItem
                 link="/profile"
                 icon={<RateReviewOutlinedIcon />}
                 text="My Reviews"
@@ -173,8 +173,9 @@ function Profile() {
               <Divider
                 variant="middle"
                 sx={{ bgcolor: theme.palette.text.primary }}
-              />
+              /> */}
               <MemoizedNavAdminItem
+                isSelected={selectedItem === "my-account"}
                 link="/profile/my-account"
                 icon={<AccountCircleOutlinedIcon />}
                 text="My Account"

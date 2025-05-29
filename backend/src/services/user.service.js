@@ -22,6 +22,7 @@ const updateCurrentUserProfile = async (req, res) => {
   user.userName = req.body.userName || user.userName;
   user.email = req.body.email || user.email;
   user.number = req.body.number || user.number;
+  user.avatar = req.body.avatar || user?.avatar || "";
 
   if (req.body.password) {
     if (req.body.password !== req.body.comfirmPassword) {

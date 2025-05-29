@@ -1,10 +1,10 @@
-import  Box  from "@mui/material/Box";
-import  Divider  from "@mui/material/Divider";
-import  IconButton  from "@mui/material/IconButton";
-import  Typography  from "@mui/material/Typography";
-import  {useTheme}  from "@mui/material/styles";
-import  { Link }  from "react-router-dom"; // Correct import from react-router-dom
-import  NavigateNextIcon  from "@mui/icons-material/NavigateNext";
+import Box from "@mui/material/Box";
+import Divider from "@mui/material/Divider";
+import IconButton from "@mui/material/IconButton";
+import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
+import { Link } from "react-router-dom"; // Correct import from react-router-dom
+import NavigateNextIcon from "@mui/icons-material/NavigateNext";
 import { Swiper, SwiperSlide } from "swiper/react"; // Import Swiper and SwiperSlide from swiper/react
 import { Navigation, Autoplay } from "swiper/modules"; // Import required Swiper modules
 import "swiper/css"; // Import necessary Swiper CSS files
@@ -14,39 +14,40 @@ import ProductMini from "../ProductMini";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import PropTypes from "prop-types";
+import { useEffect, useState } from "react";
 
 function FlashSale({ listItem }) {
   const theme = useTheme();
-  // const targetTime = new Date().getTime() + 3600 * 1000; // 1 hour from now
+  const targetTime = new Date().getTime() + 3600 * 1000; // 1 hour from now
 
-  // const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
 
   // Calculate the time left
-  // function calculateTimeLeft() {
-  //   const currentTime = new Date().getTime();
-  //   const difference = targetTime - currentTime;
+  function calculateTimeLeft() {
+    const currentTime = new Date().getTime();
+    const difference = targetTime - currentTime;
 
-  //   let time = {};
-  //   if (difference > 0) {
-  //     time = {
-  //       hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-  //       minutes: Math.floor((difference / (1000 * 60)) % 60),
-  //       seconds: Math.floor((difference / 1000) % 60),
-  //     };
-  //   } else {
-  //     time = { hours: 0, minutes: 0, seconds: 0 };
-  //   }
-  //   return time;
-  // }
+    let time = {};
+    if (difference > 0) {
+      time = {
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / (1000 * 60)) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    } else {
+      time = { hours: 0, minutes: 0, seconds: 0 };
+    }
+    return time;
+  }
 
-  // useEffect(() => {
-  //   const timer = setInterval(() => {
-  //     setTimeLeft(calculateTimeLeft());
-  //   }, 1000);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
 
-  //   return () => clearInterval(timer); // Clean up timer
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, []);
+    return () => clearInterval(timer); // Clean up timer
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <Box>
@@ -88,7 +89,7 @@ function FlashSale({ listItem }) {
                 padding: "0 8px",
               }}
             >
-              {/* {timeLeft.hours?.toString().padStart(2, "0") || "00"} */}
+              {timeLeft.hours?.toString().padStart(2, "0") || "00"}
             </Typography>
             :{/* Hiển thị phút */}
             <Typography
@@ -99,7 +100,7 @@ function FlashSale({ listItem }) {
                 padding: "0 8px",
               }}
             >
-              {/* {timeLeft.minutes?.toString().padStart(2, "0") || "00"} */}
+              {timeLeft.minutes?.toString().padStart(2, "0") || "00"}
             </Typography>
             :{/* Hiển thị giây */}
             <Typography
@@ -110,7 +111,7 @@ function FlashSale({ listItem }) {
                 padding: "0 8px",
               }}
             >
-              {/* {timeLeft.seconds?.toString().padStart(2, "0") || "00"} */}
+              {timeLeft.seconds?.toString().padStart(2, "0") || "00"}
             </Typography>
           </Box>
         </Box>
@@ -123,7 +124,12 @@ function FlashSale({ listItem }) {
             display: "flex",
           }}
         >
-          <Typography variant="body1">View All</Typography>
+          <Typography
+            onClick={() => (window.location.href = "/search")}
+            variant="body1"
+          >
+            View All
+          </Typography>
           <NavigateNextIcon sx={{ color: theme.palette.secondary.main }} />{" "}
           {/* Icon for right arrow */}
         </Link>

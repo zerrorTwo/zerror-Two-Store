@@ -24,6 +24,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { logOut, selectCurrentUser } from "../../redux/features/auth/authSlice";
 import { useLogoutMutation } from "../../redux/api/authApiSlice";
 import { toast } from "react-toastify";
+import { Avatar } from "@mui/material";
 
 const Search = styled("div")(({ theme }) => ({
   position: "relative",
@@ -169,6 +170,16 @@ export default function HeaderLayout() {
       >
         My order
       </MenuItem>
+      {user?.isAdmin && (
+        <MenuItem
+          component={Link}
+          to="/admin/dashboard"
+          sx={{ px: 4, py: 1 }}
+          onClick={handleMenuClose}
+        >
+          Manage
+        </MenuItem>
+      )}
       <MenuItem
         component={Link}
         to="/logout"
@@ -343,7 +354,28 @@ export default function HeaderLayout() {
                     "&:hover": { bgcolor: "primary.dark" },
                   }}
                 >
-                  <AccountCircle />
+                  {user?.avatar ? (
+                    <Avatar
+                      src={user?.avatar}
+                      sx={{
+                        width: 30,
+                        height: 30,
+                        bgcolor: "secondary.main",
+                        fontSize: "2rem",
+                      }}
+                    />
+                  ) : (
+                    <Avatar
+                      sx={{
+                        width: 30,
+                        height: 30,
+                        bgcolor: "secondary.main",
+                        fontSize: "2rem",
+                      }}
+                    >
+                      {user?.userName?.charAt(0).toUpperCase()}
+                    </Avatar>
+                  )}
                   <Typography
                     fontWeight="bold"
                     ml={0.5}

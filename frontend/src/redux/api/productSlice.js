@@ -57,6 +57,15 @@ export const productApiSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
 
+    getRandomPageProduct: builder.query({
+      query: ({ limit = 30 }) => ({
+        url: `${PRODUCT_URL}/random?limit=${limit}`,
+        method: "GET",
+      }),
+      providesTags: ["Product"],
+      keepUnusedDataFor: 5,
+    }),
+
     searchProduct: builder.query({
       query: ({
         page = 1,
@@ -146,4 +155,5 @@ export const {
   useGetTopSoldQuery,
   useSearchProductQuery,
   useGetProductWithBreadcrumbByIdQuery,
+  useGetRandomPageProductQuery,
 } = productApiSlice;

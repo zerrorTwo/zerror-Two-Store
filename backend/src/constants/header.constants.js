@@ -6,6 +6,6 @@ const HEADER = {
 
 const COOKIE = {
   JWT: "jwt",
-};
+}; 
 
 export { HEADER, COOKIE };

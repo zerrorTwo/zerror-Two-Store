@@ -75,6 +75,12 @@ const getProductWithBreadcrumbById = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.OK).json({ breadcrumb });
 });
 
+const getRandomPageProducts = asyncHandeler(async (req, res) => {
+  const limit = parseInt(req.query.limit) || 30; // Mặc định là 30 sản phẩm ngẫu nhiên
+  const randomProducts = await productService.getRandomPageProducts(limit);
+  res.status(StatusCodes.OK).json(randomProducts);
+});
+
 export {
   createProduct,
   updateProduct,
@@ -85,4 +91,5 @@ export {
   getProductById,
   getTopSoldProducts,
   getProductWithBreadcrumbById,
+  getRandomPageProducts,
 };

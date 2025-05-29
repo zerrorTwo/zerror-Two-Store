@@ -13,7 +13,6 @@ import "swiper/css/navigation";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import PropTypes from "prop-types";
-import { PRIMITIVE_URL } from "../../redux/constants";
 
 export default function CategoryTable({ itemData, isLoading }) {
   const theme = useTheme();
@@ -114,7 +113,7 @@ export default function CategoryTable({ itemData, isLoading }) {
                     >
                       <CardMedia
                         component="img"
-                        image={`${PRIMITIVE_URL}${item.img}`}
+                        image={`${item.img}`}
                         sx={{
                           mt: 1,
                           borderRadius: "8px",

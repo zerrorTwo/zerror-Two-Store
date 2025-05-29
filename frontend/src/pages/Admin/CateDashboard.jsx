@@ -12,14 +12,13 @@ import { toast } from "react-toastify";
 import GenericTable from "../../components/GenericTable";
 import {
   useDeleteCategoryMutation,
-  useUploadCategoryImageMutation,
   useCreateNewCategoryMutation,
   useUpdateCategoryMutation,
   useGetAllCategoriesQuery,
 } from "../../redux/api/categorySlice";
+import { useUploadImageMutation } from "../../redux/api/uploadSlice"; // Corrected import
 import FormBase from "../../components/FormBase";
 import PopoverPaper from "../../components/PopoverPaper";
-import { PRIMITIVE_URL } from "../../redux/constants";
 import { useNavigate, useSearchParams } from "react-router-dom";
 
 // Wrap GenericTable and PopoverPaper with memo
@@ -63,7 +62,7 @@ function CateDashBoard() {
   const [update, { isLoading: isLoadingUpdate }] = useUpdateCategoryMutation();
   const [deleteAll, { isLoading: isDeleteLoading }] =
     useDeleteCategoryMutation();
-  const [uploadCategoryImage] = useUploadCategoryImageMutation();
+  const [uploadImage] = useUploadImageMutation(); // Corrected hook usage
 
   const [selectedRow, setSelectedRow] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -208,14 +207,12 @@ function CateDashBoard() {
       let imageUrl = formData.img;
 
       if (selectedImage) {
-        const formDataWithImage = new FormData();
-        formDataWithImage.append("image", selectedImage);
-
         try {
-          const uploadResult = await uploadCategoryImage(
-            formDataWithImage
-          ).unwrap();
-          imageUrl = uploadResult.image;
+          const uploadResult = await uploadImage({
+            file: selectedImage,
+            type: "category",
+          }).unwrap(); // Pass file and type
+          imageUrl = uploadResult.viewLink; // Assuming the backend returns the URL in 'image'
         } catch (error) {
           console.error("Upload error:", error);
           toast.error(
@@ -259,14 +256,12 @@ function CateDashBoard() {
       let imageUrl = formData.img || selectedRow?.img;
 
       if (selectedImage) {
-        const formDataWithImage = new FormData();
-        formDataWithImage.append("image", selectedImage);
-
         try {
-          const uploadResult = await uploadCategoryImage(
-            formDataWithImage
-          ).unwrap();
-          imageUrl = uploadResult.image;
+          const uploadResult = await uploadImage({
+            file: selectedImage,
+            type: "category",
+          }).unwrap(); // Pass file and type
+          imageUrl = uploadResult.viewLink; // Assuming the backend returns the URL in 'image'
         } catch (error) {
           toast.error(
             "Lỗi khi upload ảnh: " + (error.data?.message || error.message)
@@ -409,11 +404,7 @@ function CateDashBoard() {
               {imagePreview || selectedRow?.img ? (
                 <img
                   loading="lazy"
-                  src={
-                    imagePreview
-                      ? imagePreview
-                      : `${PRIMITIVE_URL}${selectedRow?.img}`
-                  }
+                  src={imagePreview ? imagePreview : `${selectedRow?.img}`}
                   alt="Main Image"
                   style={{
                     maxHeight: "160px",

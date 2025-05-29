@@ -1,11 +1,10 @@
-import  Box  from "@mui/material/Box";
-import  CardMedia  from "@mui/material/CardMedia";
-import  Typography  from "@mui/material/Typography";
-import  {useTheme}  from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import CardMedia from "@mui/material/CardMedia";
+import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
-import { PRIMITIVE_URL } from "../../redux/constants";
 
 function CartPopoverItem({ item }) {
   const theme = useTheme();
@@ -42,7 +41,7 @@ function CartPopoverItem({ item }) {
             }}
             alt={item?.productSlug}
             image={
-              `${PRIMITIVE_URL}${item?.productImages}` ||
+              `${item?.productImages}` ||
               "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1hz8y9e1ubj5e@resize_w450_nl.webp"
             }
             loading="lazy"

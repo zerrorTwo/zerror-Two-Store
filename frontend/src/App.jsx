@@ -115,6 +115,7 @@ function App() {
             <Route element={<AdminAuth />}>
               <Route path="admin" element={<LayoutAdmin />}>
                 <Route
+                  index
                   path="dashboard"
                   element={
                     <Suspense fallback={<Loading />}>

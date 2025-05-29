@@ -32,7 +32,6 @@ export const uploadFileToCloudinary = async (file, folderType) => {
         }
 
         const mimeType = mime.lookup(file.originalname) || file.mimetype;
-        console.log(`Uploading to folder: ${FOLDER_MAPPINGS[folderType]}`);
         const result = await new Promise((resolve, reject) => {
             cloudinary.uploader.upload_stream(
                 {
@@ -47,7 +46,6 @@ export const uploadFileToCloudinary = async (file, folderType) => {
             ).end(file.buffer);
         });
 
-        console.log(`Uploaded to ${FOLDER_MAPPINGS[folderType]}: ${result.secure_url}`);
         return {
             fileId: result.public_id,
             viewLink: result.secure_url, // Direct URL for <img> tags

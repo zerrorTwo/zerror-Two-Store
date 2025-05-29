@@ -1,5 +1,5 @@
 export const WHITELIST_DOMAINS = [
-  "http://localhost:5173",
-  "http://localhost:3000",
+  process.env.FRONTEND_URL,
+  process.env.BACKEND_URL,
   "https://open.oapi.vn",
 ];

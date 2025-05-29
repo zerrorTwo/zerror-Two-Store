@@ -19,7 +19,6 @@ import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ClearIcon from "@mui/icons-material/Clear";
 import { useTheme } from "@mui/material/styles";
-import { PRIMITIVE_URL } from "../redux/constants";
 
 // Sorting functions remain the same
 const descendingComparator = (a, b, orderBy) => {
@@ -175,6 +174,7 @@ const GenericTable = ({
                       </TableCell>
                       {headCells.map((cell, cellIndex) => {
                         const cellValue = row[cell.id];
+                        console.log(cellValue);
                         return (
                           <TableCell
                             key={cellIndex}
@@ -199,7 +199,7 @@ const GenericTable = ({
                                 >
                                   <img
                                     loading="lazy"
-                                    src={`${PRIMITIVE_URL}${cellValue}`}
+                                    src={`${cellValue}`}
                                     alt={cellValue}
                                     style={{
                                       width: "auto",
