@@ -9,7 +9,6 @@ import "swiper/css/thumbs";
 
 import "./carousel.css";
 import PropTypes from "prop-types";
-import { PRIMITIVE_URL } from "../../redux/constants";
 
 function ProductDetailCarousel({ listImg }) {
   const [thumbsSwiper, setThumbsSwiper] = useState(null);
@@ -38,7 +37,7 @@ function ProductDetailCarousel({ listImg }) {
                   objectFit: "cover",
                 }}
                 alt="Product image"
-                image={`${PRIMITIVE_URL}${image}`}
+                image={`${image}`}
                 loading="lazy"
               />
             </SwiperSlide>
@@ -65,7 +64,7 @@ function ProductDetailCarousel({ listImg }) {
                   objectFit: "cover",
                 }}
                 alt="Product thumbnail"
-                image={`${PRIMITIVE_URL}${image}`}
+                image={`${image}`}
                 loading="lazy"
               />
             </SwiperSlide>

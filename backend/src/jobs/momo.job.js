@@ -20,10 +20,10 @@ const checkAndRetryMomoPayment = async (order) => {
       orderId: order._id.toString(),
       amount: order.finalTotal,
       orderInfo: "Thanh toán đơn hàng",
-      redirectUrl: "http://localhost:5173/thanks",
+      redirectUrl: `${process.env.FRONTEND_URL}/thanks`,
       ipnUrl:
         process.env.MOMO_IPN_URL ||
-        "http://localhost:5000/v1/api/payment/momo/callback",
+        `${process.env.BACKEND_URL}/v1/api/payment/momo/callback`,
       extraData: "",
     });
 

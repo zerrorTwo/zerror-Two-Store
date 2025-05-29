@@ -5,7 +5,6 @@ import Typography from "@mui/material/Typography";
 import Divider from "@mui/material/Divider";
 import Button from "@mui/material/Button";
 import CircularProgress from "@mui/material/CircularProgress";
-import { PRIMITIVE_URL } from "../../../redux/constants";
 import PropTypes from "prop-types";
 import { useState } from "react";
 import Popover from "@mui/material/Popover";
@@ -252,7 +251,7 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
             {order.products.map((product, idx) => (
               <Box key={idx} sx={{ display: "flex", gap: 2, my: 2 }}>
                 <img
-                  src={`${PRIMITIVE_URL}${product.mainImg}`}
+                  src={`${product.mainImg}`}
                   alt={product.name}
                   style={{ width: 80, height: 80, objectFit: "cover" }}
                 />

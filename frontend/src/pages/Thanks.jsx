@@ -1,7 +1,8 @@
-import  Box  from "@mui/material/Box";
-import  CardMedia  from "@mui/material/CardMedia";
-import  Container  from "@mui/material/Container";
-import  Typography  from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import CardMedia from "@mui/material/CardMedia";
+import Container from "@mui/material/Container";
+import Typography from "@mui/material/Typography";
+import { Link } from "react-router";
 
 function Thanks() {
   return (
@@ -25,13 +26,19 @@ function Thanks() {
         <Typography
           sx={{
             textDecoration: "underline",
-            color: "secondary.main",
             cursor: "pointer",
           }}
           variant="h5"
           gutterBottom
         >
-          Go to your order &gt;
+          <Link
+            style={{
+              color: "orange",
+            }}
+            to={"/profile/my-order"}
+          >
+            Go to your order &gt;
+          </Link>
         </Typography>
       </Box>
     </Container>

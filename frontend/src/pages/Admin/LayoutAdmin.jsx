@@ -19,7 +19,6 @@ import {
   Avatar,
 } from "@mui/material";
 import NavAdminItem from "../../components/NavAdminItem";
-import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
 import Inventory2OutlinedIcon from "@mui/icons-material/Inventory2Outlined";
 import ShoppingCartOutlinedIcon from "@mui/icons-material/ShoppingCartOutlined";
 import CategoryOutlinedIcon from "@mui/icons-material/CategoryOutlined";
@@ -33,6 +32,8 @@ import {
 import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import BarChartIcon from "@mui/icons-material/BarChart";
 import ReceiptOutlinedIcon from "@mui/icons-material/ReceiptOutlined";
+import { useSelector } from "react-redux";
+import { selectCurrentUser } from "../../redux/features/auth/authSlice";
 
 const Item = styled(Paper)(({ theme }) => ({
   backgroundColor: "transparent",
@@ -45,7 +46,6 @@ const Item = styled(Paper)(({ theme }) => ({
 const MemoizedNavAdminItem = memo(NavAdminItem);
 
 const menuItems = [
-  { icon: <HomeOutlinedIcon />, text: "Home", path: "/admin/home" },
   { icon: <BarChartIcon />, text: "Dashboard", path: "/admin/dashboard" },
   {
     icon: <AddCircleOutlineIcon />,
@@ -69,6 +69,7 @@ function LayoutAdmin() {
   const [anchorEl, setAnchorEl] = useState(null);
   const [avatarAnchorEl, setAvatarAnchorEl] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
+  const user = useSelector(selectCurrentUser);
 
   const handleMenuClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -172,8 +173,40 @@ function LayoutAdmin() {
         </Box>
 
         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-          <IconButton onClick={handleAvatarClick} sx={{ p: 0 }}>
-            <Avatar alt="User Avatar" src="/Assets/avatar.png" />
+          <IconButton
+            onClick={handleAvatarClick}
+            sx={{
+              p: 0,
+              mr: 0,
+              bgcolor: "primary.main",
+              borderRadius: 6,
+              py: 1,
+              px: 5,
+              "&:hover": { bgcolor: "primary.dark" },
+            }}
+          >
+            <Avatar
+              src={user?.avatar}
+              sx={{
+                width: 40,
+                height: 40,
+                bgcolor: "secondary.main",
+                fontSize: "2rem",
+              }}
+            />
+            <Typography
+              fontWeight="bold"
+              ml={0.5}
+              variant="caption"
+              sx={{
+                maxWidth: "100px",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {user.userName}
+            </Typography>
           </IconButton>
           <Menu
             anchorEl={avatarAnchorEl}

@@ -26,7 +26,6 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import PaymentIcon from "@mui/icons-material/Payment";
 import ReceiptIcon from "@mui/icons-material/Receipt";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
-import { PRIMITIVE_URL } from "../../redux/constants";
 import CancelIcon from "@mui/icons-material/Cancel";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -328,7 +327,7 @@ function OrderDetailDashBoard() {
                 <Grid item xs={12} sm={2}>
                   <Avatar
                     variant="rounded"
-                    src={`${PRIMITIVE_URL}${product.mainImg}`}
+                    src={`${product.mainImg}`}
                     alt={product.name}
                     sx={{ width: 80, height: 80 }}
                   />

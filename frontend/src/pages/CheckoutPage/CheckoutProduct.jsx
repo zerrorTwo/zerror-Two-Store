@@ -2,7 +2,6 @@ import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
 import CardMedia from "@mui/material/CardMedia";
 import PropTypes from "prop-types"; // Import PropTypes
-import { PRIMITIVE_URL } from "../../redux/constants";
 import { Grid2 } from "@mui/material";
 
 function CheckoutProduct({ item, name, img, price }) {
@@ -14,7 +13,7 @@ function CheckoutProduct({ item, name, img, price }) {
             <Box display="flex" flexDirection="row" gap={1} overflow="hidden">
               <CardMedia
                 component="img"
-                src={`${PRIMITIVE_URL}${img}`}
+                src={`${img}`}
                 sx={{ height: "80px", width: "auto", objectFit: "cover" }}
                 loading="lazy"
               />

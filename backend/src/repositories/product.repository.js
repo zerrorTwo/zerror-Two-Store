@@ -173,7 +173,7 @@ const getCategoryHierarchy = async (categorySlug) => {
     return {
       parents: [],
       current: null,
-      children: []
+      children: [],
     };
   }
 
@@ -185,7 +185,11 @@ const getCategoryHierarchy = async (categorySlug) => {
     const parent = await CategoryModel.findById(parentCategoryRef);
     if (parent) {
       // Đảm bảo chỉ lấy name, slug, và _id của danh mục cha
-      parents.unshift({ name: parent.name, slug: parent.slug, _id: parent._id });
+      parents.unshift({
+        name: parent.name,
+        slug: parent.slug,
+        _id: parent._id,
+      });
       parentCategoryRef = parent.parent;
     } else {
       break; // Dừng nếu không tìm thấy danh mục cha
@@ -199,19 +203,23 @@ const getCategoryHierarchy = async (categorySlug) => {
     // và chỉ chọn các trường name, slug
     const childCategories = await CategoryModel.find(
       { _id: { $in: currentCategory.children } },
-      'name slug' // Chỉ lấy trường 'name' và 'slug'
+      "name slug" // Chỉ lấy trường 'name' và 'slug'
     );
-    childCategories.forEach(child => {
+    childCategories.forEach((child) => {
       children.push({ name: child.name, slug: child.slug, _id: child._id }); // Thêm _id nếu bạn cần nó cho các thao tác khác
     });
   }
   const result = {
     parents: parents,
-    current: { name: currentCategory.name, slug: currentCategory.slug, _id: currentCategory._id },
-    children: children
-  }
+    current: {
+      name: currentCategory.name,
+      slug: currentCategory.slug,
+      _id: currentCategory._id,
+    },
+    children: children,
+  };
   // 4. Trả về kết quả
-  return result
+  return result;
 };
 // Lấy sản phẩm có phân trang
 const getPageProducts = async (
@@ -386,7 +394,7 @@ const getPageProducts = async (
     const [result] = await ProductModel.aggregate(productsPipeline).exec();
     const totalProducts = result.total[0]?.count || 0;
     const products = result.products || [];
-    const refCategories = await getCategoryHierarchy(category)
+    const refCategories = await getCategoryHierarchy(category);
 
     return {
       page,
@@ -394,7 +402,7 @@ const getPageProducts = async (
       totalPages: Math.ceil(totalProducts / limit),
       totalProducts,
       products,
-      refCategories
+      refCategories,
     };
   } catch (error) {
     throw new Error("Failed to fetch products");
@@ -604,6 +612,91 @@ const getProductWithBreadcrumbById = async (productId) => {
   }
 };
 
+const getRandomPageProducts = async () => {
+  try {
+    const limit = 30; // Giới hạn cứng 30 sản phẩm
+
+    const productsPipeline = [
+      // Chỉ lấy các sản phẩm có trạng thái là true
+      { $match: { status: true } },
+      {
+        $addFields: {
+          normalizedPricing: {
+            $cond: [
+              { $isArray: "$variations.pricing" },
+              "$variations.pricing",
+              {
+                $cond: [
+                  { $eq: [{ $type: "$variations.pricing" }, "object"] },
+                  [{ $ifNull: ["$variations.pricing", {}] }],
+                  [],
+                ],
+              },
+            ],
+          },
+        },
+      },
+      {
+        $addFields: {
+          minPrice: {
+            $cond: [
+              { $gt: [{ $size: { $ifNull: ["$normalizedPricing", []] } }, 0] },
+              { $min: "$normalizedPricing.price" },
+              "$price",
+            ],
+          },
+        },
+      },
+      { $sample: { size: limit } }, // Lấy ngẫu nhiên 30 sản phẩm
+      {
+        $lookup: {
+          from: "categories",
+          localField: "type",
+          foreignField: "_id",
+          as: "typeInfo",
+        },
+      },
+      {
+        $unwind: { path: "$typeInfo", preserveNullAndEmptyArrays: true },
+      },
+      {
+        $project: {
+          _id: 1,
+          name: 1,
+          description: 1,
+          slug: 1,
+          mainImg: 1,
+          img: 1,
+          price: 1,
+          stock: 1,
+          variations: 1,
+          totalSold: 1,
+          minPrice: 1,
+          totalStock: 1,
+          rating: 1,
+          numReviews: 1,
+          type: "$typeInfo.name",
+          status: 1,
+          createdAt: 1,
+          tag: 1,
+        },
+      },
+    ];
+
+    const products = await ProductModel.aggregate(productsPipeline).exec();
+    const totalProducts = products.length; // Số lượng sản phẩm thực tế lấy được
+
+    return {
+      limit,
+      totalProducts,
+      products,
+    };
+  } catch (error) {
+    console.error("Error in getRandomPageProducts (repository):", error);
+    throw new Error("Failed to fetch random products");
+  }
+};
+
 export const productRepository = {
   findProductByName,
   findCategoryBySlug,
@@ -620,4 +713,5 @@ export const productRepository = {
   findProductsByIds,
   findProductIdByIds,
   getProductWithBreadcrumbById,
+  getRandomPageProducts,
 };

@@ -1,18 +1,18 @@
-import  Box  from "@mui/material/Box";
-import  Button  from "@mui/material/Button";
-import  Divider  from "@mui/material/Divider";
-import  Typography  from "@mui/material/Typography";
-import  {useTheme}  from "@mui/material/styles";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Divider from "@mui/material/Divider";
+import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 import ProductMini from "../ProductMini";
 import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
-import  Grid2  from "@mui/material/Grid2";
+import Grid2 from "@mui/material/Grid2";
 
 function Suggest({ listProducts }) {
   const theme = useTheme();
 
   return (
-    <Box  pb={5}>
+    <Box pb={5}>
       {/* Header */}
       <Box
         sx={{
@@ -65,6 +65,7 @@ function Suggest({ listProducts }) {
             color="primary"
             size="large"
             sx={{ px: 10 }}
+            onClick={() => (window.location.href = "/search")}
           >
             See more
           </Button>

@@ -11,6 +11,7 @@ const findByEmail = async ({
     number: 1,
     googleId: 1,
     isVerified: 1,
+    avatar: 1
   },
 }) => {
   return await UserModel.findOne({ email: email }).select(select).lean();

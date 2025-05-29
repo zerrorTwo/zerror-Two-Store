@@ -1,6 +1,6 @@
-import { StatusCodes } from "http-status-codes";
+import {StatusCodes} from "http-status-codes";
 import asyncHandeler from "../middlewares/async.handler.js";
-import { categoryService } from "../services/category.service.js";
+import {categoryService} from "../services/category.service.js";
 
 const getAllCategories = asyncHandeler(async (req, res) => {
   const categories = await categoryService.getAllCategories(req, res);
@@ -26,7 +26,7 @@ const getPageCategory = asyncHandeler(async (req, res) => {
 });
 
 const getChildCategories = asyncHandeler(async (req, res) => {
-  const { id } = req.params;
+  const {id} = req.params;
   const categories = await categoryService.getChildCategories(id);
   res.status(StatusCodes.OK).json(categories);
 });
@@ -38,7 +38,7 @@ const createCategory = asyncHandeler(async (req, res) => {
 });
 
 const updateCategory = asyncHandeler(async (req, res) => {
-  const { id } = req.params;
+  const {id} = req.params;
   const data = req.body;
   const categories = await categoryService.updateCategory(id, data);
   res.status(StatusCodes.OK).json(categories);

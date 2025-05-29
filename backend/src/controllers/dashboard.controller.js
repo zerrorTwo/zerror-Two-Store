@@ -1,9 +1,9 @@
-import { dashboardService } from "../services/dashboard.service.js";
+import {dashboardService} from "../services/dashboard.service.js";
 import asyncHandler from "express-async-handler";
-import { StatusCodes } from "http-status-codes";
+import {StatusCodes} from "http-status-codes";
 
 const getChartData = asyncHandler(async (req, res) => {
-  const { timeframe } = req.query;
+  const {timeframe} = req.query;
 
   // Validate timeframe
   if (!timeframe || !['day', 'month', 'year'].includes(timeframe)) {
@@ -23,7 +23,7 @@ const getStats = asyncHandler(async (req, res) => {
 });
 
 const getDistribution = asyncHandler(async (req, res) => {
-  const { timeframe } = req.query;
+  const {timeframe} = req.query;
   const distribution = await dashboardService.getDistribution(timeframe);
   res.status(StatusCodes.OK).json(distribution);
 });

@@ -8,7 +8,6 @@ import { Radio } from "@mui/material/Radio";
 import { RadioGroup } from "@mui/material/RadioGroup";
 import { Typography } from "@mui/material/Typography";
 import InputBase from "../InputBase";
-import { PRIMITIVE_URL } from "../../redux/constants";
 import CategorySelect from "../CategorySelect";
 
 const InformationTab = ({
@@ -132,7 +131,7 @@ const InformationTab = ({
             <img
               src={
                 typeof formData.mainImg === "string"
-                  ? `${PRIMITIVE_URL}${formData.mainImg}`
+                  ? `${formData.mainImg}`
                   : URL.createObjectURL(formData.mainImg)
               }
               alt="Main Image"
@@ -173,7 +172,7 @@ const InformationTab = ({
             <img
               src={
                 typeof formData.img[0] === "string"
-                  ? `${PRIMITIVE_URL}${formData.img[0]}`
+                  ? `${formData.img[0]}`
                   : URL.createObjectURL(formData.img[0])
               }
               alt="Image 1"
@@ -214,7 +213,7 @@ const InformationTab = ({
             <img
               src={
                 typeof formData.img[1] === "string"
-                  ? `${PRIMITIVE_URL}${formData.img[1]}`
+                  ? `${formData.img[1]}`
                   : URL.createObjectURL(formData.img[1])
               }
               alt="Image 2"
@@ -255,7 +254,7 @@ const InformationTab = ({
             <img
               src={
                 typeof formData.img[2] === "string"
-                  ? `${PRIMITIVE_URL}${formData.img[2]}`
+                  ? `${formData.img[2]}`
                   : URL.createObjectURL(formData.img[2])
               }
               alt="Image 3"

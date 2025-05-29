@@ -7,6 +7,7 @@ import {
   getProductById,
   getProductBySlug,
   getProductWithBreadcrumbById,
+  getRandomPageProducts,
   getTopSoldProducts,
   updateProduct,
 } from "../../controllers/product.controller.js";
@@ -15,6 +16,7 @@ import { authentication, authorization } from "../../auth/auth.util.js";
 const Router = express.Router();
 Router.route("/").get(getPageProducts);
 Router.route("/all").get(getAllProducts);
+Router.route("/random").get(getRandomPageProducts);
 Router.route("/top").get(getTopSoldProducts);
 Router.route("/:slug").get(getProductBySlug);
 Router.route("/select/:id").get(getProductById);

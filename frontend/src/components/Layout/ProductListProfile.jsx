@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { styled } from "@mui/material/styles";
-import { PRIMITIVE_URL } from "../../redux/constants";
 import PropTypes from "prop-types";
 
 const ProductImage = styled("img")({
@@ -113,7 +112,7 @@ const ProductListProfile = ({ title, selector, removeAction, icon }) => {
                         {product.image && (
                           <ProductImage
                             loading="lazy"
-                            src={`${PRIMITIVE_URL}${product?.image}`}
+                            src={`${product?.image}`}
                             alt={product.name}
                           />
                         )}

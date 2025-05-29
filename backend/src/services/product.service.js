@@ -157,6 +157,20 @@ const getProductWithBreadcrumbById = async (productId) => {
   }
 };
 
+const getRandomPageProducts = async (limit) => {
+  try {
+    const randomProductsData = await productRepository.getRandomPageProducts(
+      limit
+    );
+    return randomProductsData;
+  } catch (error) {
+    console.error(
+      `Error in product.service.js - getRandomPageProducts: ${error.message}`
+    );
+    throw new Error("Failed to retrieve random products.");
+  }
+};
+
 export const productService = {
   getAllProducts,
   createProduct,
@@ -168,4 +182,5 @@ export const productService = {
   getProductById,
   getTopSoldProducts,
   getProductWithBreadcrumbById,
+  getRandomPageProducts,
 };

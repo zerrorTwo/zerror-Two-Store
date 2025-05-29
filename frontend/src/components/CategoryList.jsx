@@ -15,7 +15,6 @@ import {
   useUploadCategoryImageMutation,
 } from "../redux/api/categorySlice.js";
 import { toast } from "react-toastify";
-import { PRIMITIVE_URL } from "../redux/constants.js";
 
 const CategoryList = memo(({ category, isLoading }) => {
   const [anchorEl, setAnchorEl] = useState(null);
@@ -39,7 +38,7 @@ const CategoryList = memo(({ category, isLoading }) => {
     setAnchorEl(event.currentTarget);
     setSelectedItem(item);
     setSelectedImage(item.img);
-    setImagePreview(item.img ? `${PRIMITIVE_URL}${item.img}` : null);
+    setImagePreview(item.img ? `${item.img}` : null);
     setFormData({
       name: item.name || "",
     });

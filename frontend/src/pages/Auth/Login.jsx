@@ -23,6 +23,7 @@ import { IconButton, InputAdornment, Tooltip } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
+import { PRIMITIVE_URL } from "../../redux/constants";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -89,7 +90,7 @@ function Login() {
   };
 
   const handleGoogleLogin = () => {
-    window.location.href = "http://localhost:5000/v1/api/auth/google/login";
+    window.location.href = `${PRIMITIVE_URL}/v1/api/auth/google/login`;
   };
 
   return (
