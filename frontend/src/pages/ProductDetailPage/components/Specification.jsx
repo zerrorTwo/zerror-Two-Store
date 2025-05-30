@@ -2,7 +2,7 @@ import { Box, Breadcrumbs, Typography } from "@mui/material";
 import PropTypes from "prop-types";
 import Link from "@mui/material/Link";
 
-function Specification({ handleClick }) {
+function Specification({ handleClick, breadcrumb }) {
   return (
     <Box px={2} py={2} boxShadow={"rgba(149, 157, 165, 0.2) 0px 8px 24px"}>
       <Box>
@@ -16,15 +16,33 @@ function Specification({ handleClick }) {
             </Typography>
             <div role="presentation" onClick={handleClick}>
               <Breadcrumbs aria-label="breadcrumb">
-                <Link underline="hover" color="#05a" href="/">
-                  MUI
-                </Link>
-                <Link underline="hover" color="#05a" href="/">
-                  Core
-                </Link>
-                <Typography sx={{ color: "text.blackColor" }}>
-                  Breadcrumbs
-                </Typography>
+                {breadcrumb && breadcrumb.length > 0 ? (
+                  breadcrumb.map((item, index) => {
+                    const isLast = index === breadcrumb.length - 1;
+                    return isLast ? (
+                      <Typography
+                        key={item.slug}
+                        sx={{ color: "text.blackColor" }}
+                      >
+                        {item.name}
+                      </Typography>
+                    ) : (
+                      <Link
+                        key={item.slug}
+                        underline="hover"
+                        color="#05a"
+                        href={`/search?page=1&limit=30&category=${item.slug}`}
+                        onClick={handleClick}
+                      >
+                        {item.name}
+                      </Link>
+                    );
+                  })
+                ) : (
+                  <Typography sx={{ color: "text.blackColor" }}>
+                    No category
+                  </Typography>
+                )}
               </Breadcrumbs>
             </div>
           </Box>
@@ -63,6 +81,12 @@ function Specification({ handleClick }) {
 
 Specification.propTypes = {
   handleClick: PropTypes.func,
+  breadcrumb: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      slug: PropTypes.string.isRequired,
+    })
+  ),
 };
 
 export default Specification;

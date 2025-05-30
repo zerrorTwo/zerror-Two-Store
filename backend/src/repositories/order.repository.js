@@ -173,23 +173,7 @@ const findOrdersWithDetails = async (orderIds) => {
         sortIndex: {
           $indexOfArray: [orderIds.map((o) => o._id), "$_id"],
         },
-        canReview: {
-          $cond: {
-            if: {
-              $and: [
-                { $ifNull: ["$deliveryDate", false] },
-                {
-                  $gte: [
-                    "$deliveryDate",
-                    new Date(new Date().setDate(new Date().getDate() - 7)),
-                  ],
-                },
-              ],
-            },
-            then: true,
-            else: false,
-          },
-        },
+        canReview: "$canReview",
       },
     },
     {
@@ -457,6 +441,11 @@ const updateOrderDeliveryState = async (orderId, deliveryState) => {
 
   const updateData = {
     deliveryState,
+    ...(deliveryState === "SHIPPED" && {
+      $set: {
+        "products.$[].variations.$[].canReview": true,
+      },
+    }),
     ...(deliveryState === "DELIVERED" && {
       state: "COMPLETED",
       paymentStatus: "PAID",
@@ -464,11 +453,10 @@ const updateOrderDeliveryState = async (orderId, deliveryState) => {
     }),
   };
 
-  await OrderModel.findByIdAndUpdate(orderId, updateData);
+  await OrderModel.findByIdAndUpdate(orderId, updateData, { new: true });
 
   return await OrderModel.findById(orderId).lean();
 };
-
 const getRecentOrders = async (limit = 10) => {
   const orders = await OrderModel.aggregate([
     {
@@ -503,6 +491,56 @@ const getRecentOrders = async (limit = 10) => {
   return orders;
 };
 
+const updateUserReview = async (
+  orderId,
+  productId,
+  variation,
+  options = {}
+) => {
+  try {
+    // Validate orderId
+    if (!mongoose.Types.ObjectId.isValid(orderId)) {
+      throw new Error("Invalid order ID");
+    }
+
+    // Validate productId
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      throw new Error("Invalid product ID");
+    }
+
+    // Construct the update object to target the specific variation's canReview field
+    const update = {
+      $set: {
+        "products.$[prod].variations.$[var].canReview": false, // Set canReview to false
+      },
+    };
+
+    // Define array filters to find the correct product and variation
+    const arrayFilters = [
+      { "prod.productId": new mongoose.Types.ObjectId(productId) },
+      { "var.type": variation }, // Match the variation type (e.g., { color: 'Red' })
+    ];
+
+    // Perform the update
+    const updatedOrder = await OrderModel.findByIdAndUpdate(orderId, update, {
+      ...options,
+      new: true, // Return the updated document
+      runValidators: true, // Ensure schema validation
+      arrayFilters: arrayFilters, // Apply the array filters
+    }).lean();
+
+    if (!updatedOrder) {
+      throw new Error(
+        "Order not found or product/variation not found within the order"
+      );
+    }
+
+    return updatedOrder;
+  } catch (error) {
+    throw new Error(`Failed to update order: ${error.message}`);
+  }
+};
+
 export const orderRepository = {
   findAddressById,
   findCartItemsByUserId,
@@ -521,4 +559,5 @@ export const orderRepository = {
   updateOrderState,
   updateOrderDeliveryState,
   getRecentOrders,
+  updateUserReview,
 };

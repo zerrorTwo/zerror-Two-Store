@@ -20,7 +20,6 @@ import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import ClearIcon from "@mui/icons-material/Clear";
 import { useTheme } from "@mui/material/styles";
 
-// Sorting functions remain the same
 const descendingComparator = (a, b, orderBy) => {
   if (b[orderBy] < a[orderBy]) return -1;
   if (b[orderBy] > a[orderBy]) return 1;
@@ -58,7 +57,6 @@ const GenericTable = ({
   const [orderBy, setOrderBy] = useState(headCells[0].id);
   const [openDialog, setOpenDialog] = useState(false);
 
-  // Event handlers remain the same
   const handleRequestSort = (event, property) => {
     const isAsc = orderBy === property && order === "asc";
     setOrder(isAsc ? "desc" : "asc");
@@ -174,7 +172,6 @@ const GenericTable = ({
                       </TableCell>
                       {headCells.map((cell, cellIndex) => {
                         const cellValue = row[cell.id];
-                        console.log(cellValue);
                         return (
                           <TableCell
                             key={cellIndex}
@@ -258,7 +255,7 @@ const GenericTable = ({
                                   }}
                                 >
                                   <Tooltip title={String(cellValue)}>
-                                    {String(cellValue)}
+                                    <span>{String(cellValue)}</span>
                                   </Tooltip>
                                 </Box>
                               )
@@ -299,7 +296,6 @@ const GenericTable = ({
                               </IconButton>
                             </Tooltip>
                           )}
-
                           {handleMoreClick && (
                             <Tooltip title="More">
                               <IconButton

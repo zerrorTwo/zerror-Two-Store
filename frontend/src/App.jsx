@@ -17,6 +17,7 @@ import MyFavorite from "./pages/ProfilePage/MyFavorite";
 import MyRecent from "./pages/ProfilePage/MyRecent";
 import VerifyEmail from "./pages/Auth/VerifyEmail";
 import ForgotPassword from "./pages/Auth/ForgotPassword";
+import EventDasboard from "./pages/Admin/EventDashBoard";
 
 // Lazy load all other components
 const Home = lazy(() => import("./pages/Home"));
@@ -200,6 +201,14 @@ function App() {
                   element={
                     <Suspense fallback={<Loading />}>
                       <UserDashboard />
+                    </Suspense>
+                  }
+                />
+                <Route
+                  path="event"
+                  element={
+                    <Suspense fallback={<Loading />}>
+                      <EventDasboard />
                     </Suspense>
                   }
                 />

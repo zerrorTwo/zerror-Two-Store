@@ -13,8 +13,8 @@ export const reviewSlice = apiSlice.injectEndpoints({
       keepUnusedDataFor: 5,
     }),
     getAllProductReviews: builder.query({
-      query: (id) => ({
-        url: `${REVIEW_URL}/product/${id}`,
+      query: ({ id, page, limit }) => ({
+        url: `${REVIEW_URL}?productId=${id}&page=${page}&limit=${limit}`,
         method: "GET",
       }),
       providesTags: ["Review"],
@@ -28,9 +28,6 @@ export const reviewSlice = apiSlice.injectEndpoints({
       }),
       invalidatesTags: ["Review"],
     }),
-
-
-   
   }),
 });
 

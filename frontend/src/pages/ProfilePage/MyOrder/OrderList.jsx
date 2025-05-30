@@ -32,7 +32,7 @@ const styles = {
     "100%": { opacity: 1 },
   },
   loadingContainer: {
-    minHeight: "200px", // Set a minimum height
+    minHeight: "200px",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -46,11 +46,13 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
   const [ratingAnchorEl, setRatingAnchorEl] = useState(null);
   const [paymentAnchorEl, setPaymentAnchorEl] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
-  const handleRatingClick = (event, order) => {
+  const handleRatingClick = (event, order, product) => {
     if (paymentAnchorEl) setPaymentAnchorEl(null);
     setRatingAnchorEl(event.currentTarget);
     setSelectedOrder(order);
+    setSelectedProduct(product);
   };
 
   const handlePayClick = (event, order) => {
@@ -64,6 +66,7 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
     setPaymentAnchorEl(null);
     setTimeout(() => {
       setSelectedOrder(null);
+      setSelectedProduct(null);
     }, 300);
   };
 
@@ -71,7 +74,7 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
 
   const handleSubmitReview = async ({ rating, comment }) => {
     try {
-      const json = selectedOrder?.products[0]?.variations[0]?.type;
+      const json = selectedProduct?.variations[0]?.type;
 
       const result = json
         ? Object.entries(json)
@@ -85,12 +88,12 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
           comment: comment,
           variations: result,
           orderId: selectedOrder._id,
-          productId: selectedOrder?.products[0]?.productId,
+          productId: selectedProduct?.productId,
         },
-      });
+      }).unwrap();
       toast.success("Review added successfully!");
     } catch (error) {
-      toast.error(error);
+      toast.error(error?.data?.message || "Failed to add review");
     }
     handleClose();
   };
@@ -282,13 +285,30 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
                       ₫{product.variations[0]?.price?.toLocaleString()}
                     </Typography>
                   </Box>
-                  <Typography variant="h6" color="secondary.main">
-                    ₫
-                    {(
-                      product.variations[0]?.price *
-                      product.variations[0]?.quantity
-                    )?.toLocaleString()}
-                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography variant="h6" color="secondary.main">
+                      ₫
+                      {(
+                        product.variations[0]?.price *
+                        product.variations[0]?.quantity
+                      )?.toLocaleString()}
+                    </Typography>
+                    {product.variations[0]?.canReview && (
+                      <Button
+                        sx={{
+                          minWidth: "100px",
+                          color: "white",
+                          bgcolor: "secondary.main",
+                          border: "none",
+                        }}
+                        variant="outlined"
+                        size="small"
+                        onClick={(e) => handleRatingClick(e, order, product)}
+                      >
+                        Đánh giá
+                      </Button>
+                    )}
+                  </Box>
                 </Box>
               </Box>
             ))}
@@ -308,27 +328,8 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
                 <Typography variant="body1">
                   Phí vận chuyển: ₫{order.deliveryFee?.toLocaleString()}
                 </Typography>
-                {order?.canReview && (
-                  <Typography variant="body1" color="secondary.main">
-                    Đánh giá san pham di con cho
-                  </Typography>
-                )}
               </Box>
               <Box sx={{ display: "flex", gap: 1 }}>
-                {order.canReview && (
-                  <Button
-                    sx={{
-                      color: "white",
-                      bgcolor: "secondary.main",
-                      border: "none",
-                    }}
-                    variant="outlined"
-                    size="small"
-                    onClick={(e) => handleRatingClick(e, order)}
-                  >
-                    Đánh giá
-                  </Button>
-                )}
                 <Button
                   sx={{ color: "black", bgcolor: "#F5F5F5", border: "none" }}
                   variant="outlined"
@@ -338,22 +339,13 @@ function OrderList({ allOrders, lastOrderRef, isLoading, isFetching }) {
                 </Button>
                 {order.state === "DELIVERED" &&
                   order.paymentStatus === "PAID" && (
-                    <>
-                      <Button
-                        sx={{ color: "white", bgcolor: "secondary.main" }}
-                        variant="outlined"
-                        size="small"
-                      >
-                        Đánh giá
-                      </Button>
-                      <Button
-                        sx={{ color: "white", bgcolor: "secondary.main" }}
-                        variant="outlined"
-                        size="small"
-                      >
-                        Mua lại
-                      </Button>
-                    </>
+                    <Button
+                      sx={{ color: "white", bgcolor: "secondary.main" }}
+                      variant="outlined"
+                      size="small"
+                    >
+                      Mua lại
+                    </Button>
                   )}
                 {order.state === "PENDING" && (
                   <Button

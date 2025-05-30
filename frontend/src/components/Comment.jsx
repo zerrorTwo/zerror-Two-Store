@@ -1,35 +1,58 @@
-import  Avatar  from "@mui/material/Avatar";
-import  Box  from "@mui/material/Box";
-import  Rating  from "@mui/material/Rating";
-import  Typography  from "@mui/material/Typography";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Rating from "@mui/material/Rating";
+import Typography from "@mui/material/Typography";
+import PropTypes from "prop-types";
 
-function Comment() {
+function Comment({ avatar, userName, date, rating, comment, variations }) {
+  // Format ngày giờ
+  const formattedDate = new Date(date).toLocaleString("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
   return (
     <Box display={"flex"} gap={2}>
       <Box>
-        <Avatar alt="Remy Sharp" src="/static/images/avatar/1.jpg" />
+        <Avatar alt={userName} src={avatar || "/static/images/avatar/1.jpg"} />
       </Box>
-      <Box>
-        <Typography variant="body2">2024-05-15 11:42</Typography>
-        <Rating size="small" name="read-only" value={4} readOnly />
+      <Box mb={2}>
+        <Typography variant="body2" fontWeight="bold">
+          {userName}
+        </Typography>
+        <Typography variant="body2">{formattedDate}</Typography>
+        <Rating size="small" name="read-only" value={rating || 0} readOnly />
+        {variations && (
+          <Typography variant="body2" color="textSecondary">
+            Variation: {variations}
+          </Typography>
+        )}
         <pre
           style={{
             fontFamily: "'Roboto', 'Arial', sans-serif",
-            fontSize: "14px",
+            fontSize: "20px",
             whiteSpace: "pre-wrap",
             wordWrap: "break-word",
             margin: "0px",
           }}
         >
-          {`- Nhận được hàng khá là ưng vì quần mềm và sờ vào rất là mát
-- Shop phục vụ rất tốt,chuẩn bị hàng và giao hàng khá là nhanh
-- Mọi người nên mua nhé, ck mình 65kg mặc size M vừa xinh luôn. 
-- Lần sau sẽ quay lại ủng hộ shop,tặng cho shop 10 sao luôn nhé
-- Mua trên live nên giá rất là rẻ,3 cái mà chưa tới 100k nữa ý. Đáng mua nha mọi người`}
+          {comment || "No comment provided."}
         </pre>
       </Box>
     </Box>
   );
 }
+
+Comment.propTypes = {
+  avatar: PropTypes.string,
+  userName: PropTypes.string.isRequired,
+  date: PropTypes.string.isRequired,
+  rating: PropTypes.number.isRequired,
+  comment: PropTypes.string.isRequired,
+  variations: PropTypes.string,
+};
 
 export default Comment;

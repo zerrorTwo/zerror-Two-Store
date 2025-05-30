@@ -244,7 +244,7 @@ function Footer() {
                       }}
                     />
                   </Link>
-                  <Link to={"/"}>
+                  <Link to={"https://www.linkedin.com/in/htn0103/"}>
                     <LinkedInIcon
                       fontSize="large"
                       sx={{
@@ -262,7 +262,7 @@ function Footer() {
                       }}
                     />
                   </Link>
-                  <Link to={"/"}>
+                  <Link to={"https://github.com/zerrorTwo"}>
                     <GitHubIcon
                       fontSize="large"
                       sx={{

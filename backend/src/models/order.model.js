@@ -13,6 +13,7 @@ const cartItemSchema = new mongoose.Schema(
         price: { type: Number },
         quantity: { type: Number, required: true, default: 1 },
         checkout: { type: Boolean, required: true, default: false },
+        canReview: { type: Boolean, default: false },
       },
     ],
   },
@@ -83,13 +84,7 @@ const orderSchema = new mongoose.Schema(
   { timestamps: true, toJSON: { virtuals: true }, toObject: { virtuals: true } }
 );
 
-orderSchema.virtual("canReview").get(function () {
-  if (!this.deliveryDate) return false;
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-  return this.deliveryDate >= sevenDaysAgo;
-});
-
-const OrderModel = mongoose.models.Order || mongoose.model("Order", orderSchema);
+const OrderModel =
+  mongoose.models.Order || mongoose.model("Order", orderSchema);
 
 export default OrderModel;
