@@ -71,70 +71,27 @@ function OrderDetailDashBoard() {
     try {
       if (state === "CONFIRMED") {
         await updateOrderState({ orderId, state: "CONFIRMED" });
-        toast.success("Order confirmed successfully", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        toast.success("Order confirmed successfully");
       } else if (state === "CANCELLED") {
         await updateOrderState({ orderId, state: "CANCELLED" });
-        toast.info("Order cancelled", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        toast.info("Order cancelled");
       } else if (state === "COMPLETED") {
         await updateOrderState({ orderId, state: "COMPLETED" });
         await updateOrderDeliveryState({ orderId, deliveryState: "DELIVERED" });
-        toast.success("Order completed successfully", {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        });
+        toast.success("Order completed successfully");
       }
     } catch (error) {
-      toast.error(`Error: ${error.message || "Something went wrong"}`, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.error(`Error: ${error.message || "Something went wrong"}`);
     }
   };
 
   const handleDeliveryStateOrder = async () => {
     try {
       await updateOrderDeliveryState({ orderId, deliveryState: "SHIPPED" });
-      toast.success("Order shipped successfully", {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
+      toast.success("Order shipped successfully");
     } catch (error) {
       toast.error(
-        `Error: ${error.message || "Failed to update shipping status"}`,
-        {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        }
+        `Error: ${error.message || "Failed to update shipping status"}`
       );
     }
   };

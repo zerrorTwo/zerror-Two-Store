@@ -125,6 +125,7 @@ const getProductBySlug = async (slug) => {
         type: "$category.name",
         categorySlug: "$category.slug",
         status: 1,
+        rating: 1,
         createdAt: 1,
       },
     },

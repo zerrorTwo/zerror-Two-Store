@@ -146,12 +146,12 @@ function Detail({ data, quantity, setQuantity }) {
       {/* Rating sold */}
       <Box display="flex" gap={2}>
         <Box display="flex" alignItems="center" gap={1}>
-          <Typography variant="body1">4.8</Typography>
-          <Rating name="read-only" value={4.8} readOnly size="small" />
+          <Typography variant="body1">{data?.rating?.toFixed(1)}</Typography>
+          <Rating name="read-only" value={data?.rating} readOnly size="small" />
         </Box>
         <Divider orientation="vertical" flexItem />
         <Box display="flex" alignItems="center" gap={1}>
-          <Typography variant="body1">900</Typography>
+          <Typography variant="body1">{data?.totalSold}</Typography>
           <Typography variant="body1" color="text.primary">
             Ratings
           </Typography>

@@ -3,22 +3,70 @@ import { reviewRepository } from "../repositories/review.repository.js";
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
 
-const addReview = async (orderId, productId,userId,  variations,  rating, comment) => {
+const addReview = async (
+  orderId,
+  productId,
+  userId,
+  variations,
+  rating,
+  comment
+) => {
+  // Find the order
   const order = await orderRepository.findOrderById(orderId);
   if (!order) throw new ApiError(StatusCodes.NOT_FOUND, "Order not found");
 
+  // Find the product
   const product = await reviewRepository.findProductById(productId);
   if (!product) throw new ApiError(StatusCodes.NOT_FOUND, "Product not found");
 
-
+  // Validate rating
   if (rating < 0 || rating > 5) {
     throw new ApiError(StatusCodes.BAD_REQUEST, "Invalid rating value");
   }
 
-  const review = { userId, rating: Number(rating), comment, variations };
-  const updatedProduct = await reviewRepository.addReviewToProduct(productId, review);
+  // Validate comment
+  if (!comment || typeof comment !== "string" || comment.trim() === "") {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      "Comment is required and must be a non-empty string"
+    );
+  }
 
-  // Cập nhật số lượng và điểm trung bình
+  // Verify the product exists in the order and has canReview: true
+  const orderProduct = order.products.find(
+    (p) => p.productId.toString() === productId
+  );
+  if (!orderProduct) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      "Product not found in this order"
+    );
+  }
+
+  // Verify the variation and canReview
+  const variation = orderProduct.variations.find((v) => {
+    // Assuming variations is a string like "color:Red" or an object
+    const variationString = Object.entries(v.type)
+      .map(([key, value]) => `${key}:${value}`)
+      .join(",");
+    return variationString === variations;
+  });
+
+  if (!variation) {
+    throw new ApiError(
+      StatusCodes.BAD_REQUEST,
+      "Variation not found or cannot be reviewed"
+    );
+  }
+
+  // Add the review
+  const review = { userId, rating: Number(rating), comment, variations };
+  const updatedProduct = await reviewRepository.addReviewToProduct(
+    productId,
+    review
+  );
+
+  // Update numReviews and rating
   updatedProduct.numReviews = updatedProduct.reviews.length;
   updatedProduct.rating =
     updatedProduct.reviews.reduce((acc, item) => item.rating + acc, 0) /
@@ -26,6 +74,7 @@ const addReview = async (orderId, productId,userId,  variations,  rating, commen
 
   await updatedProduct.save();
 
+  await orderRepository.updateUserReview(orderId, productId, variation.type);
   return review;
 };
 
@@ -57,7 +106,8 @@ const deleteReview = async (productId, userId, reviewId) => {
   product.numReviews = product.reviews.length - 1;
   product.rating =
     product.numReviews > 0
-      ? (product.reviews.reduce((acc, item) => item.rating + acc, 0) - review.rating) /
+      ? (product.reviews.reduce((acc, item) => item.rating + acc, 0) -
+          review.rating) /
         product.numReviews
       : 0;
 

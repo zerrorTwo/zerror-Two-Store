@@ -195,7 +195,7 @@ function ProductDetail() {
       <Box sx={{ padding: 0, mb: 2 }}>
         <CustomTabPanel value={value} index={0}>
           <Suspense fallback={<CircularProgress />}>
-            <Specification />
+            <Specification breadcrumb={data?.categoryBreadcrumb} />
           </Suspense>
         </CustomTabPanel>
         <CustomTabPanel value={value} index={1}>
@@ -205,7 +205,7 @@ function ProductDetail() {
         </CustomTabPanel>
         <CustomTabPanel value={value} index={2}>
           <Suspense fallback={<CircularProgress />}>
-            <CommentCom />
+            <CommentCom productId={data?._id} />
           </Suspense>
         </CustomTabPanel>
         <Box sx={{ padding: 0, my: 2 }}>

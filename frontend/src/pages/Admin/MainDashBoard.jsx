@@ -106,7 +106,6 @@ const MainDashBoard = () => {
   const { data: productDistribution } =
     useGetProductDistributionQuery(timeRange);
   const { data: orders } = useGetRecentOrdersQuery(5);
-  console.log(orders);
   const handleExportClick = (event) => {
     setExportAnchorEl(event.currentTarget);
   };

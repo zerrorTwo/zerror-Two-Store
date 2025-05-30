@@ -15,7 +15,7 @@ const addReviewToProduct = async (productId, review) => {
 const getProductReviews = async (productId) => {
   return await ProductModel.findById(productId)
     .select("reviews")
-    .populate("reviews.userId", "userName");
+    .populate("reviews.userId", "userName avatar");
 };
 
 const removeReviewFromProduct = async (productId, reviewId) => {
