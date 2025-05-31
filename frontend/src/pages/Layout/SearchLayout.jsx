@@ -189,7 +189,6 @@ function SearchLayout() {
             <Grid2 size={2.2}>
               <Box>
                 <Typography
-                  onClick={() => (window.location.href = "/search")}
                   variant="h6"
                   sx={{
                     cursor: "pointer",
@@ -239,7 +238,6 @@ function SearchLayout() {
                             textDecoration: "none",
                             color: "#C94A00", // tương đương text.primary
                             fontWeight: "bold",
-                            paddingLeft: "16px", // pl: 2 => 8px * 2 = 16px
                           }}
                         >
                           <Typography
@@ -260,12 +258,11 @@ function SearchLayout() {
                         refCategories.children.map((child) => (
                           <Link
                             key={child._id}
-                            sx={{
+                            to={`/search?category=${child.slug}`}
+                            style={{
                               textDecoration: "none",
-                              color: "text.primary",
-                              pl: 4,
+                              color: "#333333", // tương đương text.primary
                             }}
-                            href={`search?category=${child.slug}`}
                           >
                             <Typography
                               sx={{
@@ -273,6 +270,8 @@ function SearchLayout() {
                                 WebkitBoxOrient: "vertical",
                                 overflow: "hidden",
                                 WebkitLineClamp: 1,
+                                textDecoration: "none",
+                                color: "#333333", // tương đương text.primary
                               }}
                               variant="body2"
                             >
@@ -286,8 +285,11 @@ function SearchLayout() {
                       {level1?.map((cat) => (
                         <Link
                           key={cat._id}
-                          sx={{ textDecoration: "none", color: "text.primary" }}
-                          href={`search?category=${cat.slug}`}
+                          to={`/search?category=${cat.slug}`}
+                          style={{
+                            textDecoration: "none",
+                            color: "#333333", // tương đương với text.primary
+                          }}
                         >
                           <Typography
                             sx={{
@@ -296,6 +298,8 @@ function SearchLayout() {
                               overflow: "hidden",
                               WebkitLineClamp: 1,
                               textOverflow: "ellipsis",
+                              textDecoration: "none",
+                              color: "#333333", // tương đương với text.primary
                             }}
                             variant="body2"
                           >
