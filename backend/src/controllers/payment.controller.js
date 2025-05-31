@@ -1,9 +1,9 @@
 import { StatusCodes } from "http-status-codes";
-import asyncHandeler from "../middlewares/async.handler.js";
+import asyncHandler from "../middlewares/async.handler.js";
 import { momoService } from "../services/momo.service.js";
 import ApiError from "../utils/api.error.js";
 
-const createMomoPayment = asyncHandeler(async (req, res) => {
+const createMomoPayment = asyncHandler(async (req, res) => {
   const { orderId } = req.body;
 
   const orderInfo = `Pay for order ${orderId}`;
@@ -31,7 +31,7 @@ const createMomoPayment = asyncHandeler(async (req, res) => {
   }
 });
 
-const verifyMomoPayment = asyncHandeler(async (req, res) => {
+const verifyMomoPayment = asyncHandler(async (req, res) => {
   try {
     const result = await momoService.verifyMomoPayment(req.body);
     res.status(StatusCodes.OK).json(result);
@@ -44,7 +44,7 @@ const verifyMomoPayment = asyncHandeler(async (req, res) => {
   }
 });
 
-const callbackMomoPayment = asyncHandeler(async (req, res) => {
+const callbackMomoPayment = asyncHandler(async (req, res) => {
   try {
     const result = await momoService.handleMomoCallback(req);
     res.status(StatusCodes.OK).json(result);
@@ -57,7 +57,7 @@ const callbackMomoPayment = asyncHandeler(async (req, res) => {
   }
 });
 
-const transactionStatus = asyncHandeler(async (req, res) => {
+const transactionStatus = asyncHandler(async (req, res) => {
   try {
     const { orderId } = req.body;
     const result = await momoService.transactionStatus(orderId);

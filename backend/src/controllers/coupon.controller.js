@@ -1,33 +1,33 @@
 import { StatusCodes } from "http-status-codes";
-import asyncHandeler from "../middlewares/async.handler.js";
+import asyncHandler from "../middlewares/async.handler.js";
 import { couponService } from "../services/coupon.service.js";
 
-const findAllCoupons = asyncHandeler(async (req, res) => {
+const findAllCoupons = asyncHandler(async (req, res) => {
   const { page, limit, search } = req.query;
   const coupons = await couponService.findAllCoupons(page, limit, search);
   res.status(StatusCodes.OK).json(coupons);
 });
 
-const findCouponByCode = asyncHandeler(async (req, res) => {
+const findCouponByCode = asyncHandler(async (req, res) => {
   const { code } = req.query;
   const coupon = await couponService.findCouponByCode(code);
   res.status(StatusCodes.OK).json(coupon || null);
 });
 
-const getAllCouponAvailable = asyncHandeler(async (req, res) => {
+const getAllCouponAvailable = asyncHandler(async (req, res) => {
   const userId = req.userId;
   const coupons = await couponService.getAllCouponAvailable(userId);
   res.status(StatusCodes.OK).json(coupons);
 });
 
-const getProductCoupon = asyncHandeler(async (req, res) => {
+const getProductCoupon = asyncHandler(async (req, res) => {
   const userId = req.userId;
   const productId = req.params.productId;
   const coupons = await couponService.getProductCoupon(userId, productId);
   res.status(StatusCodes.OK).json(coupons);
 });
 
-const createNewCoupon = asyncHandeler(async (req, res) => {
+const createNewCoupon = asyncHandler(async (req, res) => {
   const {
     name,
     description,
@@ -65,7 +65,7 @@ const createNewCoupon = asyncHandeler(async (req, res) => {
   res.status(StatusCodes.CREATED).json(coupon);
 });
 
-const checkPrivateCoupon = asyncHandeler(async (req, res) => {
+const checkPrivateCoupon = asyncHandler(async (req, res) => {
   const { code } = req.body;
   const userId = req.userId;
   const coupon = await couponService.checkPrivateCode(code, userId);
