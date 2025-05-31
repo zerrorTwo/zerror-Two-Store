@@ -31,7 +31,7 @@ function CouponSelector({
   return (
     <>
       {" "}
-      {disabled === true && (
+      {disabled === false && (
         <>
           <Box
             display="flex"
