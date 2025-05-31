@@ -186,11 +186,11 @@ function SearchLayout() {
       <Container>
         <Box py={2}>
           <Grid2 container spacing={3}>
-            <Grid2 size={2}>
+            <Grid2 size={2.2}>
               <Box>
                 <Typography
                   onClick={() => (window.location.href = "/search")}
-                  variant="h5"
+                  variant="h6"
                   sx={{
                     cursor: "pointer",
                     color: "text.primary",
@@ -209,7 +209,7 @@ function SearchLayout() {
                       {refCategories.parents?.map((parent) => (
                         <Link
                           key={parent._id}
-                          href={`search?category=${parent.slug}`}
+                          to={`/search?category=${parent.slug}`}
                           style={{
                             textDecoration: "none",
                             color: "#333333", // tương đương text.primary
@@ -223,6 +223,8 @@ function SearchLayout() {
                               overflow: "hidden",
                               WebkitLineClamp: 1,
                               textOverflow: "ellipsis",
+                              color: "text.primary",
+                              textDecoration: "none",
                             }}
                           >
                             {parent.name}
@@ -232,23 +234,23 @@ function SearchLayout() {
                       {refCategories.current && (
                         <Link
                           key={refCategories.current._id}
-                          sx={{
+                          to={`/search?category=${refCategories.current.slug}`}
+                          style={{
                             textDecoration: "none",
-                            color: "text.primary",
+                            color: "#C94A00", // tương đương text.primary
                             fontWeight: "bold",
-                            pl: 2,
+                            paddingLeft: "16px", // pl: 2 => 8px * 2 = 16px
                           }}
-                          href={`search?category=${refCategories.current.slug}`}
                         >
                           <Typography
-                            sx={{
+                            variant="body2"
+                            style={{
                               display: "-webkit-box",
                               WebkitBoxOrient: "vertical",
                               overflow: "hidden",
                               WebkitLineClamp: 1,
                               textOverflow: "ellipsis",
                             }}
-                            variant="body2"
                           >
                             {refCategories.current.name}
                           </Typography>
@@ -306,7 +308,7 @@ function SearchLayout() {
                 </Box>
                 <Divider sx={{ mt: 1.5 }} />
                 <Box display={"flex"} flexDirection={"column"} gap={2} my={2}>
-                  <Typography sx={{ color: "text.primary" }} variant="h6">
+                  <Typography sx={{ color: "text.primary" }} variant="body1">
                     Price
                   </Typography>
                   <Box
@@ -415,8 +417,12 @@ function SearchLayout() {
                     variant="contained"
                     fullWidth
                     sx={{
+                      boxShadow: "none",
                       bgcolor: "info.main",
                       color: "common.white",
+                      "&:hover": {
+                        boxShadow: "none",
+                      },
                     }}
                     onClick={handleApplyFilters}
                   >
@@ -425,7 +431,14 @@ function SearchLayout() {
                   <Button
                     variant="contained"
                     fullWidth
-                    sx={{ bgcolor: "secondary.main", color: "common.white" }}
+                    sx={{
+                      boxShadow: "none",
+                      bgcolor: "secondary.main",
+                      color: "common.white",
+                      "&:hover": {
+                        boxShadow: "none",
+                      },
+                    }}
                     onClick={handleClearFilters}
                   >
                     Clear
@@ -433,15 +446,7 @@ function SearchLayout() {
                 </Box>
               </Box>
             </Grid2>
-            <Grid2 size={{ xs: 10 }}>
-              {listError && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                  <AlertTitle>Error</AlertTitle>
-                  {listError?.data?.message ||
-                    listError?.message ||
-                    "An unexpected error occurred while loading products."}
-                </Alert>
-              )}
+            <Grid2 size={{ xs: 9.8 }}>
               <Box
                 display={"flex"}
                 alignItems={"center"}
@@ -508,6 +513,14 @@ function SearchLayout() {
                   Price up
                 </Button>
               </Box>
+              {listError && (
+                <Alert severity="error" sx={{ mb: 2 }}>
+                  <AlertTitle>Error</AlertTitle>
+                  {listError?.data?.message ||
+                    listError?.message ||
+                    "An unexpected error occurred while loading products."}
+                </Alert>
+              )}
               <Grid2 container spacing={1.5} ref={flashSaleRef}>
                 {listLoading ? (
                   <Box
