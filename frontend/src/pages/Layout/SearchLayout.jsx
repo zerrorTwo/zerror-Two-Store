@@ -9,12 +9,12 @@ import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Typography from "@mui/material/Typography";
 import MenuIcon from "@mui/icons-material/Menu";
-import CircularProgress from "@mui/material/CircularProgress";
+import CircularProgress from "@mui/material/CircularProgress"; // Import CircularProgress
 import { lazy, Suspense, useState, useEffect } from "react";
 import { useGetPageProductQuery } from "../../redux/api/productSlice";
 import { useInView } from "react-intersection-observer";
 import { CardMedia, Grid2, Pagination } from "@mui/material";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useGetCommonCategoryQuery } from "../../redux/api/categorySlice";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -22,33 +22,33 @@ import "react-toastify/dist/ReactToastify.css";
 const ProductMini = lazy(() => import("../../components/ProductMini"));
 
 function SearchLayout() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const query = new URLSearchParams(location.search);
 
   // State for query parameters
-  const [page, setPage] = useState(parseInt(searchParams.get("page")) || 1);
-  const [limit] = useState(parseInt(searchParams.get("limit")) || 30);
-  const [category] = useState(searchParams.get("category") || "");
-  const [search] = useState(searchParams.get("name") || "");
+  const [page, setPage] = useState(parseInt(query.get("page")) || 1);
+  const [limit] = useState(parseInt(query.get("limit")) || 30);
+  const [category] = useState(query.get("category") || "");
+  const [search] = useState(query.get("name") || "");
   const [appliedMinPrice, setAppliedMinPrice] = useState(
-    searchParams.get("minPrice") || "0"
+    query.get("minPrice") || "0"
   );
   const [appliedMaxPrice, setAppliedMaxPrice] = useState(
-    searchParams.get("maxPrice") || ""
+    query.get("maxPrice") || ""
   );
   const [appliedRating, setAppliedRating] = useState(
-    parseFloat(searchParams.get("rating")) || 0
+    parseFloat(query.get("rating")) || 0
   );
-  const [sort, setSort] = useState(searchParams.get("sort") || "sold-desc");
+  const [sort, setSort] = useState(query.get("sort") || "sold-desc"); // Default to "sold-desc" (Popular)
 
   // Temporary state for filters
   const [tempMinPrice, setTempMinPrice] = useState(
-    searchParams.get("minPrice") || "0"
+    query.get("minPrice") || "0"
   );
-  const [tempMaxPrice, setTempMaxPrice] = useState(
-    searchParams.get("maxPrice") || ""
-  );
+  const [tempMaxPrice, setTempMaxPrice] = useState(query.get("maxPrice") || "");
   const [tempRating, setTempRating] = useState(
-    parseFloat(searchParams.get("rating")) || 0
+    parseFloat(query.get("rating")) || 0
   );
 
   // Fetch product data with sort parameter
@@ -65,9 +65,10 @@ function SearchLayout() {
       minPrice: appliedMinPrice || undefined,
       maxPrice: appliedMaxPrice || undefined,
       rating: appliedRating || undefined,
-      sort,
+      sort: sort, // Pass sortStage to query
     },
     {
+      // Ensure query refetches when sort changes
       queryKey: [
         "products",
         {
@@ -95,18 +96,6 @@ function SearchLayout() {
     triggerOnce: true,
   });
 
-  // Sync state with URL changes
-  useEffect(() => {
-    setPage(parseInt(searchParams.get("page")) || 1);
-    setAppliedMinPrice(searchParams.get("minPrice") || "0");
-    setAppliedMaxPrice(searchParams.get("maxPrice") || "");
-    setAppliedRating(parseFloat(searchParams.get("rating")) || 0);
-    setSort(searchParams.get("sort") || "sold-desc");
-    setTempMinPrice(searchParams.get("minPrice") || "0");
-    setTempMaxPrice(searchParams.get("maxPrice") || "");
-    setTempRating(parseFloat(searchParams.get("rating")) || 0);
-  }, [searchParams]);
-
   // Scroll to top when page changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
@@ -114,23 +103,15 @@ function SearchLayout() {
 
   // Update URL with query parameters
   const updateQueryParams = (newParams) => {
-    const newSearchParams = new URLSearchParams(searchParams);
+    const newQuery = new URLSearchParams(location.search);
     Object.entries(newParams).forEach(([key, value]) => {
       if (value || value === 0) {
-        newSearchParams.set(key, value);
+        newQuery.set(key, value);
       } else {
-        newSearchParams.delete(key);
+        newQuery.delete(key);
       }
     });
-    setSearchParams(newSearchParams, { replace: true });
-  };
-
-  // Create a function to generate category link with preserved query params
-  const getCategoryLink = (slug) => {
-    const newSearchParams = new URLSearchParams(searchParams);
-    newSearchParams.set("category", slug);
-    newSearchParams.set("page", "1"); // Reset to page 1 when category changes
-    return `/search?${newSearchParams.toString()}`;
+    navigate(`${location.pathname}?${newQuery.toString()}`, { replace: true });
   };
 
   // Handle page change
@@ -142,7 +123,7 @@ function SearchLayout() {
   // Handle sort change
   const handleSortChange = (sortValue) => {
     setSort(sortValue);
-    setPage(1);
+    setPage(1); // Reset to page 1 when sorting changes
     updateQueryParams({ sort: sortValue, page: 1 });
   };
 
@@ -204,12 +185,11 @@ function SearchLayout() {
       <ToastContainer />
       <Container>
         <Box py={2}>
-          <Grid2 container spacing={1.5}>
+          <Grid2 container spacing={3}>
             <Grid2 size={2}>
               <Box>
                 <Typography
-                  component={Link}
-                  to="/search"
+                  onClick={() => (window.location.href = "/search")}
                   variant="h5"
                   sx={{
                     cursor: "pointer",
@@ -217,7 +197,6 @@ function SearchLayout() {
                     display: "flex",
                     alignItems: "center",
                     gap: 1,
-                    textDecoration: "none",
                   }}
                 >
                   <MenuIcon />
@@ -229,22 +208,22 @@ function SearchLayout() {
                     <>
                       {refCategories.parents?.map((parent) => (
                         <Link
-                          to={getCategoryLink(parent.slug)}
+                          key={parent._id}
+                          href={`search?category=${parent.slug}`}
                           style={{
                             textDecoration: "none",
-                            color: "#333333",
+                            color: "#333333", // tương đương text.primary
                           }}
-                          key={parent._id}
                         >
                           <Typography
-                            sx={{
+                            variant="body2"
+                            style={{
                               display: "-webkit-box",
                               WebkitBoxOrient: "vertical",
                               overflow: "hidden",
                               WebkitLineClamp: 1,
                               textOverflow: "ellipsis",
                             }}
-                            variant="body2"
                           >
                             {parent.name}
                           </Typography>
@@ -253,12 +232,13 @@ function SearchLayout() {
                       {refCategories.current && (
                         <Link
                           key={refCategories.current._id}
-                          to={getCategoryLink(refCategories.current.slug)}
-                          style={{
+                          sx={{
                             textDecoration: "none",
                             color: "text.primary",
                             fontWeight: "bold",
+                            pl: 2,
                           }}
+                          href={`search?category=${refCategories.current.slug}`}
                         >
                           <Typography
                             sx={{
@@ -267,7 +247,6 @@ function SearchLayout() {
                               overflow: "hidden",
                               WebkitLineClamp: 1,
                               textOverflow: "ellipsis",
-                              pl: 2,
                             }}
                             variant="body2"
                           >
@@ -279,11 +258,12 @@ function SearchLayout() {
                         refCategories.children.map((child) => (
                           <Link
                             key={child._id}
-                            to={getCategoryLink(child.slug)}
-                            style={{
+                            sx={{
                               textDecoration: "none",
                               color: "text.primary",
+                              pl: 4,
                             }}
+                            href={`search?category=${child.slug}`}
                           >
                             <Typography
                               sx={{
@@ -291,7 +271,6 @@ function SearchLayout() {
                                 WebkitBoxOrient: "vertical",
                                 overflow: "hidden",
                                 WebkitLineClamp: 1,
-                                pl: 4,
                               }}
                               variant="body2"
                             >
@@ -305,11 +284,8 @@ function SearchLayout() {
                       {level1?.map((cat) => (
                         <Link
                           key={cat._id}
-                          to={getCategoryLink(cat.slug)}
-                          style={{
-                            textDecoration: "none",
-                            color: "text.primary",
-                          }}
+                          sx={{ textDecoration: "none", color: "text.primary" }}
+                          href={`search?category=${cat.slug}`}
                         >
                           <Typography
                             sx={{
@@ -393,10 +369,10 @@ function SearchLayout() {
                         }}
                         placeholder="Max"
                         type="number"
-                        value={tempMaxPrice || ""}
+                        value={tempMaxPrice || 0}
                         onChange={handleMaxPriceChange}
                       />
-                      {tempMaxPrice && (
+                      {
                         <Typography
                           maxWidth={"100px"}
                           variant="body2"
@@ -410,7 +386,7 @@ function SearchLayout() {
                         >
                           {new Intl.NumberFormat("vi-VN").format(tempMaxPrice)}đ
                         </Typography>
-                      )}
+                      }
                     </Box>
                   </Box>
                 </Box>
@@ -573,7 +549,7 @@ function SearchLayout() {
                     flashSaleInView ? (
                       <Grid2
                         key={item._id}
-                        size={{ xs: 12, sm: 6, md: 4, lg: 3, xl: 2.4 }}
+                        size={{ xs: 12, sm: 6, md: 4, lg: 2.4, xl: 2.4 }}
                       >
                         <Suspense
                           fallback={
