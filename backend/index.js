@@ -38,6 +38,10 @@ app.use(session(sessionOptions));
 passportMiddleware(app);
 // Sau đó mới xử lý body-parser cho các routes khác
 app.use(express.json({ limit: "50mb" }));
+
+app.get("/", (req, res) => {
+  res.send("Chào bạn đến với FE P store");
+});
 // Các routes khác
 app.use("/v1/api", APIS_V1);
 app.use(errorHandlingMiddleware);
