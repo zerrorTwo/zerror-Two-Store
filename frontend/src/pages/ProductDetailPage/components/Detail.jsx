@@ -114,7 +114,14 @@ function Detail({ data, quantity, setQuantity }) {
       }
     } catch (error) {
       console.error("Add to Cart Error:", error);
-      toast.error(error?.data?.message || "An unexpected error occurred.");
+      if (
+        error?.status === 401 &&
+        error?.data?.message === "Not found userId"
+      ) {
+        toast.warning("Bạn chưa đăng nhập!!");
+      } else {
+        toast.error(error?.data?.message || "An unexpected error occurred.");
+      }
     }
   };
 
