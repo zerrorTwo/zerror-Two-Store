@@ -1,6 +1,6 @@
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import asyncHandeler from "../middlewares/async.handler.js";
+import asyncHandler from "../middlewares/async.handler.js";
 import { HEADER, COOKIE } from "../constants/header.constants.js";
 import ApiError from "../utils/api.error.js";
 import { StatusCodes } from "http-status-codes";
@@ -40,7 +40,7 @@ const generateToken = async (payload, privateKey, publicKey) => {
   }
 };
 
-const authenticationRefresh = asyncHandeler(async (req, res, next) => {
+const authenticationRefresh = asyncHandler(async (req, res, next) => {
   const userId = req.headers[HEADER.CLIENT_ID];
 
   if (!userId) {
@@ -69,7 +69,7 @@ const authenticationRefresh = asyncHandeler(async (req, res, next) => {
   }
 });
 
-const authentication = asyncHandeler(async (req, res, next) => {
+const authentication = asyncHandler(async (req, res, next) => {
   const userId = req.headers[HEADER.CLIENT_ID];
 
   if (!userId) {
@@ -122,7 +122,7 @@ const authentication = asyncHandeler(async (req, res, next) => {
   }
 });
 
-const authorization = asyncHandeler(async (req, res, next) => {
+const authorization = asyncHandler(async (req, res, next) => {
   try {
     const bearerAccessToken = req.headers[HEADER.AUTHORIZATION];
     const accessToken = bearerAccessToken?.split(" ")[1];
