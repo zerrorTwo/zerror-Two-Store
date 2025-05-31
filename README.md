@@ -169,4 +169,4 @@ P Store là nền tảng thương mại điện tử trực tuyến đầy đủ
 Số thẻ: 9704000000000018  
 Ngày hết hạn: 03/07  
 Tên chủ thẻ: NGUYEN VAN A  
-OTP: Tạo OTP khi thử nghiệm qua MoMo
+OTP: OTP
