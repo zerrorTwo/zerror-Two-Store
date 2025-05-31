@@ -5,7 +5,7 @@ import { useTheme } from "@mui/material/styles";
 import Typography from "@mui/material/Typography";
 import Breadcrumbs from "@mui/material/Breadcrumbs";
 import NavigateNextIcon from "@mui/icons-material/NavigateNext";
-import { useState, Suspense, lazy, useEffect } from "react";
+import { useState, Suspense, useEffect, lazy } from "react";
 import {
   useGetProductBySlugQuery,
   useGetTopSoldQuery,
@@ -41,6 +41,13 @@ function ProductDetail() {
 
   const [quantity, setQuantity] = useState(1);
   const [value, setValue] = useState(0);
+
+  // Reset state and scroll when slug changes
+  useEffect(() => {
+    setValue(0); // Reset tab to "Specifications"
+    setQuantity(1); // Reset quantity to 1
+    window.scrollTo({ top: 0, behavior: "instant" }); // Scroll to top
+  }, [slug]);
 
   useEffect(() => {
     if (data) {
@@ -100,15 +107,15 @@ function ProductDetail() {
         <Link
           key={item.id}
           href={linkTo}
-          underline="none" // Bỏ gạch chân mặc định
+          underline="none"
           sx={{
-            color: isProduct ? "text.primary" : "primary.main", // Mục cuối đậm hơn, các mục khác dùng màu chính
-            fontWeight: isProduct ? "bold" : "normal", // Mục cuối in đậm
+            color: isProduct ? "text.primary" : "primary.main",
+            fontWeight: isProduct ? "bold" : "normal",
             "&:hover": {
-              color: isProduct ? "text.primary" : "primary.dark", // Hover đổi màu nhẹ, trừ mục cuối
-              textDecoration: !isProduct ? "underline" : "none", // Chỉ gạch chân khi hover các mục không phải sản phẩm
+              color: isProduct ? "text.primary" : "primary.dark",
+              textDecoration: !isProduct ? "underline" : "none",
             },
-            transition: "color 0.2s ease-in-out", // Hiệu ứng chuyển màu mượt mà
+            transition: "color 0.2s ease-in-out",
           }}
         >
           {truncateName(item.name)}

@@ -1,6 +1,6 @@
 import { Box, Breadcrumbs, Typography } from "@mui/material";
 import PropTypes from "prop-types";
-import Link from "@mui/material/Link";
+import { Link } from "react-router-dom";
 
 function Specification({ handleClick, breadcrumb }) {
   return (
@@ -28,10 +28,13 @@ function Specification({ handleClick, breadcrumb }) {
                       </Typography>
                     ) : (
                       <Link
+                        style={{
+                          textDecoration: "underline",
+                          color: "#0055aa",
+                          cursor: "pointer",
+                        }}
+                        to={`/search?page=1&limit=30&category=${item.slug}`}
                         key={item.slug}
-                        underline="hover"
-                        color="#05a"
-                        href={`/search?page=1&limit=30&category=${item.slug}`}
                         onClick={handleClick}
                       >
                         {item.name}

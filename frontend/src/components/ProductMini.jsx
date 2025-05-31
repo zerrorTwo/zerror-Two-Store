@@ -26,7 +26,7 @@ function ProductMini({ item, loading = false }) {
         }}
       >
         <Link
-          onClick={() => (window.location.href = `/products/${item?.slug}`)}
+          to={`/products/${item?.slug}`}
           style={{
             textDecoration: "none", // Remove underline from Link
             width: "100%",
