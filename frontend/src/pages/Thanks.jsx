@@ -2,7 +2,7 @@ import Box from "@mui/material/Box";
 import CardMedia from "@mui/material/CardMedia";
 import Container from "@mui/material/Container";
 import Typography from "@mui/material/Typography";
-import { Link } from "react-router";
+import { Link } from "react-router-dom";
 
 function Thanks() {
   return (
