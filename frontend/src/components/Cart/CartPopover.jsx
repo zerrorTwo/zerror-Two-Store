@@ -1,7 +1,7 @@
-import  Box  from "@mui/material/Box";
-import  CardMedia  from "@mui/material/CardMedia";
-import  Paper  from "@mui/material/Paper";
-import  Typography  from "@mui/material/Typography";
+import Box from "@mui/material/Box";
+import CardMedia from "@mui/material/CardMedia";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
 import PropTypes from "prop-types";
 import CartPopoverItem from "./CartPopoverItem";
 import { Link } from "react-router-dom";
