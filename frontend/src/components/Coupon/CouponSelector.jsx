@@ -30,8 +30,50 @@ function CouponSelector({
 
   return (
     <>
-      {" "}
-      {disabled === false && (
+      {disabled ? (
+        // Khi disabled là true, chỉ hiển thị các coupon đã chọn (nếu có)
+        activeCoupons.length > 0 && (
+          <Box
+            sx={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 1,
+              my: 1,
+            }}
+          >
+            {activeCoupons.map((coupon) => (
+              <Chip
+                key={coupon._id}
+                label={coupon.code}
+                size="small"
+                sx={{
+                  bgcolor:
+                    coupon.target_type === "PRODUCT"
+                      ? "rgba(255, 0, 127, 0.1)"
+                      : coupon.target_type === "FREESHIPPING"
+                      ? "rgba(0, 127, 255, 0.1)"
+                      : "rgba(255, 127, 0, 0.1)",
+                  color:
+                    coupon.target_type === "PRODUCT"
+                      ? "error.main"
+                      : coupon.target_type === "FREESHIPPING"
+                      ? "info.dark"
+                      : "warning.main",
+                  borderColor:
+                    coupon.target_type === "PRODUCT"
+                      ? "error.main"
+                      : coupon.target_type === "FREESHIPPING"
+                      ? "info.dark"
+                      : "warning.main",
+                  borderWidth: 1,
+                  borderStyle: "solid",
+                }}
+              />
+            ))}
+          </Box>
+        )
+      ) : (
+        // Khi disabled là false, hiển thị toàn bộ giao diện
         <>
           <Box
             display="flex"
@@ -46,9 +88,8 @@ function CouponSelector({
               variant="body2"
               color="primary.main"
               sx={{
-                cursor: disabled ? "default" : "pointer",
+                cursor: "pointer",
                 textDecoration: "underline",
-                display: disabled ? "none" : "inline",
               }}
               onClick={handleCouponPopoverOpen}
             >
@@ -106,13 +147,12 @@ function CouponSelector({
               </Typography>
             )}
           </Box>
-
           <CouponPopover
             anchorEl={couponAnchorEl}
             onClose={handleCouponPopoverClose}
             selectedCoupons={selectedCoupons}
             setSelectedCoupons={setSelectedCoupons}
-            checkedTotalPrice={checkedTotalPrice} // Truyền thêm prop này
+            checkedTotalPrice={checkedTotalPrice}
             availableCoupons={availableCoupons}
             isLoadingCoupons={isLoadingCoupons}
           />
@@ -126,7 +166,7 @@ CouponSelector.propTypes = {
   selectedCoupons: PropTypes.object,
   setSelectedCoupons: PropTypes.func.isRequired,
   disabled: PropTypes.bool,
-  checkedTotalPrice: PropTypes.number, // Thêm propType
+  checkedTotalPrice: PropTypes.number,
 };
 
 export default CouponSelector;
