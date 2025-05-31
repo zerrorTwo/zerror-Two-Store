@@ -112,3 +112,61 @@ Dưới đây là một số ảnh chụp màn hình thể hiện các tính nă
 - **Search**: ![Tìm kiếm](./docs/images/search.png)
 
 ## **5. Triển khai dự án**
+
+P Store là nền tảng thương mại điện tử trực tuyến đầy đủ chức năng, tập trung vào các **sản phẩm bền vững** và **thân thiện với môi trường**. Dưới đây là thông tin chi tiết về các thành phần triển khai của hệ thống.
+
+---
+
+## 🔗 Link Triển Khai
+
+- **Frontend:** [https://zerror-two-store-by95.vercel.app](https://zerror-two-store-by95.vercel.app)
+- **Backend API:** [https://zerror-two-store.onrender.com](https://zerror-two-store.onrender.com)
+
+---
+
+## 🧩 Thành Phần Hệ Thống
+
+### 📱 Frontend: P Store UI
+
+- Sử dụng **React** để xây dựng giao diện người dùng thân thiện, tối ưu cho trải nghiệm mua sắm.
+- Triển khai trên **Vercel**, đảm bảo:
+  - Tốc độ tải nhanh.
+  - Tương thích tốt trên mọi thiết bị.
+  - Tự động triển khai và mở rộng linh hoạt.
+
+### 🔧 Backend: P Store API
+
+- Phát triển bằng **Node.js/Express**.
+- Cung cấp các API endpoint để:
+  - Xác thực người dùng.
+  - Quản lý sản phẩm, giỏ hàng, đơn hàng.
+  - Tích hợp thanh toán.
+- Triển khai trên **Render** giúp quản lý hiệu quả và tích hợp liền mạch với frontend.
+
+### 🗄️ Cơ Sở Dữ Liệu: MongoDB Atlas
+
+- Dữ liệu người dùng, sản phẩm, đơn hàng... được lưu trữ trong **MongoDB Atlas**.
+- Đảm bảo:
+  - Độ tin cậy cao.
+  - Bảo mật dữ liệu.
+  - Khả năng mở rộng linh hoạt theo nhu cầu thực tế.
+
+---
+
+## 🚀 Hướng Dẫn Truy Cập
+
+- **Frontend**: Truy cập giao diện người dùng để duyệt sản phẩm, thêm vào giỏ hàng và thanh toán.
+- **Backend API**: Khám phá các endpoint API hoặc tích hợp với ứng dụng khác (liên hệ đội ngũ phát triển để nhận tài liệu chi tiết nếu cần).
+- **Nhà phát triển**: Có thể kiểm tra cấu trúc dữ liệu thông qua các endpoint kết nối với MongoDB Atlas.
+
+---
+
+## ⚠️ Lưu Ý
+
+- Đây là **phiên bản thử nghiệm**. Vui lòng gửi phản hồi nếu gặp sự cố hoặc có đề xuất cải thiện.
+- Để **thử nghiệm thanh toán**, bạn có thể sử dụng thông tin thẻ mẫu sau:
+
+Số thẻ: 9704000000000018  
+Ngày hết hạn: 03/07  
+Tên chủ thẻ: NGUYEN VAN A  
+OTP: Tạo OTP khi thử nghiệm qua MoMo
