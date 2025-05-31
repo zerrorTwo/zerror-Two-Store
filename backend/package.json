@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon index.js"
+    "dev": "cross-env BUILD_MODE=dev nodemon index.js"
   },
   "keywords": [],
   "author": "",
@@ -41,5 +41,8 @@
     "passport-google-oauth20": "^2.0.0",
     "passport-google-oidc": "^0.1.0",
     "slugify": "^1.6.6"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
   }
 }
