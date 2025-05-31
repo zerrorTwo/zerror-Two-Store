@@ -19,7 +19,7 @@ import { useDispatch } from "react-redux";
 import { setCredentials } from "../../redux/features/auth/authSlice";
 import { useLoginMutation } from "../../redux/api/authApiSlice";
 import ButtonWithIcon from "../../components/ButtonWIthIcon.jsx";
-import { IconButton, InputAdornment, Tooltip } from "@mui/material";
+import { IconButton, InputAdornment } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Visibility from "@mui/icons-material/Visibility";
 import VisibilityOff from "@mui/icons-material/VisibilityOff";
@@ -40,7 +40,7 @@ function Login() {
     const logout = urlParams.get("logout");
     const error = urlParams.get("error");
     const accessToken = urlParams.get("accessToken");
-    const userEncoded = urlParams.get("user"); // Get the encoded user string
+    const userEncoded = urlParams.get("user");
 
     if (logout) {
       toast.error("Your session has expired, please login again!");
@@ -51,8 +51,8 @@ function Login() {
     }
     if (accessToken && userEncoded) {
       try {
-        const userString = decodeURIComponent(userEncoded); // Decode the URL-encoded string
-        const parsedUser = JSON.parse(userString); // Parse the JSON string
+        const userString = decodeURIComponent(userEncoded);
+        const parsedUser = JSON.parse(userString);
         dispatch(
           setCredentials({
             user: parsedUser,
@@ -105,13 +105,32 @@ function Login() {
     >
       <Container maxWidth="sm">
         <Box sx={{ position: "absolute", top: 16, left: 16 }}>
-          <Tooltip title="Back to home">
-            <IconButton onClick={() => navigate("/")}>
-              <ArrowBackIcon />
-            </IconButton>
-          </Tooltip>
+          <IconButton onClick={() => navigate("/")}>
+            <ArrowBackIcon />
+          </IconButton>
         </Box>
-        <Paper elevation={10} sx={{ p: 3, borderRadius: 4 }}>
+        <Paper
+          elevation={10}
+          sx={{ p: 3, borderRadius: 4, position: "relative" }}
+        >
+          {/* Hint Box in the top-right corner */}
+          <Box
+            sx={{
+              position: "absolute",
+              top: 16,
+              right: 16,
+              bgcolor: theme.palette.primary.main,
+              color: theme.palette.common.white,
+              borderRadius: 2,
+              p: 1,
+              textAlign: "center",
+              boxShadow: "0 2px 4px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            <Typography variant="body1">Test account admin</Typography>
+            <Typography variant="body2">admin@gmail.com</Typography>
+            <Typography variant="body2">admin123</Typography>
+          </Box>
           <Box
             sx={{
               display: "flex",
