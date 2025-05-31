@@ -11,7 +11,7 @@ import {
   useGetTopSoldQuery,
   useGetProductWithBreadcrumbByIdQuery,
 } from "../../redux/api/productSlice";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import ProductDetailCarousel from "../../components/Carousel/ProductDetailCarousel";
 import Detail from "./components/Detail";
 import CustomTabPanel from "../../components/CustomTabPanel";
@@ -19,7 +19,7 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import a11yProps from "../../../utils/a11yProps";
 import FlashSale from "../../components/Carousel/FlashSale";
-import { Grid2, Link } from "@mui/material";
+import { Grid2 } from "@mui/material";
 import { useDispatch } from "react-redux";
 import { addRecentProduct } from "../../redux/features/recentProductSlice";
 
@@ -106,16 +106,23 @@ function ProductDetail() {
       return (
         <Link
           key={item.id}
-          href={linkTo}
+          to={linkTo}
           underline="none"
-          sx={{
-            color: isProduct ? "text.primary" : "primary.main",
+          style={{
+            color: isProduct ? "#333333" : "#C94A00", // text.primary / primary.main
             fontWeight: isProduct ? "bold" : "normal",
-            "&:hover": {
-              color: isProduct ? "text.primary" : "primary.dark",
-              textDecoration: !isProduct ? "underline" : "none",
-            },
+            textDecoration: "none",
             transition: "color 0.2s ease-in-out",
+          }}
+          onMouseEnter={(e) => {
+            if (!isProduct) {
+              e.target.style.color = "#A33C00"; // primary.dark
+              e.target.style.textDecoration = "underline";
+            }
+          }}
+          onMouseLeave={(e) => {
+            e.target.style.color = isProduct ? "#333333" : "#C94A00";
+            e.target.style.textDecoration = "none";
           }}
         >
           {truncateName(item.name)}
