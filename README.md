@@ -100,8 +100,6 @@
 Dưới đây là một số ảnh chụp màn hình thể hiện các tính năng chính của P Store:
 
 - **Architecture**: ![Kiến trúc hệ thống](./docs/images/Architecture.jpg)
-- **Docs**: ![Tài liệu](./docs/images/docs.jpg)
-- **Architecture Image**: ![Hình ảnh kiến trúc](./docs/images/Architecture.jpg)
 - **Cart**: ![Giỏ hàng](./docs/images/cart.png)
 - **Checkout**: ![Thanh toán](./docs/images/checkout.png)
 - **Home**: ![Trang chủ](./docs/images/home.png)
@@ -112,7 +110,5 @@ Dưới đây là một số ảnh chụp màn hình thể hiện các tính nă
 - **Manage**: ![Quản lý](./docs/images/manage.png)
 - **Product**: ![Sản phẩm](./docs/images/product.png)
 - **Search**: ![Tìm kiếm](./docs/images/search.png)
-
-_Lưu ý_: Đảm bảo các file hình ảnh được đặt trong thư mục `docs/images/` trong repository để hiển thị đúng trên GitHub.
 
 ## **5. Triển khai dự án**
