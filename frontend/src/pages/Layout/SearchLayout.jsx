@@ -1,3 +1,10 @@
+import { useEffect, useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useGetPageProductQuery } from "../../redux/api/productSlice";
+import { useGetCommonCategoryQuery } from "../../redux/api/categorySlice";
+import { useInView } from "react-intersection-observer";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
 import Button from "@mui/material/Button";
@@ -9,15 +16,9 @@ import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Typography from "@mui/material/Typography";
 import MenuIcon from "@mui/icons-material/Menu";
-import CircularProgress from "@mui/material/CircularProgress"; // Import CircularProgress
-import { lazy, Suspense, useState, useEffect } from "react";
-import { useGetPageProductQuery } from "../../redux/api/productSlice";
-import { useInView } from "react-intersection-observer";
+import CircularProgress from "@mui/material/CircularProgress";
 import { CardMedia, Grid2, Pagination } from "@mui/material";
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { useGetCommonCategoryQuery } from "../../redux/api/categorySlice";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { lazy, Suspense } from "react";
 
 const ProductMini = lazy(() => import("../../components/ProductMini"));
 
@@ -29,8 +30,8 @@ function SearchLayout() {
   // State for query parameters
   const [page, setPage] = useState(parseInt(query.get("page")) || 1);
   const [limit] = useState(parseInt(query.get("limit")) || 30);
-  const [category] = useState(query.get("category") || "");
-  const [search] = useState(query.get("name") || "");
+  const [category, setCategory] = useState(query.get("category") || "");
+  const [search, setSearch] = useState(query.get("name") || "");
   const [appliedMinPrice, setAppliedMinPrice] = useState(
     query.get("minPrice") || "0"
   );
@@ -40,7 +41,7 @@ function SearchLayout() {
   const [appliedRating, setAppliedRating] = useState(
     parseFloat(query.get("rating")) || 0
   );
-  const [sort, setSort] = useState(query.get("sort") || "sold-desc"); // Default to "sold-desc" (Popular)
+  const [sort, setSort] = useState(query.get("sort") || "sold-desc");
 
   // Temporary state for filters
   const [tempMinPrice, setTempMinPrice] = useState(
@@ -51,39 +52,36 @@ function SearchLayout() {
     parseFloat(query.get("rating")) || 0
   );
 
-  // Fetch product data with sort parameter
+  // Sync state with URL query parameters
+  useEffect(() => {
+    const newQuery = new URLSearchParams(location.search);
+    setPage(parseInt(newQuery.get("page")) || 1);
+    setCategory(newQuery.get("category") || "");
+    setSearch(newQuery.get("name") || "");
+    setAppliedMinPrice(newQuery.get("minPrice") || "0");
+    setAppliedMaxPrice(newQuery.get("maxPrice") || "");
+    setAppliedRating(parseFloat(newQuery.get("rating")) || 0);
+    setSort(newQuery.get("sort") || "sold-desc");
+    setTempMinPrice(newQuery.get("minPrice") || "0");
+    setTempMaxPrice(newQuery.get("maxPrice") || "");
+    setTempRating(parseFloat(newQuery.get("rating")) || 0);
+  }, [location.search]);
+
+  // Fetch product data
   const {
     data: { products: listProducts = [], totalPages = 0, refCategories } = {},
     error: listError,
     isLoading: listLoading,
-  } = useGetPageProductQuery(
-    {
-      page,
-      limit,
-      category,
-      search,
-      minPrice: appliedMinPrice || undefined,
-      maxPrice: appliedMaxPrice || undefined,
-      rating: appliedRating || undefined,
-      sort: sort, // Pass sortStage to query
-    },
-    {
-      // Ensure query refetches when sort changes
-      queryKey: [
-        "products",
-        {
-          page,
-          limit,
-          category,
-          search,
-          minPrice: appliedMinPrice,
-          maxPrice: appliedMaxPrice,
-          rating: appliedRating,
-          sort,
-        },
-      ],
-    }
-  );
+  } = useGetPageProductQuery({
+    page,
+    limit,
+    category,
+    search,
+    minPrice: appliedMinPrice || undefined,
+    maxPrice: appliedMaxPrice || undefined,
+    rating: appliedRating || undefined,
+    sort,
+  });
 
   // Fetch level 1 categories when no category is selected
   const { data: level1 = [] } = useGetCommonCategoryQuery(undefined, {
@@ -123,7 +121,7 @@ function SearchLayout() {
   // Handle sort change
   const handleSortChange = (sortValue) => {
     setSort(sortValue);
-    setPage(1); // Reset to page 1 when sorting changes
+    setPage(1);
     updateQueryParams({ sort: sortValue, page: 1 });
   };
 
@@ -211,7 +209,7 @@ function SearchLayout() {
                           to={`/search?category=${parent.slug}`}
                           style={{
                             textDecoration: "none",
-                            color: "#333333", // tương đương text.primary
+                            color: "#333333",
                           }}
                         >
                           <Typography
@@ -236,7 +234,7 @@ function SearchLayout() {
                           to={`/search?category=${refCategories.current.slug}`}
                           style={{
                             textDecoration: "none",
-                            color: "#C94A00", // tương đương text.primary
+                            color: "#C94A00",
                             fontWeight: "bold",
                           }}
                         >
@@ -260,8 +258,9 @@ function SearchLayout() {
                             key={child._id}
                             to={`/search?category=${child.slug}`}
                             style={{
+                              paddingLeft: "16px",
                               textDecoration: "none",
-                              color: "#333333", // tương đương text.primary
+                              color: "#333333",
                             }}
                           >
                             <Typography
@@ -271,7 +270,7 @@ function SearchLayout() {
                                 overflow: "hidden",
                                 WebkitLineClamp: 1,
                                 textDecoration: "none",
-                                color: "#333333", // tương đương text.primary
+                                color: "#333333",
                               }}
                               variant="body2"
                             >
@@ -288,7 +287,7 @@ function SearchLayout() {
                           to={`/search?category=${cat.slug}`}
                           style={{
                             textDecoration: "none",
-                            color: "#333333", // tương đương với text.primary
+                            color: "#333333",
                           }}
                         >
                           <Typography
@@ -299,7 +298,7 @@ function SearchLayout() {
                               WebkitLineClamp: 1,
                               textOverflow: "ellipsis",
                               textDecoration: "none",
-                              color: "#333333", // tương đương với text.primary
+                              color: "#333333",
                             }}
                             variant="body2"
                           >
@@ -375,10 +374,10 @@ function SearchLayout() {
                         }}
                         placeholder="Max"
                         type="number"
-                        value={tempMaxPrice || 0}
+                        value={tempMaxPrice || ""}
                         onChange={handleMaxPriceChange}
                       />
-                      {
+                      {tempMaxPrice && (
                         <Typography
                           maxWidth={"100px"}
                           variant="body2"
@@ -392,7 +391,7 @@ function SearchLayout() {
                         >
                           {new Intl.NumberFormat("vi-VN").format(tempMaxPrice)}đ
                         </Typography>
-                      }
+                      )}
                     </Box>
                   </Box>
                 </Box>
@@ -410,7 +409,7 @@ function SearchLayout() {
                     <Rating
                       name="half-rating"
                       value={tempRating}
-                      onChange={(e, newValue) => setTempRating(newValue)}
+                      onChange={(e, newValue) => setTempRating(newValue || 0)}
                       precision={0.5}
                     />
                   </Box>

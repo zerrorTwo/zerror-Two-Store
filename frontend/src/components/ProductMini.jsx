@@ -122,7 +122,7 @@ function ProductMini({ item, loading = false }) {
                   <Rating
                     size="small"
                     name="read-only"
-                    value={5}
+                    value={item?.rating}
                     readOnly
                     sx={{
                       "& .MuiRating-icon": { fontSize: "15px" },
