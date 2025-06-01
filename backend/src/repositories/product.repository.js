@@ -236,7 +236,7 @@ const getPageProducts = async (
   try {
     // Validate input parameters
     page = Math.max(1, parseInt(page));
-    limit = Math.max(1, Math.min(30, parseInt(limit)));
+    limit = Math.max(1, Math.min(100, parseInt(limit)));
     minPrice = minPrice ? parseFloat(minPrice) : undefined;
     maxPrice = maxPrice ? parseFloat(maxPrice) : undefined;
     rating = rating ? parseFloat(rating) : undefined;
@@ -486,6 +486,7 @@ const getTopSoldProducts = async () => {
         stock: 1,
         variations: 1,
         totalSold: 1,
+        rating: 1,
         type: {
           _id: "$typeInfo._id",
           name: "$typeInfo.name",
@@ -613,13 +614,12 @@ const getProductWithBreadcrumbById = async (productId) => {
   }
 };
 
-const getRandomPageProducts = async () => {
+const getRandomPageProducts = async (limit = 100) => {
   try {
-    const limit = 30; // Giới hạn cứng 30 sản phẩm
-
     const productsPipeline = [
-      // Chỉ lấy các sản phẩm có trạng thái là true
+      // Match products with status true
       { $match: { status: true } },
+      // Normalize pricing
       {
         $addFields: {
           normalizedPricing: {
@@ -637,6 +637,7 @@ const getRandomPageProducts = async () => {
           },
         },
       },
+      // Calculate minPrice and totalSold
       {
         $addFields: {
           minPrice: {
@@ -646,9 +647,35 @@ const getRandomPageProducts = async () => {
               "$price",
             ],
           },
+          totalSold: { $sum: { $ifNull: ["$normalizedPricing.sold", [0]] } },
+          totalStock: { $sum: { $ifNull: ["$normalizedPricing.stock", [0]] } },
         },
       },
-      { $sample: { size: limit } }, // Lấy ngẫu nhiên 30 sản phẩm
+      // Sample 30 random products
+      { $sample: { size: limit } },
+      // Lookup reviews to compute rating
+      {
+        $lookup: {
+          from: "reviews",
+          localField: "_id",
+          foreignField: "productId",
+          as: "reviews",
+        },
+      },
+      // Compute rating and numReviews
+      {
+        $addFields: {
+          rating: {
+            $cond: [
+              { $gt: [{ $size: "$reviews" }, 0] },
+              { $avg: "$reviews.rating" },
+              0, // Default rating if no reviews
+            ],
+          },
+          numReviews: { $size: "$reviews" },
+        },
+      },
+      // Lookup category information
       {
         $lookup: {
           from: "categories",
@@ -660,6 +687,7 @@ const getRandomPageProducts = async () => {
       {
         $unwind: { path: "$typeInfo", preserveNullAndEmptyArrays: true },
       },
+      // Project the desired fields
       {
         $project: {
           _id: 1,
@@ -685,7 +713,7 @@ const getRandomPageProducts = async () => {
     ];
 
     const products = await ProductModel.aggregate(productsPipeline).exec();
-    const totalProducts = products.length; // Số lượng sản phẩm thực tế lấy được
+    const totalProducts = products.length;
 
     return {
       limit,
@@ -697,7 +725,6 @@ const getRandomPageProducts = async () => {
     throw new Error("Failed to fetch random products");
   }
 };
-
 export const productRepository = {
   findProductByName,
   findCategoryBySlug,

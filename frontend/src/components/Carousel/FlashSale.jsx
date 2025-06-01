@@ -14,44 +14,14 @@ import ProductMini from "../ProductMini";
 import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
 import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
+import useCountdownTimer from "../../hooks/useCountdownTimer";
 
 function FlashSale({ listItem }) {
   const theme = useTheme();
-  const targetTime = new Date().getTime() + 3600 * 1000; // 1 hour from now
-
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-
-  // Calculate the time left
-  function calculateTimeLeft() {
-    const currentTime = new Date().getTime();
-    const difference = targetTime - currentTime;
-
-    let time = {};
-    if (difference > 0) {
-      time = {
-        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-        minutes: Math.floor((difference / (1000 * 60)) % 60),
-        seconds: Math.floor((difference / 1000) % 60),
-      };
-    } else {
-      time = { hours: 0, minutes: 0, seconds: 0 };
-    }
-    return time;
-  }
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft());
-    }, 1000);
-
-    return () => clearInterval(timer); // Clean up timer
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const timeLeft = useCountdownTimer();
 
   return (
     <Box>
-      {/* Box content */}
       <Box
         display={"flex"}
         alignItems={"center"}
@@ -62,10 +32,10 @@ function FlashSale({ listItem }) {
             sx={{
               backgroundImage:
                 "url(https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/flashsale/fb1088de81e42c4e5389.png)",
-              backgroundSize: "contain", // Đảm bảo ảnh bao phủ toàn bộ Box
-              backgroundPosition: "center", // Canh giữa ảnh
-              height: "30px", // Chiều cao Box (tùy chỉnh theo ý bạn)
-              width: "8.125rem", // Chiều rộng Box
+              backgroundSize: "contain",
+              backgroundPosition: "center",
+              height: "30px",
+              width: "8.125rem",
               backgroundRepeat: "no-repeat",
               display: "flex",
               justifyContent: "center",
@@ -80,7 +50,6 @@ function FlashSale({ listItem }) {
               fontSize: "1rem",
             }}
           >
-            {/* Hiển thị giờ */}
             <Typography
               sx={{
                 backgroundColor: "#FF424F",
@@ -89,9 +58,9 @@ function FlashSale({ listItem }) {
                 padding: "0 8px",
               }}
             >
-              {timeLeft.hours?.toString().padStart(2, "0") || "00"}
+              {timeLeft.hours.toString().padStart(2, "0")}
             </Typography>
-            :{/* Hiển thị phút */}
+            :
             <Typography
               sx={{
                 backgroundColor: "#FF424F",
@@ -100,9 +69,9 @@ function FlashSale({ listItem }) {
                 padding: "0 8px",
               }}
             >
-              {timeLeft.minutes?.toString().padStart(2, "0") || "00"}
+              {timeLeft.minutes.toString().padStart(2, "0")}
             </Typography>
-            :{/* Hiển thị giây */}
+            :
             <Typography
               sx={{
                 backgroundColor: "#FF424F",
@@ -111,33 +80,26 @@ function FlashSale({ listItem }) {
                 padding: "0 8px",
               }}
             >
-              {timeLeft.seconds?.toString().padStart(2, "0") || "00"}
+              {timeLeft.seconds.toString().padStart(2, "0")}
             </Typography>
           </Box>
         </Box>
 
         <Link
-          to="/"
+          to="/search"
           style={{
-            textDecoration: "none", // Remove underline from Link
-            color: theme.palette.secondary.main, // Set color text to primary color
+            textDecoration: "none",
+            color: theme.palette.secondary.main,
             display: "flex",
           }}
         >
-          <Typography
-            onClick={() => (window.location.href = "/search")}
-            variant="body1"
-          >
-            View All
-          </Typography>
-          <NavigateNextIcon sx={{ color: theme.palette.secondary.main }} />{" "}
-          {/* Icon for right arrow */}
+          <Typography variant="body1">View All</Typography>
+          <NavigateNextIcon sx={{ color: theme.palette.secondary.main }} />
         </Link>
       </Box>
 
       <Divider sx={{ my: 1 }} />
 
-      {/* Box carousel */}
       <Box overflow={"visible"} position={"relative"} pr={"12.5px"}>
         <Swiper
           navigation={{
@@ -153,9 +115,9 @@ function FlashSale({ listItem }) {
           spaceBetween={12.5}
           slidesPerGroup={6}
           breakpoints={{
-            0: { slidesPerView: 3, slidesPerGroup: 3 }, // XS (màn hình nhỏ)
-            640: { slidesPerView: 4, slidesPerGroup: 4 }, // Small screen (default config)
-            1024: { slidesPerView: 6, slidesPerGroup: 6 }, // Large screen config
+            0: { slidesPerView: 3, slidesPerGroup: 3 },
+            640: { slidesPerView: 4, slidesPerGroup: 4 },
+            1024: { slidesPerView: 6, slidesPerGroup: 6 },
           }}
           style={{
             width: "100%",
@@ -167,7 +129,7 @@ function FlashSale({ listItem }) {
           }}
         >
           {listItem?.map((item, index) => (
-            <SwiperSlide key={index}>
+            <SwiperSlide key={item._id || index}>
               <ProductMini item={item} />
             </SwiperSlide>
           ))}
